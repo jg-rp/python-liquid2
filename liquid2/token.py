@@ -81,6 +81,7 @@ class Comment:
 class Output:
     start: int
     stop: int
+    wc: tuple[WhitespaceControl, WhitespaceControl]
     expression: list[Token]
     source: str
 
@@ -89,6 +90,7 @@ class Output:
 class Tag:
     start: int
     stop: int
+    wc: tuple[WhitespaceControl, WhitespaceControl]
     name: str
     expression: list[Token]
     source: str
@@ -98,8 +100,9 @@ class Tag:
 class Lines:
     start: int
     stop: int
+    wc: tuple[WhitespaceControl, WhitespaceControl]
     name: str
-    statements: list[Tag | Output | Comment | Error]
+    statements: list[Tag | Comment | Error]
     source: str
 
 
@@ -108,9 +111,6 @@ class TokenType(Enum):
 
     EOI = auto()
     ERROR = auto()
-
-    TAG_NAME = auto()
-    WC = auto()
 
     AND = auto()  # &&
     AND_WORD = auto()  # and

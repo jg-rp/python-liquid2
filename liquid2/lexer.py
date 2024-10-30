@@ -5,10 +5,8 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 from typing import Callable
-from typing import List
 from typing import Optional
 from typing import Pattern
-from typing import Tuple
 
 from .exceptions import LiquidSyntaxError
 from .token import EOI
@@ -40,6 +38,7 @@ RE_RAW = re.compile(
 
 
 RE_OUTPUT_END = re.compile(r"([+\-~]?)\}\}")
+RE_TAG_END = re.compile(r"([+\-~]?)%\}")
 RE_WHITESPACE_CONTROL = re.compile(r"[+\-~]")
 
 RE_TRUE = re.compile(r"\btrue\b")
@@ -79,7 +78,7 @@ WC_MAP = {
     "~": WhitespaceControl.TILDE,
 }
 
-StateFn = Callable[["Lexer"], Optional["StateFn"]]
+StateFn = Callable[[], Optional["StateFn"]]
 
 
 class Lexer:
@@ -88,6 +87,7 @@ class Lexer:
     __slots__ = (
         "query_tokens",
         "filter_depth",
+        "line_start",
         "line_statements",
         "markup",
         "markup_start",
@@ -97,29 +97,40 @@ class Lexer:
         "start",
         "tag_name",
         "tokens",
+        "wc",
+        "lex_single_quoted_string_inside_bracket_segment",
+        "lex_double_quoted_string_inside_bracket_segment",
+        "lex_single_quoted_string_inside_filter_expression",
+        "lex_double_quoted_string_inside_filter_expression",
+        "lex_single_quoted_string_inside_output_statement",
+        "lex_double_quoted_string_inside_output_statement",
+        "lex_single_quoted_string_inside_tag_expression",
+        "lex_double_quoted_string_inside_tag_expression",
+        "lex_single_quoted_string_inside_line_statement",
+        "lex_double_quoted_string_inside_line_statement",
     )
 
     def __init__(self, source: str) -> None:
         self.filter_depth = 0
         """Filter nesting level."""
 
-        self.paren_stack: List[int] = []
+        self.paren_stack: list[int] = []
         """A running count of parentheses for each, possibly nested, function call.
         
         If the stack is empty, we are not in a function call. Remember that
         function arguments can be arbitrarily nested in parentheses.
         """
 
-        self.markup: List[Markup] = []
+        self.markup: list[Markup] = []
         """Markup resulting from scanning a Liquid template."""
 
-        self.tokens: List[Token] = []
+        self.tokens: list[Token] = []
         """Tokens from the current expression."""
 
         self.line_statements: list[Tag | Comment | Error]
         """Markup resulting from scanning a sequence of line statements."""
 
-        self.query_tokens: List[Token] = []
+        self.query_tokens: list[Token] = []
         """Tokens from the current query."""
 
         self.start = 0
@@ -131,17 +142,64 @@ class Lexer:
         self.markup_start = -1
         """Pointer to the start of the current expression."""
 
+        self.line_start = -1
+        """Pointer to the start of the current line statement."""
+
+        self.wc: list[WhitespaceControl] = []
+        """Whitespace control for the current tag or output statement."""
+
         self.tag_name = ""
         """The name of the current tag."""
 
         self.source = source
         """The template source text being scanned."""
 
+        self.lex_single_quoted_string_inside_bracket_segment = self.lex_string_factory(
+            "'", self.lex_inside_bracketed_segment
+        )
+
+        self.lex_double_quoted_string_inside_bracket_segment = self.lex_string_factory(
+            '"', self.lex_inside_bracketed_segment
+        )
+
+        self.lex_single_quoted_string_inside_filter_expression = (
+            self.lex_string_factory("'", self.lex_inside_filter)
+        )
+
+        self.lex_double_quoted_string_inside_filter_expression = (
+            self.lex_string_factory('"', self.lex_inside_filter)
+        )
+
+        self.lex_single_quoted_string_inside_output_statement = self.lex_string_factory(
+            "'", self.lex_inside_output_statement
+        )
+
+        self.lex_double_quoted_string_inside_output_statement = self.lex_string_factory(
+            '"', self.lex_inside_output_statement
+        )
+
+        self.lex_single_quoted_string_inside_tag_expression = self.lex_string_factory(
+            "'", self.lex_inside_tag
+        )
+
+        self.lex_double_quoted_string_inside_tag_expression = self.lex_string_factory(
+            '"', self.lex_inside_tag
+        )
+        self.lex_single_quoted_string_inside_line_statement = self.lex_string_factory(
+            "'", self.lex_inside_line_statement
+        )
+
+        self.lex_double_quoted_string_inside_line_statement = self.lex_string_factory(
+            '"', self.lex_inside_line_statement
+        )
+
     def run(self) -> None:
         """Populate _self.tokens_."""
         state: Optional[StateFn] = self.lex_markup
         while state is not None:
-            state = state(self)
+            state = state()
+
+        # TODO: turn error token from self.tokens into a markup Error?
 
     def emit_token(self, t: TokenType) -> None:
         """Append a token of type _t_ to the output tokens list."""
@@ -275,8 +333,20 @@ class Lexer:
             wc_group = match.group(1)
             if wc_group:
                 self.pos += 1
-                # TODO: don't emit wc
-                self.emit_token(TokenType.WC)
+                self.wc.append(WC_MAP[wc_group])
+
+            self.pos += 2
+            return True
+        return False
+
+    def accept_end_tag(self) -> bool:
+        """Accepts the tag end sequence, possibly preceded by whitespace control."""
+        match = RE_TAG_END.match(self.source, self.pos)
+        if match:
+            wc_group = match.group(1)
+            if wc_group:
+                self.pos += 1
+                self.wc.append(WC_MAP[wc_group])
 
             self.pos += 2
             return True
@@ -341,22 +411,24 @@ class Lexer:
             return None
 
     def lex_inside_output_statement(self) -> StateFn | None:
-        if self.accept(RE_WHITESPACE_CONTROL):
-            self.emit_token(TokenType.WC)
+        if self.accept_match(RE_WHITESPACE_CONTROL):
+            self.wc.append(WC_MAP[self.source[self.start]])
+            self.ignore()
 
         while True:
             self.ignore_whitespace()
 
-            # TODO: end whitespace control
             if self.accept_end_output_statement():
                 self.markup.append(
                     Output(
                         self.markup_start,
                         self.pos,
+                        (self.wc[0], self.wc[1]),
                         self.tokens,
                         self.source,
                     )
                 )
+                self.wc = []
                 self.tokens = []
                 return self.lex_markup
 
@@ -435,19 +507,23 @@ class Lexer:
                 elif c == "=":
                     self.emit_token(TokenType.ASSIGN)
 
-                raise LiquidSyntaxError(f"unknown symbol '{c}'")
+            self.error(f"unknown symbol '{c}'")
+            return None
 
     def lex_inside_tag(self) -> StateFn | None:
-        if self.accept(RE_WHITESPACE_CONTROL):
-            self.emit_token(TokenType.WC)
+        if self.accept_match(RE_WHITESPACE_CONTROL):
+            self.wc.append(WC_MAP[self.source[self.start]])
+            self.ignore()
 
         self.ignore_whitespace()
 
-        if self.accept(RE_TAG_NAME):
+        if self.accept_match(RE_TAG_NAME):
             self.tag_name = self.source[self.start : self.pos]
+            self.ignore()
         else:
             c = self.next()
-            raise LiquidSyntaxError(f"expected a tag name, found {c!r}")
+            self.error(f"expected a tag name, found {c!r}")
+            return None
 
         if self.tag_name == "liquid":
             return self.lex_inside_liquid_tag
@@ -455,18 +531,19 @@ class Lexer:
         while True:
             self.ignore_whitespace()
 
-            # TODO:
-            # TODO: end whitespace control
             if self.accept_end_tag():
                 self.markup.append(
                     Tag(
                         self.markup_start,
                         self.pos,
+                        (self.wc[0], self.wc[1]),
                         self.tag_name,
                         self.tokens,
                         self.source,
                     )
                 )
+                self.wc = []
+                self.tag_name = ""
                 self.tokens = []
                 return self.lex_markup
 
@@ -545,38 +622,141 @@ class Lexer:
                 elif c == "=":
                     self.emit_token(TokenType.ASSIGN)
 
-                raise LiquidSyntaxError(f"unknown symbol '{c}'")
+            self.error(f"unknown symbol '{c}'")
+            return None
 
     def lex_inside_liquid_tag(self) -> StateFn | None:
         self.ignore_whitespace()
 
         if self.accept_end_tag():
-            # TODO: WC
             self.markup.append(
                 Lines(
                     self.markup_start,
                     self.pos,
+                    (self.wc[0], self.wc[1]),
                     "liquid",
                     self.line_statements,
                     self.source,
                 )
             )
 
+            self.wc = []
             self.tag_name = ""
             self.line_statements = []
             self.tokens = []
             return self.lex_markup
 
-        if self.accept(RE_TAG_NAME):
+        if self.accept_match(RE_TAG_NAME):
             self.tag_name = self.source[self.start : self.pos]
+            self.line_start = self.start
+            self.ignore()
         else:
             self.next()
-            raise LiquidSyntaxError("expected a tag name")
+            self.error("expected a tag name")
+            return None
 
         return self.lex_inside_line_statement
 
     def lex_inside_line_statement(self) -> StateFn | None:
-        raise NotImplementedError
+        while True:
+            self.ignore_line_space()
+
+            if self.accept_match(RE_TRUE):
+                self.emit_token(TokenType.TRUE)
+            elif self.accept_match(RE_FALSE):
+                self.emit_token(TokenType.FALSE)
+            elif self.accept_match(RE_AND):
+                self.emit_token(TokenType.AND_WORD)
+            elif self.accept_match(RE_OR):
+                self.emit_token(TokenType.OR_WORD)
+            elif self.accept_match(RE_IN):
+                self.emit_token(TokenType.IN)
+            elif self.accept_match(RE_NOT):
+                self.emit_token(TokenType.NOT_WORD)
+            elif self.accept_match(RE_CONTAINS):
+                self.emit_token(TokenType.CONTAINS)
+            elif self.accept_match(RE_NULL) or self.accept_match(RE_NIL):
+                self.emit_token(TokenType.NULL)
+            elif self.accept_match(RE_IF):
+                self.emit_token(TokenType.IF)
+            elif self.accept_match(RE_ELSE):
+                self.emit_token(TokenType.ELSE)
+            elif self.accept_match(RE_WITH):
+                self.emit_token(TokenType.WITH)
+            elif self.accept_match(RE_REQUIRED):
+                self.emit_token(TokenType.REQUIRED)
+            elif self.accept_match(RE_AS):
+                self.emit_token(TokenType.AS)
+            elif self.accept_match(RE_FOR):
+                self.emit_token(TokenType.FOR)
+            elif self.accept_match(RE_WORD):
+                peeked = self.peek()
+                if peeked == "." or peeked == "[":
+                    return self.lex_query_inside_line_statement
+                self.emit_token(TokenType.WORD)
+            elif self.accept_match(RE_FLOAT):
+                self.emit_token(TokenType.FLOAT)
+            elif self.accept_match(RE_INT):
+                self.emit_token(TokenType.INT)
+            elif self.accept(">="):
+                self.emit_token(TokenType.GE)
+            elif self.accept("<="):
+                self.emit_token(TokenType.LE)
+            elif self.accept("=="):
+                self.emit_token(TokenType.EQ)
+            elif self.accept("!=") or self.accept("<>"):
+                self.emit_token(TokenType.NOT_WORD)
+            elif self.accept(".."):
+                self.emit_token(TokenType.DOUBLE_DOT)
+            elif self.accept("||"):
+                self.emit_token(TokenType.DOUBLE_PIPE)
+            else:
+                c = self.next()
+
+                if c == "'":
+                    return self.lex_single_quoted_string_inside_line_statement
+
+                if c == '"':
+                    return self.lex_double_quoted_string_inside_line_statement
+
+                if c == "(":
+                    self.emit_token(TokenType.LPAREN)
+                elif c == ")":
+                    self.emit_token(TokenType.RPAREN)
+                elif c == "<":
+                    self.emit_token(TokenType.LT)
+                elif c == ">":
+                    self.emit_token(TokenType.GT)
+                elif c == ":":
+                    self.emit_token(TokenType.COLON)
+                elif c == ",":
+                    self.emit_token(TokenType.COMMA)
+                elif c == "|":
+                    self.emit_token(TokenType.PIPE)
+                elif c == "=":
+                    self.emit_token(TokenType.ASSIGN)
+                elif c == "\r":
+                    self.ignore()  # TODO:
+                elif c == "\n":
+                    self.ignore()
+                    self.line_statements.append(
+                        Tag(
+                            self.line_start,
+                            self.pos,
+                            (WhitespaceControl.DEFAULT, WhitespaceControl.DEFAULT),
+                            self.tag_name,
+                            self.tokens,
+                            self.source,
+                        )
+                    )
+                    self.tag_name = ""
+                    self.tokens = []
+                    return self.lex_inside_liquid_tag
+
+                # TODO: line comment
+
+            self.error(f"unknown symbol '{c}'")
+            return None
 
     def lex_root(self) -> Optional[StateFn]:  # noqa: D103
         c = self.next()
@@ -585,7 +765,7 @@ class Lexer:
             self.error(f"expected '$', found {c!r}")
             return None
 
-        self.emit(TokenType.ROOT)
+        self.emit_query_token(TokenType.ROOT)
         return self.lex_segment
 
     def lex_segment(self) -> Optional[StateFn]:  # noqa: D103, PLR0911
@@ -596,18 +776,18 @@ class Lexer:
         c = self.next()
 
         if c == "":
-            self.emit(TokenType.EOF)
+            self.emit_query_token(TokenType.EOF)
             return None
 
         if c == ".":
             if self.peek() == ".":
                 self.next()
-                self.emit(TokenType.DOUBLE_DOT)
+                self.emit_query_token(TokenType.DOUBLE_DOT)
                 return self.lex_descendant_segment
             return self.lex_shorthand_selector
 
         if c == "[":
-            self.emit(TokenType.LBRACKET)
+            self.emit_query_token(TokenType.LBRACKET)
             return self.lex_inside_bracketed_segment
 
         if self.filter_depth:
@@ -625,17 +805,17 @@ class Lexer:
             return None
 
         if c == "*":
-            self.emit(TokenType.WILD)
+            self.emit_query_token(TokenType.WILD)
             return self.lex_segment
 
         if c == "[":
-            self.emit(TokenType.LBRACKET)
+            self.emit_query_token(TokenType.LBRACKET)
             return self.lex_inside_bracketed_segment
 
         self.backup()
 
         if self.accept_match(RE_PROPERTY):
-            self.emit(TokenType.PROPERTY)
+            self.emit_query_token(TokenType.PROPERTY)
             return self.lex_segment
 
         self.next()
@@ -652,13 +832,13 @@ class Lexer:
         c = self.next()
 
         if c == "*":
-            self.emit(TokenType.WILD)
+            self.emit_query_token(TokenType.WILD)
             return self.lex_segment
 
         self.backup()
 
         if self.accept_match(RE_PROPERTY):
-            self.emit(TokenType.PROPERTY)
+            self.emit_query_token(TokenType.PROPERTY)
             return self.lex_segment
 
         self.error(f"unexpected shorthand selector {c!r}")
@@ -670,7 +850,7 @@ class Lexer:
             c = self.next()
 
             if c == "]":
-                self.emit(TokenType.RBRACKET)
+                self.emit_query_token(TokenType.RBRACKET)
                 if self.filter_depth:
                     return self.lex_inside_filter
                 return self.lex_segment
@@ -680,20 +860,20 @@ class Lexer:
                 return None
 
             if c == "*":
-                self.emit(TokenType.WILD)
+                self.emit_query_token(TokenType.WILD)
                 continue
 
             if c == "?":
-                self.emit(TokenType.FILTER)
+                self.emit_query_token(TokenType.FILTER)
                 self.filter_depth += 1
                 return self.lex_inside_filter
 
             if c == ",":
-                self.emit(TokenType.COMMA)
+                self.emit_query_token(TokenType.COMMA)
                 continue
 
             if c == ":":
-                self.emit(TokenType.COLON)
+                self.emit_query_token(TokenType.COLON)
                 continue
 
             if c == "'":
@@ -709,7 +889,7 @@ class Lexer:
 
             if self.accept_match(RE_INDEX):
                 # Index selector or part of a slice selector.
-                self.emit(TokenType.INDEX)
+                self.emit_query_token(TokenType.INDEX)
                 continue
 
             self.error(f"unexpected token {c!r} in bracketed selection")
@@ -734,7 +914,7 @@ class Lexer:
                 return self.lex_inside_bracketed_segment
 
             if c == ",":
-                self.emit(TokenType.COMMA)
+                self.emit_query_token(TokenType.COMMA)
                 # If we have unbalanced parens, we are inside a function call and a
                 # comma separates arguments. Otherwise a comma separates selectors.
                 if self.paren_stack:
@@ -749,14 +929,14 @@ class Lexer:
                 return self.lex_double_quoted_string_inside_filter_expression
 
             if c == "(":
-                self.emit(TokenType.LPAREN)
+                self.emit_query_token(TokenType.LPAREN)
                 # Are we in a function call? If so, a function argument contains parens.
                 if self.paren_stack:
                     self.paren_stack[-1] += 1
                 continue
 
             if c == ")":
-                self.emit(TokenType.RPAREN)
+                self.emit_query_token(TokenType.RPAREN)
                 # Are we closing a function call or a parenthesized expression?
                 if self.paren_stack:
                     if self.paren_stack[-1] == 1:
@@ -766,11 +946,11 @@ class Lexer:
                 continue
 
             if c == "$":
-                self.emit(TokenType.ROOT)
+                self.emit_query_token(TokenType.ROOT)
                 return self.lex_segment
 
             if c == "@":
-                self.emit(TokenType.CURRENT)
+                self.emit_query_token(TokenType.CURRENT)
                 return self.lex_segment
 
             if c == ".":
@@ -780,15 +960,15 @@ class Lexer:
             if c == "!":
                 if self.peek() == "=":
                     self.next()
-                    self.emit(TokenType.NE)
+                    self.emit_query_token(TokenType.NE)
                 else:
-                    self.emit(TokenType.NOT)
+                    self.emit_query_token(TokenType.NOT)
                 continue
 
             if c == "=":
                 if self.peek() == "=":
                     self.next()
-                    self.emit(TokenType.EQ)
+                    self.emit_query_token(TokenType.EQ)
                     continue
 
                 self.backup()
@@ -798,39 +978,39 @@ class Lexer:
             if c == "<":
                 if self.peek() == "=":
                     self.next()
-                    self.emit(TokenType.LE)
+                    self.emit_query_token(TokenType.LE)
                 else:
-                    self.emit(TokenType.LT)
+                    self.emit_query_token(TokenType.LT)
                 continue
 
             if c == ">":
                 if self.peek() == "=":
                     self.next()
-                    self.emit(TokenType.GE)
+                    self.emit_query_token(TokenType.GE)
                 else:
-                    self.emit(TokenType.GT)
+                    self.emit_query_token(TokenType.GT)
                 continue
 
             self.backup()
 
             if self.accept("&&"):
-                self.emit(TokenType.AND)
+                self.emit_query_token(TokenType.AND)
             elif self.accept("||"):
-                self.emit(TokenType.OR)
+                self.emit_query_token(TokenType.OR)
             elif self.accept("true"):
-                self.emit(TokenType.TRUE)
+                self.emit_query_token(TokenType.TRUE)
             elif self.accept("false"):
-                self.emit(TokenType.FALSE)
+                self.emit_query_token(TokenType.FALSE)
             elif self.accept("null"):
-                self.emit(TokenType.NULL)
+                self.emit_query_token(TokenType.NULL)
             elif self.accept_match(RE_FLOAT):
-                self.emit(TokenType.FLOAT)
+                self.emit_query_token(TokenType.FLOAT)
             elif self.accept_match(RE_INT):
-                self.emit(TokenType.INT)
+                self.emit_query_token(TokenType.INT)
             elif self.accept_match(RE_FUNCTION_NAME) and self.peek() == "(":
                 # Keep track of parentheses for this function call.
                 self.paren_stack.append(1)
-                self.emit(TokenType.FUNCTION)
+                self.emit_query_token(TokenType.FUNCTION)
                 self.next()
                 self.ignore()  # ignore LPAREN
             else:
@@ -850,69 +1030,48 @@ class Lexer:
             else TokenType.DOUBLE_QUOTE_STRING
         )
 
-        def _lex_string(self) -> Optional[StateFn]:
-            self.ignore()  # ignore opening quote
+        def _lex_string(l: Lexer) -> Optional[StateFn]:
+            l.ignore()  # ignore opening quote
 
-            if self.peek() == "":
+            if l.peek() == "":
                 # an empty string
-                self.emit(tt)
-                self.next()
-                self.ignore()
+                l.emit_query_token(tt)
+                l.next()
+                l.ignore()
                 return state
 
             while True:
-                c = self.next()
+                c = l.next()
 
                 if c == "\\":
-                    peeked = self.peek()
+                    peeked = l.peek()
                     if peeked in ESCAPES or peeked == quote:
-                        self.next()
+                        l.next()
                     else:
-                        self.error("invalid escape")
+                        l.error("invalid escape")
                         return None
 
                 if not c:
-                    self.error(f"unclosed string starting at index {self.start}")
+                    l.error(f"unclosed string starting at index {l.start}")
                     return None
 
                 if c == quote:
-                    self.backup()
-                    self.emit(tt)
-                    self.next()
-                    self.ignore()  # ignore closing quote
+                    l.backup()
+                    l.emit_query_token(tt)
+                    l.next()
+                    l.ignore()  # ignore closing quote
                     return state
 
         return _lex_string
 
-    lex_single_quoted_string_inside_bracket_segment = lex_string_factory(
-        "'", lex_inside_bracketed_segment
-    )
 
-    lex_double_quoted_string_inside_bracket_segment = lex_string_factory(
-        '"', lex_inside_bracketed_segment
-    )
-
-    lex_single_quoted_string_inside_filter_expression = lex_string_factory(
-        "'", lex_inside_filter
-    )
-
-    lex_double_quoted_string_inside_filter_expression = lex_string_factory(
-        '"', lex_inside_filter
-    )
-
-
-def lex(query: str) -> Tuple[Lexer, List[Token]]:
-    """Return a lexer for _query_ and an array to be populated with Tokens."""
-    lexer = Lexer(query)
-    return lexer, lexer.tokens
-
-
-def tokenize(query: str) -> List[Token]:
-    """Scan JSONPath expression _query_ and return a list of tokens."""
-    lexer, tokens = lex(query)
+def tokenize(source: str) -> list[Markup]:
+    """Scan Liquid template _source_ and return a list of Markup objects."""
+    lexer = Lexer(source)
     lexer.run()
+    markup = lexer.markup
 
-    if tokens and tokens[-1].type_ == TokenType.ERROR:
-        raise LiquidSyntaxError(tokens[-1].message, token=tokens[-1])
+    if markup and isinstance(markup[-1], Error):
+        raise LiquidSyntaxError(markup[-1].message, token=markup[-1].token)
 
-    return tokens
+    return markup
