@@ -17,7 +17,7 @@ from .exceptions import JSONPathTypeError
 from .filter_expressions import FilterContext
 
 if TYPE_CHECKING:
-    from liquid2.token import QueryToken as Token
+    from liquid2.token import Token
 
     from .environment import JSONPathEnvironment
     from .filter_expressions import FilterExpression

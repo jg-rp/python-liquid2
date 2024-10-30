@@ -28,7 +28,7 @@ from .parse import Parser
 from .query import JSONPathQuery
 
 if TYPE_CHECKING:
-    from liquid2.token import QueryToken
+    from liquid2.token import Token
 
     from .filter_expressions import Expression
 
@@ -80,7 +80,7 @@ class JSONPathEnvironment:
 
         self.setup_function_extensions()
 
-    def parse(self, tokens: list[QueryToken]) -> JSONPathQuery:  # noqa: A003
+    def parse(self, tokens: list[Token]) -> JSONPathQuery:  # noqa: A003
         """Prepare a JSONPath expression ready for repeated application.
 
         Arguments:
@@ -105,7 +105,7 @@ class JSONPathEnvironment:
         self.function_extensions["value"] = function_extensions.Value()
 
     def validate_function_extension_signature(
-        self, token: QueryToken, args: List[Any]
+        self, token: Token, args: List[Any]
     ) -> List[Any]:
         """Compile-time validation of function extension arguments."""
         try:
@@ -120,7 +120,7 @@ class JSONPathEnvironment:
 
     def check_well_typedness(
         self,
-        token: QueryToken,
+        token: Token,
         func: FilterFunction,
         args: List[Expression],
     ) -> None:

@@ -14,7 +14,7 @@ from typing import Tuple
 from .exceptions import JSONPathRecursionError
 
 if TYPE_CHECKING:
-    from liquid2.token import QueryToken as Token
+    from liquid2.token import Token
 
     from .environment import JSONPathEnvironment
     from .node import JSONPathNode

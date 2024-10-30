@@ -17,7 +17,7 @@ from .function_extensions.filter_function import FilterFunction
 from .node import JSONPathNodeList
 
 if TYPE_CHECKING:
-    from liquid2.token import QueryToken as Token
+    from liquid2.token import Token
 
     from .environment import JSONPathEnvironment
     from .environment import JSONValue

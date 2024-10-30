@@ -20,8 +20,6 @@ class WhitespaceControl(Enum):
 Markup: TypeAlias = Union[
     "Comment",
     "Content",
-    "EOI",
-    "Error",
     "Lines",
     "Output",
     "Raw",
@@ -30,27 +28,10 @@ Markup: TypeAlias = Union[
 
 
 @dataclass(frozen=True, slots=True)
-class EOI:
-    start: int
-    stop: int
-    source: str
-
-
-@dataclass(frozen=True, slots=True)
-class Error:
-    start: int
-    stop: int
-    text: str
-    source: str
-    message: str | None = field(default=None)
-
-
-@dataclass(frozen=True, slots=True)
 class Content:
     start: int
     stop: int
     text: str
-    source: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -64,7 +45,6 @@ class Raw:
         WhitespaceControl,
     ]
     text: str
-    source: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -74,7 +54,6 @@ class Comment:
     wc: tuple[WhitespaceControl, WhitespaceControl]
     text: str
     hashes: str
-    source: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -82,8 +61,7 @@ class Output:
     start: int
     stop: int
     wc: tuple[WhitespaceControl, WhitespaceControl]
-    expression: list[Token]
-    source: str
+    expression: list[Token | list[Token]]
 
 
 @dataclass(frozen=True, slots=True)
@@ -92,8 +70,7 @@ class Tag:
     stop: int
     wc: tuple[WhitespaceControl, WhitespaceControl]
     name: str
-    expression: list[Token]
-    source: str
+    expression: list[Token | list[Token]]
 
 
 @dataclass(frozen=True, slots=True)
@@ -102,8 +79,7 @@ class Lines:
     stop: int
     wc: tuple[WhitespaceControl, WhitespaceControl]
     name: str
-    statements: list[Tag | Comment | Error]
-    source: str
+    statements: list[Tag | Comment]
 
 
 class TokenType(Enum):
@@ -140,7 +116,6 @@ class TokenType(Enum):
     LE = auto()
     LPAREN = auto()
     LT = auto()
-    MINUS = auto()  # Whitespace control
     NE = auto()
     NOT = auto()
     NOT_WORD = auto()
@@ -149,7 +124,6 @@ class TokenType(Enum):
     OR = auto()  # ||
     OR_WORD = auto()  # or
     PIPE = auto()
-    PLUS = auto()  # Whitespace control
     PROPERTY = auto()
     FILTER = auto()  # ? (start of a JSONPath filter selector)
     RBRACKET = auto()
@@ -157,7 +131,6 @@ class TokenType(Enum):
     ROOT = auto()
     RPAREN = auto()
     SINGLE_QUOTE_STRING = auto()
-    TILDE = auto()  # Whitespace control
     TRUE = auto()
     WILD = auto()
     WITH = auto()
@@ -169,5 +142,5 @@ class Token:
     type_: TokenType
     value: str
     index: int
-    query: str
+    source: str = field(repr=False)
     message: str | None = field(default=None)

@@ -12,8 +12,8 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 
-from liquid2.token import QueryToken as Token
-from liquid2.token import QueryTokenType as TokenType
+from liquid2.token import Token
+from liquid2.token import TokenType
 
 from .exceptions import JSONPathSyntaxError
 from .exceptions import JSONPathTypeError
@@ -55,7 +55,7 @@ class TokenStream:
     def __init__(self, token_iter: Iterable[Token]):
         self.iter = iter(token_iter)
         self._pushed: Deque[Token] = deque()
-        self.current = Token(TokenType.INIT, "", -1, "")
+        self.current = Token(TokenType.ERROR, "", -1, "")
         next(self)
 
     class TokenStreamIterator:
@@ -69,7 +69,7 @@ class TokenStream:
 
         def __next__(self) -> Token:
             tok = self.stream.current
-            if tok.type_ is TokenType.EOF:
+            if tok.type_ is TokenType.EOI:
                 self.stream.close()
                 raise StopIteration
             next(self.stream)
@@ -82,7 +82,7 @@ class TokenStream:
         tok = self.current
         if self._pushed:
             self.current = self._pushed.popleft()
-        elif self.current.type_ is not TokenType.EOF:
+        elif self.current.type_ is not TokenType.EOI:
             try:
                 self.current = next(self.iter)
             except StopIteration:
@@ -111,7 +111,7 @@ class TokenStream:
 
     def close(self) -> None:
         """Close the stream."""
-        self.current = Token(TokenType.EOF, "", -1, "")
+        self.current = Token(TokenType.EOI, "", -1, "")
 
     def expect(self, *typ: TokenType) -> None:
         """Raise an exception if the current token type is not one of _type_."""
@@ -228,7 +228,7 @@ class Parser:
         stream.next_token()
         yield from self.parse_query(stream, in_filter=False)
 
-        if stream.current.type_ != TokenType.EOF:
+        if stream.current.type_ != TokenType.EOI:
             raise JSONPathSyntaxError(
                 f"unexpected token {stream.current.value!r}",
                 token=stream.current,
@@ -383,7 +383,7 @@ class Parser:
                 )
             elif stream.current.type_ == TokenType.FILTER:
                 selectors.append(self.parse_filter_selector(stream))
-            elif stream.current.type_ == TokenType.EOF:
+            elif stream.current.type_ == TokenType.EOI:
                 raise JSONPathSyntaxError(
                     "unexpected end of query", token=stream.current
                 )
@@ -393,7 +393,7 @@ class Parser:
                     token=stream.current,
                 )
 
-            if stream.peek.type_ == TokenType.EOF:
+            if stream.peek.type_ == TokenType.EOI:
                 raise JSONPathSyntaxError(
                     "unexpected end of selector list",
                     token=stream.current,
@@ -522,7 +522,7 @@ class Parser:
         stream.next_token()
 
         while stream.current.type_ != TokenType.RPAREN:
-            if stream.current.type_ == TokenType.EOF:
+            if stream.current.type_ == TokenType.EOI:
                 raise JSONPathSyntaxError(
                     "unbalanced parentheses", token=stream.current
                 )
@@ -596,7 +596,7 @@ class Parser:
         try:
             left = self.token_map[stream.current.type_](stream)
         except KeyError as err:
-            if stream.current.type_ in (TokenType.EOF, TokenType.RBRACKET):
+            if stream.current.type_ in (TokenType.EOI, TokenType.RBRACKET):
                 msg = "end of expression"
             else:
                 msg = repr(stream.current.value)
@@ -607,7 +607,7 @@ class Parser:
         while True:
             peek_kind = stream.peek.type_
             if (
-                peek_kind in (TokenType.EOF, TokenType.RBRACKET)
+                peek_kind in (TokenType.EOI, TokenType.RBRACKET)
                 or self.PRECEDENCES.get(peek_kind, self.PRECEDENCE_LOWEST) < precedence
             ):
                 break

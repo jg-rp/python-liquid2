@@ -163,6 +163,6 @@ convention = "google"
 "liquid2/__init__.py" = ["D104"]
 "scripts/__init__.py" = ["D104"]
 "liquid2/token.py" = ["D101", "D106"]
-"liquid2/lexer.py" = ["D102"]
+"liquid2/lexer.py" = ["D102", "D103", "E741"]
 "liquid2/query/parse.py" = ["D102", "PLR2004"]
 "tests/*" = ["D100", "D101", "D104", "D103"]

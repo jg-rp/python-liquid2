@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from typing import Optional
 
 if TYPE_CHECKING:
-    from liquid2.token import QueryToken as Token
+    from liquid2.token import Token
 
 
 class JSONPathError(Exception):
