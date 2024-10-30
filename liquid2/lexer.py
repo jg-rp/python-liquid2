@@ -12,9 +12,13 @@ from typing import Tuple
 
 from .exceptions import LiquidSyntaxError
 from .token import EOI
+from .token import Comment
 from .token import Content
-from .token import MarkupType
+from .token import Error
+from .token import Lines
 from .token import Output
+from .token import Raw
+from .token import Tag
 from .token import Token
 from .token import TokenType
 from .token import WhitespaceControl
@@ -58,6 +62,8 @@ RE_WORD = re.compile(r"[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*")
 RE_TAG_NAME = re.compile(r"\b[a-z][a-z_0-9]*\b")
 
 RE_WHITESPACE = re.compile(r"[ \n\r\t]+")
+RE_LINE_SPACE = re.compile(r"[ \t]+")
+
 RE_PROPERTY = re.compile(r"[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*")
 RE_INDEX = re.compile(r"-?[0-9]+")
 RE_INT = re.compile(r"-?[0-9]+(?:[eE]\+?[0-9]+)?")
@@ -82,12 +88,14 @@ class Lexer:
     __slots__ = (
         "query_tokens",
         "filter_depth",
+        "line_statements",
         "markup",
         "markup_start",
         "paren_stack",
         "pos",
         "source",
         "start",
+        "tag_name",
         "tokens",
     )
 
@@ -103,10 +111,13 @@ class Lexer:
         """
 
         self.markup: List[Markup] = []
-        """Tokens resulting from scanning a Liquid template."""
+        """Markup resulting from scanning a Liquid template."""
 
         self.tokens: List[Token] = []
         """Tokens from the current expression."""
+
+        self.line_statements: list[Tag | Comment | Error]
+        """Markup resulting from scanning a sequence of line statements."""
 
         self.query_tokens: List[Token] = []
         """Tokens from the current query."""
@@ -120,12 +131,15 @@ class Lexer:
         self.markup_start = -1
         """Pointer to the start of the current expression."""
 
+        self.tag_name = ""
+        """The name of the current tag."""
+
         self.source = source
         """The template source text being scanned."""
 
     def run(self) -> None:
         """Populate _self.tokens_."""
-        state: Optional[StateFn] = self.lex_root
+        state: Optional[StateFn] = self.lex_markup
         while state is not None:
             state = state(self)
 
@@ -204,7 +218,6 @@ class Lexer:
             self.pos += len(match.group(0))
             self.markup.append(
                 Content(
-                    MarkupType.CONTENT,
                     self.start,
                     self.pos,
                     match.group(0),
@@ -219,8 +232,7 @@ class Lexer:
         if match:
             self.pos += len(match.group(0))
             self.markup.append(
-                Content(
-                    MarkupType.RAW,
+                Raw(
                     self.start,
                     self.pos,
                     (
@@ -241,8 +253,7 @@ class Lexer:
         if match:
             self.pos += len(match.group(0))
             self.markup.append(
-                Content(
-                    MarkupType.RAW,
+                Comment(
                     self.start,
                     self.pos,
                     (
@@ -264,6 +275,7 @@ class Lexer:
             wc_group = match.group(1)
             if wc_group:
                 self.pos += 1
+                # TODO: don't emit wc
                 self.emit_token(TokenType.WC)
 
             self.pos += 2
@@ -280,6 +292,13 @@ class Lexer:
             raise Exception(msg)
 
         if self.accept_match(RE_WHITESPACE):
+            self.ignore()
+            return True
+        return False
+
+    def ignore_line_space(self) -> bool:
+        """Move the pointer past any allowed whitespace inside line statements."""
+        if self.accept_match(RE_LINE_SPACE):
             self.ignore()
             return True
         return False
@@ -301,6 +320,7 @@ class Lexer:
         while True:
             assert not self.tokens  # current expression should be empty
             assert not self.query_tokens  # current query should be empty
+            assert not self.tag_name  # current tag name should be empty
 
             self.accept_and_emit_raw()
             self.accept_and_emit_comment()
@@ -316,10 +336,8 @@ class Lexer:
                 self.ignore()
                 return self.lex_inside_tag
 
-            # TODO: line statements
-
             assert self.pos == len(self.source)
-            self.markup.append(EOI(MarkupType.EOI, self.start, self.pos, self.source))
+            self.markup.append(EOI(self.start, self.pos, self.source))
             return None
 
     def lex_inside_output_statement(self) -> StateFn | None:
@@ -329,10 +347,10 @@ class Lexer:
         while True:
             self.ignore_whitespace()
 
+            # TODO: end whitespace control
             if self.accept_end_output_statement():
                 self.markup.append(
                     Output(
-                        MarkupType.OUTPUT,
                         self.markup_start,
                         self.pos,
                         self.tokens,
@@ -392,7 +410,7 @@ class Lexer:
             elif self.accept("||"):
                 self.emit_token(TokenType.DOUBLE_PIPE)
             else:
-                c = self.peek()
+                c = self.next()
 
                 if c == "'":
                     return self.lex_single_quoted_string_inside_output_statement
@@ -426,20 +444,25 @@ class Lexer:
         self.ignore_whitespace()
 
         if self.accept(RE_TAG_NAME):
-            self.emit_token(TokenType.TAG_NAME)
+            self.tag_name = self.source[self.start : self.pos]
         else:
             c = self.next()
             raise LiquidSyntaxError(f"expected a tag name, found {c!r}")
 
+        if self.tag_name == "liquid":
+            return self.lex_inside_liquid_tag
+
         while True:
             self.ignore_whitespace()
 
-            if self.accept_end_output_statement():
+            # TODO:
+            # TODO: end whitespace control
+            if self.accept_end_tag():
                 self.markup.append(
-                    Output(
-                        MarkupType.OUTPUT,
+                    Tag(
                         self.markup_start,
                         self.pos,
+                        self.tag_name,
                         self.tokens,
                         self.source,
                     )
@@ -497,7 +520,7 @@ class Lexer:
             elif self.accept("||"):
                 self.emit_token(TokenType.DOUBLE_PIPE)
             else:
-                c = self.peek()
+                c = self.next()
 
                 if c == "'":
                     return self.lex_single_quoted_string_inside_tag_expression
@@ -523,6 +546,37 @@ class Lexer:
                     self.emit_token(TokenType.ASSIGN)
 
                 raise LiquidSyntaxError(f"unknown symbol '{c}'")
+
+    def lex_inside_liquid_tag(self) -> StateFn | None:
+        self.ignore_whitespace()
+
+        if self.accept_end_tag():
+            # TODO: WC
+            self.markup.append(
+                Lines(
+                    self.markup_start,
+                    self.pos,
+                    "liquid",
+                    self.line_statements,
+                    self.source,
+                )
+            )
+
+            self.tag_name = ""
+            self.line_statements = []
+            self.tokens = []
+            return self.lex_markup
+
+        if self.accept(RE_TAG_NAME):
+            self.tag_name = self.source[self.start : self.pos]
+        else:
+            self.next()
+            raise LiquidSyntaxError("expected a tag name")
+
+        return self.lex_inside_line_statement
+
+    def lex_inside_line_statement(self) -> StateFn | None:
+        raise NotImplementedError
 
     def lex_root(self) -> Optional[StateFn]:  # noqa: D103
         c = self.next()

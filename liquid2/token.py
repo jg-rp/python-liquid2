@@ -17,20 +17,11 @@ class WhitespaceControl(Enum):
     DEFAULT = auto()
 
 
-class MarkupType(Enum):
-    CONTENT = auto()
-    EOI = auto()
-    OUTPUT = auto()
-    TAG = auto()
-    COMMENT = auto()
-    RAW = auto()
-    LINES = auto()
-
-
 Markup: TypeAlias = Union[
     "Comment",
     "Content",
     "EOI",
+    "Error",
     "Lines",
     "Output",
     "Raw",
@@ -40,16 +31,13 @@ Markup: TypeAlias = Union[
 
 @dataclass(frozen=True, slots=True)
 class EOI:
-    type_: MarkupType
     start: int
     stop: int
     source: str
-    message: str | None = field(default=None)
 
 
 @dataclass(frozen=True, slots=True)
-class Content:
-    type_: MarkupType
+class Error:
     start: int
     stop: int
     text: str
@@ -58,8 +46,15 @@ class Content:
 
 
 @dataclass(frozen=True, slots=True)
+class Content:
+    start: int
+    stop: int
+    text: str
+    source: str
+
+
+@dataclass(frozen=True, slots=True)
 class Raw:
-    type_: MarkupType
     start: int
     stop: int
     wc: tuple[
@@ -70,51 +65,42 @@ class Raw:
     ]
     text: str
     source: str
-    message: str | None = field(default=None)
 
 
 @dataclass(frozen=True, slots=True)
 class Comment:
-    type_: MarkupType  # XXX: type_ or identity?
     start: int
     stop: int
     wc: tuple[WhitespaceControl, WhitespaceControl]
     text: str
     hashes: str
     source: str
-    message: str | None = field(default=None)
 
 
 @dataclass(frozen=True, slots=True)
 class Output:
-    type_: MarkupType
     start: int
     stop: int
     expression: list[Token]
     source: str
-    message: str | None = field(default=None)
 
 
 @dataclass(frozen=True, slots=True)
 class Tag:
-    type_: MarkupType
     start: int
     stop: int
     name: str
     expression: list[Token]
     source: str
-    message: str | None = field(default=None)
 
 
 @dataclass(frozen=True, slots=True)
 class Lines:
-    type_: MarkupType
     start: int
     stop: int
     name: str
-    statements: list[list[Token]]  # XXX: Or list[Markup]?
+    statements: list[Tag | Output | Comment | Error]
     source: str
-    message: str | None = field(default=None)
 
 
 class TokenType(Enum):
