@@ -143,4 +143,4 @@ class Token:
     value: str
     index: int
     source: str = field(repr=False)
-    message: str | None = field(default=None)
+    message: str | None = field(default=None, repr=False)
