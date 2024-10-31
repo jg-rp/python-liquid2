@@ -42,7 +42,7 @@ include = ["/liquid2"]
 include = ["/liquid2"]
 
 [tool.hatch.envs.default]
-dependencies = ["black", "mypy", "pytest-cov", "pytest", "ruff", "twine"]
+dependencies = ["black", "mypy[dmypy]", "pytest-cov", "pytest", "ruff", "twine"]
 python = "3.12"
 
 [tool.hatch.envs.default.scripts]

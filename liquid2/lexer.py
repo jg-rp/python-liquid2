@@ -9,6 +9,7 @@ from typing import Optional
 from typing import Pattern
 
 from .exceptions import LiquidSyntaxError
+from .query import parse
 from .token import Comment
 from .token import Content
 from .token import Lines
@@ -20,6 +21,7 @@ from .token import TokenType
 from .token import WhitespaceControl
 
 if TYPE_CHECKING:
+    from .query import JSONPathQuery
     from .token import Markup
 
 
@@ -76,6 +78,8 @@ WC_MAP = {
     "~": WhitespaceControl.TILDE,
 }
 
+WC_DEFAULT = (WhitespaceControl.DEFAULT, WhitespaceControl.DEFAULT)
+
 StateFn = Callable[["Lexer"], Optional["StateFn"]]
 
 
@@ -112,10 +116,10 @@ class Lexer:
         self.markup: list[Markup] = []
         """Markup resulting from scanning a Liquid template."""
 
-        self.tokens: list[Token | list[Token]] = []
+        self.tokens: list[Token | JSONPathQuery] = []
         """Tokens from the current expression."""
 
-        self.line_statements: list[Tag | Comment]
+        self.line_statements: list[Tag | Comment] = []
         """Markup resulting from scanning a sequence of line statements."""
 
         self.query_tokens: list[Token] = []
@@ -340,7 +344,7 @@ class Lexer:
 def lex_markup(l: Lexer) -> StateFn | None:
     while True:
         assert not l.tokens  # current expression should be empty
-        assert not l.query_tokens  # current query should be empty
+        assert not l.query_tokens, str(l.query_tokens)  # current query should be empty
         assert not l.tag_name  # current tag name should be empty
 
         if l.accept_and_emit_raw():
@@ -641,7 +645,34 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR
     while True:
         l.ignore_line_space()
 
-        # TODO: handle end tag on same line
+        if l.accept_end_tag():
+            l.ignore()
+            l.line_statements.append(
+                Tag(
+                    l.line_start,
+                    l.pos,
+                    WC_DEFAULT,
+                    l.tag_name,
+                    l.tokens,
+                )
+            )
+
+            l.markup.append(
+                Lines(
+                    l.markup_start,
+                    l.pos,
+                    (l.wc[0], l.wc[1]),
+                    "liquid",
+                    l.line_statements,
+                )
+            )
+
+            l.wc = []
+            l.tag_name = ""
+            l.line_statements = []
+            l.tokens = []
+            l.ignore()
+            return lex_markup
 
         if l.accept_match(RE_TRUE):
             l.emit_token(TokenType.TRUE)
@@ -731,7 +762,7 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR
                     Tag(
                         l.line_start,
                         l.pos,
-                        (WhitespaceControl.DEFAULT, WhitespaceControl.DEFAULT),
+                        WC_DEFAULT,
                         l.tag_name,
                         l.tokens,
                     )
@@ -741,9 +772,9 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR
                 return lex_inside_liquid_tag
 
             # TODO: line comment
-
-        l.error(f"unknown symbol '{c}'")
-        return None
+            else:
+                l.error(f"unknown symbol '{c}'")
+                return None
 
 
 def lex_root(l: Lexer) -> Optional[StateFn]:  # noqa: D103
@@ -1008,12 +1039,18 @@ def lex_inside_filter(l: Lexer) -> Optional[StateFn]:  # noqa: D103, PLR0915, PL
             return None
 
 
-def lex_string_factory(quote: str, state: StateFn) -> StateFn:
+def lex_string_factory(
+    quote: str,
+    state: StateFn,
+    *,
+    inside_query: bool = False,
+) -> StateFn:
     """Return a state function for scanning string literals.
 
     Arguments:
         quote: One of `'` or `"`. The string delimiter.
         state: The state function to return control to after scanning the string.
+        inside_query: Indicate if we're emitting from inside a query.
     """
     tt = (
         TokenType.SINGLE_QUOTE_STRING if quote == "'" else TokenType.DOUBLE_QUOTE_STRING
@@ -1024,7 +1061,7 @@ def lex_string_factory(quote: str, state: StateFn) -> StateFn:
 
         if l.peek() == "":
             # an empty string
-            l.emit_query_token(tt)
+            l.emit_query_token(tt) if inside_query else l.emit_token(tt)
             l.next()
             l.ignore()
             return state
@@ -1046,7 +1083,7 @@ def lex_string_factory(quote: str, state: StateFn) -> StateFn:
 
             if c == quote:
                 l.backup()
-                l.emit_query_token(tt)
+                l.emit_query_token(tt) if inside_query else l.emit_token(tt)
                 l.next()
                 l.ignore()  # ignore closing quote
                 return state
@@ -1055,19 +1092,19 @@ def lex_string_factory(quote: str, state: StateFn) -> StateFn:
 
 
 lex_single_quoted_string_inside_bracket_segment = lex_string_factory(
-    "'", lex_inside_bracketed_segment
+    "'", lex_inside_bracketed_segment, inside_query=True
 )
 
 lex_double_quoted_string_inside_bracket_segment = lex_string_factory(
-    '"', lex_inside_bracketed_segment
+    '"', lex_inside_bracketed_segment, inside_query=True
 )
 
 lex_single_quoted_string_inside_filter_expression = lex_string_factory(
-    "'", lex_inside_filter
+    "'", lex_inside_filter, inside_query=True
 )
 
 lex_double_quoted_string_inside_filter_expression = lex_string_factory(
-    '"', lex_inside_filter
+    '"', lex_inside_filter, inside_query=True
 )
 
 lex_single_quoted_string_inside_output_statement = lex_string_factory(
@@ -1098,7 +1135,7 @@ def lex_query_factory(next_state: StateFn) -> StateFn:
         while state is not None:
             state = state(l)
 
-        l.tokens.append(l.query_tokens)
+        l.tokens.append(parse(l.query_tokens))
         l.query_tokens = []
         return next_state
 
@@ -1115,7 +1152,9 @@ def tokenize(source: str) -> list[Markup]:
     lexer = Lexer(source)
     lexer.run()
 
-    if lexer.tokens and lexer.tokens[-1].type_ == TokenType.ERROR:
-        raise LiquidSyntaxError(lexer.tokens[-1].message, token=lexer.tokens[-1])
+    if lexer.tokens:
+        last_token = lexer.tokens[-1]
+        if isinstance(last_token, Token) and last_token.type_ == TokenType.ERROR:
+            raise LiquidSyntaxError(last_token.message, token=last_token)
 
     return lexer.markup

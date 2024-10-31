@@ -222,10 +222,10 @@ class Parser:
         }
 
     def parse(self, tokens: list[Token]) -> Iterable[JSONPathSegment]:
-        stream = TokenStream(tokens)
         """Parse a JSONPath expression from a stream of tokens."""
-        stream.expect(TokenType.ROOT)
-        stream.next_token()
+        stream = TokenStream(tokens)
+        if stream.current.type_ == TokenType.ROOT:
+            stream.next_token()
         yield from self.parse_query(stream, in_filter=False)
 
         if stream.current.type_ != TokenType.EOI:
