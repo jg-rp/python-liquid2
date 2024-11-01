@@ -397,7 +397,7 @@ def lex_inside_output_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, P
         if l.accept_end_output_statement():
             l.markup.append(
                 OutputToken(
-                    type_=TokenType.OUtPUT,
+                    type_=TokenType.OUTPUT,
                     start=l.markup_start,
                     stop=l.pos,
                     wc=(l.wc[0], l.wc[1]),

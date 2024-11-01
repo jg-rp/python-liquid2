@@ -7,7 +7,7 @@ from dataclasses import field
 from enum import Enum
 from enum import auto
 from typing import TYPE_CHECKING
-from typing import TypeAlias
+from typing import TypeGuard
 
 if TYPE_CHECKING:
     from .query import JSONPathQuery
@@ -36,7 +36,7 @@ class TokenType(Enum):
     COMMENT = auto()
     CONTENT = auto()
     LINES = auto()
-    OUtPUT = auto()
+    OUTPUT = auto()
     RAW = auto()
     TAG = auto()
 
@@ -80,6 +80,7 @@ class TokenType(Enum):
     PIPE = auto()
     PROPERTY = auto()
     FILTER = auto()  # ? (start of a JSONPath filter selector)
+    RANGE = auto()
     RBRACKET = auto()
     REQUIRED = auto()
     ROOT = auto()
@@ -92,8 +93,12 @@ class TokenType(Enum):
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
-class ContentToken:
+class TokenT:
     type_: TokenType
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class ContentToken(TokenT):
     start: int
     stop: int
     text: str
@@ -103,8 +108,7 @@ class ContentToken:
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
-class RawToken:
-    type_: TokenType
+class RawToken(TokenT):
     start: int
     stop: int
     wc: tuple[
@@ -124,8 +128,7 @@ class RawToken:
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
-class CommentToken:
-    type_: TokenType
+class CommentToken(TokenT):
     start: int
     stop: int
     wc: tuple[WhitespaceControl, WhitespaceControl]
@@ -137,8 +140,7 @@ class CommentToken:
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
-class OutputToken:
-    type_: TokenType
+class OutputToken(TokenT):
     start: int
     stop: int
     wc: tuple[WhitespaceControl, WhitespaceControl]
@@ -153,8 +155,7 @@ class OutputToken:
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
-class TagToken:
-    type_: TokenType
+class TagToken(TokenT):
     start: int
     stop: int
     wc: tuple[WhitespaceControl, WhitespaceControl]
@@ -172,8 +173,7 @@ class TagToken:
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
-class LinesToken:
-    type_: TokenType
+class LinesToken(TokenT):
     start: int
     stop: int
     wc: tuple[WhitespaceControl, WhitespaceControl]
@@ -209,24 +209,21 @@ def _tag_as_line_statement(markup: TagToken | CommentToken) -> str:
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
-class Token:
-    type_: TokenType
+class Token(TokenT):
     value: str
     index: int
     source: str = field(repr=False)
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
-class QueryToken:
-    type_: TokenType
+class QueryToken(TokenT):
     path: JSONPathQuery
     index: int
     source: str = field(repr=False)
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
-class ErrorToken:
-    type_: TokenType
+class ErrorToken(TokenT):
     index: int
     value: str
     source: str = field(repr=False)
@@ -236,14 +233,33 @@ class ErrorToken:
         return self.message
 
 
-TokenT: TypeAlias = (
-    CommentToken
-    | ContentToken
-    | ErrorToken
-    | LinesToken
-    | OutputToken
-    | QueryToken
-    | RawToken
-    | TagToken
-    | Token
-)
+def is_content_token(token: TokenT) -> TypeGuard[ContentToken]:
+    return token.type_ == TokenType.CONTENT
+
+
+def is_comment_token(token: TokenT) -> TypeGuard[CommentToken]:
+    return token.type_ == TokenType.COMMENT
+
+
+def is_tag_token(token: TokenT) -> TypeGuard[TagToken]:
+    return token.type_ == TokenType.TAG
+
+
+def is_output_token(token: TokenT) -> TypeGuard[OutputToken]:
+    return token.type_ == TokenType.OUTPUT
+
+
+def is_raw_token(token: TokenT) -> TypeGuard[RawToken]:
+    return token.type_ == TokenType.RAW
+
+
+def is_lines_token(token: TokenT) -> TypeGuard[LinesToken]:
+    return token.type_ == TokenType.LINES
+
+
+def is_query_token(token: TokenT) -> TypeGuard[QueryToken]:
+    return token.type_ == TokenType.QUERY
+
+
+def is_token_type(token: TokenT, t: TokenType) -> TypeGuard[Token]:
+    return token.type_ == t
