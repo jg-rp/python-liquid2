@@ -1,4 +1,4 @@
-"""Markup and expression tokens produced by the lexer."""
+"""Top-level markup and expression tokens produced by the lexer."""
 
 from __future__ import annotations
 
@@ -8,7 +8,6 @@ from enum import Enum
 from enum import auto
 from typing import TYPE_CHECKING
 from typing import TypeAlias
-from typing import Union
 
 if TYPE_CHECKING:
     from .query import JSONPathQuery
@@ -30,132 +29,18 @@ class WhitespaceControl(Enum):
         return ""
 
 
-Markup: TypeAlias = Union[
-    "Comment",
-    "Content",
-    "Lines",
-    "Output",
-    "Raw",
-    "Tag",
-]
-
-
-@dataclass(frozen=True, slots=True)
-class Content:
-    start: int
-    stop: int
-    text: str
-
-    def __str__(self) -> str:
-        return self.text
-
-
-@dataclass(frozen=True, slots=True)
-class Raw:
-    start: int
-    stop: int
-    wc: tuple[
-        WhitespaceControl,
-        WhitespaceControl,
-        WhitespaceControl,
-        WhitespaceControl,
-    ]
-    text: str
-
-    def __str__(self) -> str:
-        return (
-            f"{{%{self.wc[0]} raw {self.wc[1]}%}}"
-            f"{self.text}"
-            f"{{%{self.wc[2]} endraw {self.wc[3]}%}}"
-        )
-
-
-@dataclass(frozen=True, slots=True)
-class Comment:
-    start: int
-    stop: int
-    wc: tuple[WhitespaceControl, WhitespaceControl]
-    text: str
-    hashes: str
-
-    def __str__(self) -> str:
-        return f"{{{self.hashes}{self.wc[0]}{self.text}{self.wc[1]}{self.hashes}}}"
-
-
-@dataclass(frozen=True, slots=True)
-class Output:
-    start: int
-    stop: int
-    wc: tuple[WhitespaceControl, WhitespaceControl]
-    expression: list[Token | JSONPathQuery]
-
-    def __str__(self) -> str:
-        return (
-            f"{{{{{self.wc[0]} "
-            f"{_expression_as_string(self.expression)} "
-            f"{self.wc[1]}}}}}"
-        )
-
-
-@dataclass(frozen=True, slots=True)
-class Tag:
-    start: int
-    stop: int
-    wc: tuple[WhitespaceControl, WhitespaceControl]
-    name: str
-    expression: list[Token | JSONPathQuery]
-
-    def __str__(self) -> str:
-        if self.expression:
-            return (
-                f"{{%{self.wc[0]} {self.name} "
-                f"{_expression_as_string(self.expression)} "
-                f"{self.wc[1]}%}}"
-            )
-        return f"{{%{self.wc[0]} {self.name} {self.wc[1]}%}}"
-
-
-@dataclass(frozen=True, slots=True)
-class Lines:
-    start: int
-    stop: int
-    wc: tuple[WhitespaceControl, WhitespaceControl]
-    name: str
-    statements: list[Tag | Comment]
-
-    def __str__(self) -> str:
-        if self.statements:
-            lines = "\n".join(_tag_as_line_statement(line) for line in self.statements)
-            return f"{{%{self.wc[0]} liquid {lines} {self.wc[1]}%}}"
-        return f"{{%{self.wc[0]} liquid {self.wc[1]}%}}"
-
-
-def _expression_as_string(expression: list[Token | JSONPathQuery]) -> str:
-    def _as_string(token: Token | JSONPathQuery) -> str:
-        if isinstance(token, Token):
-            if token.type_ == TokenType.SINGLE_QUOTE_STRING:
-                return f"'{token.value}'"
-            if token.type_ == TokenType.DOUBLE_QUOTE_STRING:
-                return f'"{token.value}"'
-            return token.value
-        return str(token)
-
-    return " ".join(_as_string(token) for token in expression)
-
-
-def _tag_as_line_statement(markup: Tag | Comment) -> str:
-    if isinstance(markup, Tag):
-        if markup.expression:
-            return f"{markup.name} {_expression_as_string(markup.expression)}"
-        return markup.name
-    return f"# {markup.text}"
-
-
 class TokenType(Enum):
-    """JSONPath expression token types."""
-
     EOI = auto()
     ERROR = auto()
+
+    COMMENT = auto()
+    CONTENT = auto()
+    LINES = auto()
+    OUtPUT = auto()
+    RAW = auto()
+    TAG = auto()
+
+    QUERY = auto()
 
     AND = auto()  # &&
     AND_WORD = auto()  # and
@@ -201,16 +86,164 @@ class TokenType(Enum):
     RPAREN = auto()
     SINGLE_QUOTE_STRING = auto()
     TRUE = auto()
-    QUERY = auto()
     WILD = auto()
     WITH = auto()
     WORD = auto()
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, kw_only=True, slots=True)
+class ContentToken:
+    type_: TokenType
+    start: int
+    stop: int
+    text: str
+
+    def __str__(self) -> str:
+        return self.text
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class RawToken:
+    type_: TokenType
+    start: int
+    stop: int
+    wc: tuple[
+        WhitespaceControl,
+        WhitespaceControl,
+        WhitespaceControl,
+        WhitespaceControl,
+    ]
+    text: str
+
+    def __str__(self) -> str:
+        return (
+            f"{{%{self.wc[0]} raw {self.wc[1]}%}}"
+            f"{self.text}"
+            f"{{%{self.wc[2]} endraw {self.wc[3]}%}}"
+        )
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class CommentToken:
+    type_: TokenType
+    start: int
+    stop: int
+    wc: tuple[WhitespaceControl, WhitespaceControl]
+    text: str
+    hashes: str
+
+    def __str__(self) -> str:
+        return f"{{{self.hashes}{self.wc[0]}{self.text}{self.wc[1]}{self.hashes}}}"
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class OutputToken:
+    type_: TokenType
+    start: int
+    stop: int
+    wc: tuple[WhitespaceControl, WhitespaceControl]
+    expression: list[TokenT]
+
+    def __str__(self) -> str:
+        return (
+            f"{{{{{self.wc[0]} "
+            f"{_expression_as_string(self.expression)} "
+            f"{self.wc[1]}}}}}"
+        )
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class TagToken:
+    type_: TokenType
+    start: int
+    stop: int
+    wc: tuple[WhitespaceControl, WhitespaceControl]
+    name: str
+    expression: list[TokenT]
+
+    def __str__(self) -> str:
+        if self.expression:
+            return (
+                f"{{%{self.wc[0]} {self.name} "
+                f"{_expression_as_string(self.expression)} "
+                f"{self.wc[1]}%}}"
+            )
+        return f"{{%{self.wc[0]} {self.name} {self.wc[1]}%}}"
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class LinesToken:
+    type_: TokenType
+    start: int
+    stop: int
+    wc: tuple[WhitespaceControl, WhitespaceControl]
+    name: str
+    statements: list[TagToken | CommentToken]
+
+    def __str__(self) -> str:
+        if self.statements:
+            lines = "\n".join(_tag_as_line_statement(line) for line in self.statements)
+            return f"{{%{self.wc[0]} liquid {lines} {self.wc[1]}%}}"
+        return f"{{%{self.wc[0]} liquid {self.wc[1]}%}}"
+
+
+def _expression_as_string(expression: list[TokenT]) -> str:
+    def _as_string(token: TokenT) -> str:
+        if isinstance(token, Token):
+            if token.type_ == TokenType.SINGLE_QUOTE_STRING:
+                return f"'{token.value}'"
+            if token.type_ == TokenType.DOUBLE_QUOTE_STRING:
+                return f'"{token.value}"'
+            return token.value
+        return str(token)
+
+    return " ".join(_as_string(token) for token in expression)
+
+
+def _tag_as_line_statement(markup: TagToken | CommentToken) -> str:
+    if isinstance(markup, TagToken):
+        if markup.expression:
+            return f"{markup.name} {_expression_as_string(markup.expression)}"
+        return markup.name
+    return f"# {markup.text}"
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
 class Token:
     type_: TokenType
     value: str
     index: int
     source: str = field(repr=False)
-    message: str | None = field(default=None, repr=False)
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class QueryToken:
+    type_: TokenType
+    path: JSONPathQuery
+    index: int
+    source: str = field(repr=False)
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class ErrorToken:
+    type_: TokenType
+    index: int
+    value: str
+    source: str = field(repr=False)
+    message: str
+
+    def __str__(self) -> str:
+        return self.message
+
+
+TokenT: TypeAlias = (
+    CommentToken
+    | ContentToken
+    | ErrorToken
+    | LinesToken
+    | OutputToken
+    | QueryToken
+    | RawToken
+    | TagToken
+    | Token
+)

@@ -55,7 +55,7 @@ class TokenStream:
     def __init__(self, token_iter: Iterable[Token]):
         self.iter = iter(token_iter)
         self._pushed: Deque[Token] = deque()
-        self.current = Token(TokenType.ERROR, "", -1, "")
+        self.current = Token(type_=TokenType.ERROR, value="", index=-1, source="")
         next(self)
 
     class TokenStreamIterator:
@@ -111,7 +111,7 @@ class TokenStream:
 
     def close(self) -> None:
         """Close the stream."""
-        self.current = Token(TokenType.EOI, "", -1, "")
+        self.current = Token(type_=TokenType.EOI, value="", index=-1, source="")
 
     def expect(self, *typ: TokenType) -> None:
         """Raise an exception if the current token type is not one of _type_."""

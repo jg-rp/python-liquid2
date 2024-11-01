@@ -10,19 +10,20 @@ from typing import Pattern
 
 from .exceptions import LiquidSyntaxError
 from .query import parse
-from .token import Comment
-from .token import Content
-from .token import Lines
-from .token import Output
-from .token import Raw
-from .token import Tag
+from .token import CommentToken
+from .token import ContentToken
+from .token import ErrorToken
+from .token import LinesToken
+from .token import OutputToken
+from .token import QueryToken
+from .token import RawToken
+from .token import TagToken
 from .token import Token
 from .token import TokenType
 from .token import WhitespaceControl
 
 if TYPE_CHECKING:
-    from .query import JSONPathQuery
-    from .token import Markup
+    from .token import TokenT
 
 
 RE_CONTENT = re.compile(r".+?(?=(\{\{|\{%|\{#+|$))", re.DOTALL)
@@ -113,13 +114,13 @@ class Lexer:
         function arguments can be arbitrarily nested in parentheses.
         """
 
-        self.markup: list[Markup] = []
+        self.markup: list[TokenT] = []
         """Markup resulting from scanning a Liquid template."""
 
-        self.tokens: list[Token | JSONPathQuery] = []
+        self.tokens: list[TokenT] = []
         """Tokens from the current expression."""
 
-        self.line_statements: list[Tag | Comment] = []
+        self.line_statements: list[TagToken | CommentToken] = []
         """Markup resulting from scanning a sequence of line statements."""
 
         self.query_tokens: list[Token] = []
@@ -156,10 +157,10 @@ class Lexer:
         """Append a token of type _t_ to the output tokens list."""
         self.tokens.append(
             Token(
-                t,
-                self.source[self.start : self.pos],
-                self.start,
-                self.source,
+                type_=t,
+                value=self.source[self.start : self.pos],
+                index=self.start,
+                source=self.source,
             )
         )
         self.start = self.pos
@@ -168,10 +169,10 @@ class Lexer:
         """Append a token of type _t_ to the output tokens list."""
         self.query_tokens.append(
             Token(
-                t,
-                self.source[self.start : self.pos],
-                self.start,
-                self.source,
+                type_=t,
+                value=self.source[self.start : self.pos],
+                index=self.start,
+                source=self.source,
             )
         )
         self.start = self.pos
@@ -195,7 +196,13 @@ class Lexer:
             # Cant backup beyond start.
             msg = "unexpected end of expression"
             raise LiquidSyntaxError(
-                msg, token=Token(TokenType.ERROR, msg, self.pos, self.source)
+                msg,
+                token=Token(
+                    type_=TokenType.ERROR,
+                    value=msg,
+                    index=self.pos,
+                    source=self.source,
+                ),
             )
         self.pos -= 1
 
@@ -226,10 +233,11 @@ class Lexer:
         if match:
             self.pos += len(match.group(0))
             self.markup.append(
-                Content(
-                    self.start,
-                    self.pos,
-                    match.group(0),
+                ContentToken(
+                    type_=TokenType.CONTENT,
+                    start=self.start,
+                    stop=self.pos,
+                    text=match.group(0),
                 )
             )
             self.start = self.pos
@@ -241,16 +249,17 @@ class Lexer:
         if match:
             self.pos += len(match.group(0))
             self.markup.append(
-                Raw(
-                    self.start,
-                    self.pos,
-                    (
+                RawToken(
+                    type_=TokenType.RAW,
+                    start=self.start,
+                    stop=self.pos,
+                    wc=(
                         WC_MAP[match.group(1)],
                         WC_MAP[match.group(2)],
                         WC_MAP[match.group(4)],
                         WC_MAP[match.group(5)],
                     ),
-                    match.group(3),
+                    text=match.group(3),
                 )
             )
             self.start = self.pos
@@ -262,15 +271,16 @@ class Lexer:
         if match:
             self.pos += len(match.group(0))
             self.markup.append(
-                Comment(
-                    self.start,
-                    self.pos,
-                    (
+                CommentToken(
+                    type_=TokenType.COMMENT,
+                    start=self.start,
+                    stop=self.pos,
+                    wc=(
                         WC_MAP[match.group(2)],
                         WC_MAP[match.group(4)],
                     ),
-                    match.group(3),
-                    match.group(1),
+                    text=match.group(3),
+                    hashes=match.group(1),
                 )
             )
             self.start = self.pos
@@ -330,13 +340,13 @@ class Lexer:
     def error(self, msg: str) -> None:
         """Emit an error token."""
         # better error messages.
-        self.tokens.append(
-            Token(
-                TokenType.ERROR,
-                self.source[self.start : self.pos],
-                self.start,
-                self.source,
-                msg,
+        self.markup.append(
+            ErrorToken(
+                type_=TokenType.ERROR,
+                index=self.pos,
+                value=self.source[self.start : self.pos],
+                source=self.source,
+                message=msg,
             )
         )
 
@@ -386,11 +396,12 @@ def lex_inside_output_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, P
 
         if l.accept_end_output_statement():
             l.markup.append(
-                Output(
-                    l.markup_start,
-                    l.pos,
-                    (l.wc[0], l.wc[1]),
-                    l.tokens,
+                OutputToken(
+                    type_=TokenType.OUtPUT,
+                    start=l.markup_start,
+                    stop=l.pos,
+                    wc=(l.wc[0], l.wc[1]),
+                    expression=l.tokens,
                 )
             )
             l.wc = []
@@ -509,12 +520,13 @@ def lex_inside_tag(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR0912, PLR09
 
         if l.accept_end_tag():
             l.markup.append(
-                Tag(
-                    l.markup_start,
-                    l.pos,
-                    (l.wc[0], l.wc[1]),
-                    l.tag_name,
-                    l.tokens,
+                TagToken(
+                    type_=TokenType.TAG,
+                    start=l.markup_start,
+                    stop=l.pos,
+                    wc=(l.wc[0], l.wc[1]),
+                    name=l.tag_name,
+                    expression=l.tokens,
                 )
             )
             l.wc = []
@@ -613,12 +625,13 @@ def lex_inside_liquid_tag(l: Lexer) -> StateFn | None:
 
     if l.accept_end_tag():
         l.markup.append(
-            Lines(
-                l.markup_start,
-                l.pos,
-                (l.wc[0], l.wc[1]),
-                "liquid",
-                l.line_statements,
+            LinesToken(
+                type_=TokenType.LINES,
+                start=l.markup_start,
+                stop=l.pos,
+                wc=(l.wc[0], l.wc[1]),
+                name="liquid",
+                statements=l.line_statements,
             )
         )
 
@@ -648,22 +661,24 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR
         if l.accept_end_tag():
             l.ignore()
             l.line_statements.append(
-                Tag(
-                    l.line_start,
-                    l.pos,
-                    WC_DEFAULT,
-                    l.tag_name,
-                    l.tokens,
+                TagToken(
+                    type_=TokenType.TAG,
+                    start=l.line_start,
+                    stop=l.pos,
+                    wc=WC_DEFAULT,
+                    name=l.tag_name,
+                    expression=l.tokens,
                 )
             )
 
             l.markup.append(
-                Lines(
-                    l.markup_start,
-                    l.pos,
-                    (l.wc[0], l.wc[1]),
-                    "liquid",
-                    l.line_statements,
+                LinesToken(
+                    type_=TokenType.LINES,
+                    start=l.markup_start,
+                    stop=l.pos,
+                    wc=(l.wc[0], l.wc[1]),
+                    name="liquid",
+                    statements=l.line_statements,
                 )
             )
 
@@ -759,12 +774,13 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR
             elif c == "\n":
                 l.ignore()
                 l.line_statements.append(
-                    Tag(
-                        l.line_start,
-                        l.pos,
-                        WC_DEFAULT,
-                        l.tag_name,
-                        l.tokens,
+                    TagToken(
+                        type_=TokenType.TAG,
+                        start=l.line_start,
+                        stop=l.pos,
+                        wc=WC_DEFAULT,
+                        name=l.tag_name,
+                        expression=l.tokens,
                     )
                 )
                 l.tag_name = ""
@@ -1135,7 +1151,15 @@ def lex_query_factory(next_state: StateFn) -> StateFn:
         while state is not None:
             state = state(l)
 
-        l.tokens.append(parse(l.query_tokens))
+        l.tokens.append(
+            QueryToken(
+                type_=TokenType.QUERY,
+                path=parse(l.query_tokens),
+                index=l.query_tokens[0].index,
+                source=l.source,
+            )
+        )
+
         l.query_tokens = []
         return next_state
 
@@ -1147,14 +1171,14 @@ lex_query_inside_tag_expression = lex_query_factory(lex_inside_tag)
 lex_query_inside_line_statement = lex_query_factory(lex_inside_line_statement)
 
 
-def tokenize(source: str) -> list[Markup]:
+def tokenize(source: str) -> list[TokenT]:
     """Scan Liquid template _source_ and return a list of Markup objects."""
     lexer = Lexer(source)
     lexer.run()
 
-    if lexer.tokens:
-        last_token = lexer.tokens[-1]
-        if isinstance(last_token, Token) and last_token.type_ == TokenType.ERROR:
+    if lexer.markup:
+        last_token = lexer.markup[-1]
+        if isinstance(last_token, ErrorToken):
             raise LiquidSyntaxError(last_token.message, token=last_token)
 
     return lexer.markup
