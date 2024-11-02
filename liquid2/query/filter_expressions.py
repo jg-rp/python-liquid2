@@ -11,7 +11,8 @@ from typing import Mapping
 from typing import Sequence
 from typing import TypeVar
 
-from .exceptions import JSONPathTypeError
+from liquid2.exceptions import LiquidTypeError
+
 from .function_extensions.filter_function import ExpressionType
 from .function_extensions.filter_function import FilterFunction
 from .node import JSONPathNodeList
@@ -171,7 +172,9 @@ class PrefixExpression(Expression):
         """Evaluate the filter expression in the given _context_."""
         if self.operator == "!":
             return not _is_truthy(self.right.evaluate(context))
-        raise JSONPathTypeError(f"unknown operator {self.operator} {self.right}")
+        raise LiquidTypeError(
+            f"unknown operator {self.operator} {self.right}", token=self.token
+        )
 
     def children(self) -> list[Expression]:
         """Return a list of child expressions for this expression."""

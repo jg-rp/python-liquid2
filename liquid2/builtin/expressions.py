@@ -383,8 +383,7 @@ def parse_primitive(token: TokenT) -> Expression:  # noqa: PLR0911
         return Query(token, word_to_query(token))
 
     if is_token_type(token, TokenType.INT):
-        # TODO: scientific notation
-        return IntegerLiteral(token, to_int(token.value))
+        return IntegerLiteral(token, to_int(float(token.value)))
 
     if is_token_type(token, TokenType.FLOAT):
         return FloatLiteral(token, float(token.value))
@@ -781,7 +780,7 @@ def parse_boolean_primitive(  # noqa: PLR0912
         left = Query(token, word_to_query(token))
     elif is_token_type(token, TokenType.INT):
         # TODO: scientific notation
-        left = IntegerLiteral(token, to_int(token.value))
+        left = IntegerLiteral(token, to_int(float(token.value)))
     elif is_token_type(token, TokenType.FLOAT):
         left = FloatLiteral(token, float(token.value))
     elif is_token_type(token, TokenType.SINGLE_QUOTE_STRING) or is_token_type(

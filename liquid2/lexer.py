@@ -496,9 +496,9 @@ def lex_inside_output_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, P
                 return lex_query_inside_output_statement
             elif c == "[":
                 return lex_query_inside_output_statement
-
-            l.error(f"unknown symbol '{c}'")
-            return None
+            else:
+                l.error(f"unknown symbol '{c}'")
+                return None
 
 
 def lex_tag(l: Lexer) -> StateFn | None:
@@ -1266,4 +1266,19 @@ def tokenize(source: str) -> list[TokenT]:
     return lexer.markup
 
 
-# TODO: tokenize_query for testing
+def tokenize_query(query: str) -> list[Token]:
+    l = Lexer(query)
+
+    state: Optional[StateFn] = lex_root
+    while state is not None:
+        state = state(l)
+
+    if c := l.next():
+        l.error(f"expected '.', '..' or a bracketed selection, found {c!r}")
+
+    if l.markup:
+        last_token = l.markup[-1]
+        if isinstance(last_token, ErrorToken):
+            raise LiquidSyntaxError(last_token.message, token=last_token)
+
+    return l.query_tokens

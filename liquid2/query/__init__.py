@@ -28,7 +28,7 @@ def word_to_query(token: Token) -> JSONPathQuery:
 __all__ = (
     "JSONPathQuery",
     "JSONValue",
-    "Query",
     "parse_query",
+    "Query",
     "word_to_query",
 )

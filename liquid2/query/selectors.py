@@ -13,8 +13,9 @@ from typing import Mapping
 from typing import Optional
 from typing import Sequence
 
-from .exceptions import JSONPathIndexError
-from .exceptions import JSONPathTypeError
+from liquid2.exceptions import LiquidIndexError
+from liquid2.exceptions import LiquidTypeError
+
 from .filter_expressions import FilterContext
 
 if TYPE_CHECKING:
@@ -98,7 +99,7 @@ class IndexSelector(JSONPathSelector):
         index: int,
     ) -> None:
         if index < env.min_int_index or index > env.max_int_index:
-            raise JSONPathIndexError("index out of range", token=token)
+            raise LiquidIndexError("index out of range", token=token)
 
         super().__init__(env=env, token=token)
         self.index = index
@@ -161,7 +162,7 @@ class SliceSelector(JSONPathSelector):
             if i is not None and (
                 i < self.env.min_int_index or i > self.env.max_int_index
             ):
-                raise JSONPathIndexError("index out of range", token=self.token)
+                raise LiquidIndexError("index out of range", token=self.token)
 
     def _normalized_index(self, obj: Sequence[object], index: int) -> int:
         if index < 0 and len(obj) >= abs(index):
@@ -261,7 +262,7 @@ class FilterSelector(JSONPathSelector):
                 try:
                     if self.expression.evaluate(context):
                         yield node.new_child(val, name)
-                except JSONPathTypeError as err:
+                except LiquidTypeError as err:
                     if not err.token:
                         err.token = self.token
                     raise
@@ -276,7 +277,7 @@ class FilterSelector(JSONPathSelector):
                 try:
                     if self.expression.evaluate(context):
                         yield node.new_child(element, i)
-                except JSONPathTypeError as err:
+                except LiquidTypeError as err:
                     if not err.token:
                         err.token = self.token
                     raise

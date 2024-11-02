@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import random
 from abc import ABC
 from abc import abstractmethod
 from typing import TYPE_CHECKING
@@ -11,7 +10,8 @@ from typing import Mapping
 from typing import Sequence
 from typing import Tuple
 
-from .exceptions import JSONPathRecursionError
+from liquid2.exceptions import ResourceLimitError
+
 from .selectors import NameSelector
 from .selectors import WildcardSelector
 
@@ -87,7 +87,7 @@ class JSONPathRecursiveDescentSegment(JSONPathSegment):
     def _visit(self, node: JSONPathNode, depth: int = 1) -> Iterable[JSONPathNode]:
         """Depth-first, pre-order node traversal."""
         if depth > self.env.max_recursion_depth:
-            raise JSONPathRecursionError("recursion limit exceeded", token=self.token)
+            raise ResourceLimitError("recursion limit exceeded", token=self.token)
 
         yield node
 

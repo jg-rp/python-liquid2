@@ -12,11 +12,11 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 
+from liquid2.exceptions import LiquidSyntaxError
+from liquid2.exceptions import LiquidTypeError
 from liquid2.token import Token
 from liquid2.token import TokenType
 
-from .exceptions import JSONPathSyntaxError
-from .exceptions import JSONPathTypeError
 from .filter_expressions import BooleanLiteral
 from .filter_expressions import ComparisonExpression
 from .filter_expressions import Expression
@@ -120,7 +120,7 @@ class TokenStream:
                 _typ = repr(typ[0])
             else:
                 _typ = f"one of {[t.name for t in typ]!r}"
-            raise JSONPathSyntaxError(
+            raise LiquidSyntaxError(
                 f"expected {_typ}, found {self.current.type_.name!r}",
                 token=self.current,
             )
@@ -132,7 +132,7 @@ class TokenStream:
                 _typ = repr(typ[0].name)
             else:
                 _typ = f"one of {[t.name for t in typ]!r}"
-            raise JSONPathSyntaxError(
+            raise LiquidSyntaxError(
                 f"expected {_typ}, found {self.peek.type_.name!r}",
                 token=self.peek,
             )
@@ -140,7 +140,7 @@ class TokenStream:
     def expect_peek_not(self, typ: TokenType, message: str) -> None:
         """Raise an exception if the next token type is not one of _type_."""
         if self.peek.type_ == typ:
-            raise JSONPathSyntaxError(message, token=self.peek)
+            raise LiquidSyntaxError(message, token=self.peek)
 
 
 class Parser:
@@ -229,7 +229,7 @@ class Parser:
         yield from self.parse_query(stream, in_filter=False)
 
         if stream.current.type_ != TokenType.EOI:
-            raise JSONPathSyntaxError(
+            raise LiquidSyntaxError(
                 f"unexpected token {stream.current.value!r}",
                 token=stream.current,
             )
@@ -298,7 +298,7 @@ class Parser:
         def _maybe_index(token: Token) -> bool:
             if token.type_ == TokenType.INDEX:
                 if len(token.value) > 1 and token.value.startswith(("0", "-0")):
-                    raise JSONPathSyntaxError(
+                    raise LiquidSyntaxError(
                         f"invalid index {token.value!r}", token=token
                     )
                 return True
@@ -351,7 +351,7 @@ class Parser:
                         len(stream.current.value) > 1
                         and stream.current.value.startswith("0")
                     ) or stream.current.value.startswith("-0"):
-                        raise JSONPathSyntaxError(
+                        raise LiquidSyntaxError(
                             "leading zero in index selector", token=stream.current
                         )
                     selectors.append(
@@ -384,17 +384,15 @@ class Parser:
             elif stream.current.type_ == TokenType.FILTER:
                 selectors.append(self.parse_filter_selector(stream))
             elif stream.current.type_ == TokenType.EOI:
-                raise JSONPathSyntaxError(
-                    "unexpected end of query", token=stream.current
-                )
+                raise LiquidSyntaxError("unexpected end of query", token=stream.current)
             else:
-                raise JSONPathSyntaxError(
+                raise LiquidSyntaxError(
                     f"unexpected token in bracketed selection {stream.current.type_!r}",
                     token=stream.current,
                 )
 
             if stream.peek.type_ == TokenType.EOI:
-                raise JSONPathSyntaxError(
+                raise LiquidSyntaxError(
                     "unexpected end of selector list",
                     token=stream.current,
                 )
@@ -407,7 +405,7 @@ class Parser:
             stream.next_token()
 
         if not selectors:
-            raise JSONPathSyntaxError("empty bracketed segment", token=tok)
+            raise LiquidSyntaxError("empty bracketed segment", token=tok)
 
         return selectors
 
@@ -422,12 +420,12 @@ class Parser:
                 and isinstance(func, FilterFunction)
                 and func.return_type == ExpressionType.VALUE
             ):
-                raise JSONPathTypeError(
+                raise LiquidTypeError(
                     f"result of {expr.name}() must be compared", token=tok
                 )
 
         if isinstance(expr, FilterExpressionLiteral):
-            raise JSONPathSyntaxError(
+            raise LiquidSyntaxError(
                 "filter expression literals outside of "
                 "function expressions must be compared",
                 token=expr.token,
@@ -455,25 +453,25 @@ class Parser:
     def parse_integer_literal(self, stream: TokenStream) -> Expression:
         value = stream.current.value
         if value.startswith("0") and len(value) > 1:
-            raise JSONPathSyntaxError("invalid integer literal", token=stream.current)
+            raise LiquidSyntaxError("invalid integer literal", token=stream.current)
 
         # Convert to float first to handle scientific notation.
         try:
             return IntegerLiteral(stream.current, value=int(float(value)))
         except ValueError as err:
-            raise JSONPathSyntaxError(
+            raise LiquidSyntaxError(
                 "invalid integer literal", token=stream.current
             ) from err
 
     def parse_float_literal(self, stream: TokenStream) -> Expression:
         value = stream.current.value
         if value.startswith("0") and len(value.split(".")[0]) > 1:
-            raise JSONPathSyntaxError("invalid float literal", token=stream.current)
+            raise LiquidSyntaxError("invalid float literal", token=stream.current)
 
         try:
             return FloatLiteral(stream.current, value=float(stream.current.value))
         except ValueError as err:
-            raise JSONPathSyntaxError(
+            raise LiquidSyntaxError(
                 "invalid float literal", token=stream.current
             ) from err
 
@@ -502,13 +500,13 @@ class Parser:
             return ComparisonExpression(tok, left, operator, right)
 
         if isinstance(left, FilterExpressionLiteral):
-            raise JSONPathSyntaxError(
+            raise LiquidSyntaxError(
                 "filter expression literals outside of "
                 "function expressions must be compared",
                 token=left.token,
             )
         if isinstance(right, FilterExpressionLiteral):
-            raise JSONPathSyntaxError(
+            raise LiquidSyntaxError(
                 "filter expression literals outside of "
                 "function expressions must be compared",
                 token=right.token,
@@ -523,9 +521,7 @@ class Parser:
 
         while stream.current.type_ != TokenType.RPAREN:
             if stream.current.type_ == TokenType.EOI:
-                raise JSONPathSyntaxError(
-                    "unbalanced parentheses", token=stream.current
-                )
+                raise LiquidSyntaxError("unbalanced parentheses", token=stream.current)
             # TODO: only if binary op
             expr = self.parse_infix_expression(stream, expr)
 
@@ -563,7 +559,7 @@ class Parser:
             try:
                 func = self.function_argument_map[stream.current.type_]
             except KeyError as err:
-                raise JSONPathSyntaxError(
+                raise LiquidSyntaxError(
                     f"unexpected {stream.current.value!r}",
                     token=stream.current,
                 ) from err
@@ -603,9 +599,7 @@ class Parser:
                 msg = "end of expression"
             else:
                 msg = repr(stream.current.value)
-            raise JSONPathSyntaxError(
-                f"unexpected {msg}", token=stream.current
-            ) from err
+            raise LiquidSyntaxError(f"unexpected {msg}", token=stream.current) from err
 
         while True:
             peek_kind = stream.peek.type_
@@ -671,7 +665,7 @@ class Parser:
             codepoint, index = self._decode_hex_char(value, index, token)
             return self._string_from_codepoint(codepoint, token), index
 
-        raise JSONPathSyntaxError(
+        raise LiquidSyntaxError(
             f"unknown escape sequence at index {token.index + index - 1}",
             token=token,
         )
@@ -680,7 +674,7 @@ class Parser:
         length = len(value)
 
         if index + 4 >= length:
-            raise JSONPathSyntaxError(
+            raise LiquidSyntaxError(
                 f"incomplete escape sequence at index {token.index + index - 1}",
                 token=token,
             )
@@ -689,7 +683,7 @@ class Parser:
         codepoint = self._parse_hex_digits(value[index : index + 4], token)
 
         if self._is_low_surrogate(codepoint):
-            raise JSONPathSyntaxError(
+            raise LiquidSyntaxError(
                 f"unexpected low surrogate at index {token.index + index - 1}",
                 token=token,
             )
@@ -701,7 +695,7 @@ class Parser:
                 and value[index + 4] == "\\"
                 and value[index + 5] == "u"
             ):
-                raise JSONPathSyntaxError(
+                raise LiquidSyntaxError(
                     f"incomplete escape sequence at index {token.index + index - 2}",
                     token=token,
                 )
@@ -709,7 +703,7 @@ class Parser:
             low_surrogate = self._parse_hex_digits(value[index + 6 : index + 10], token)
 
             if not self._is_low_surrogate(low_surrogate):
-                raise JSONPathSyntaxError(
+                raise LiquidSyntaxError(
                     f"unexpected codepoint at index {token.index + index + 4}",
                     token=token,
                 )
@@ -733,7 +727,7 @@ class Parser:
             elif digit >= 97 and digit <= 102:
                 codepoint |= digit - 97 + 10
             else:
-                raise JSONPathSyntaxError(
+                raise LiquidSyntaxError(
                     "invalid \\uXXXX escape sequence",
                     token=token,
                 )
@@ -741,7 +735,7 @@ class Parser:
 
     def _string_from_codepoint(self, codepoint: int, token: Token) -> str:
         if codepoint <= 0x1F:
-            raise JSONPathSyntaxError("invalid character", token=token)
+            raise LiquidSyntaxError("invalid character", token=token)
         return chr(codepoint)
 
     def _is_high_surrogate(self, codepoint: int) -> bool:
@@ -754,7 +748,7 @@ class Parser:
         self, expr: Expression, token: Token
     ) -> None:
         if isinstance(expr, FilterQuery) and not expr.query.singular_query():
-            raise JSONPathTypeError("non-singular query is not comparable", token=token)
+            raise LiquidTypeError("non-singular query is not comparable", token=token)
 
         if isinstance(expr, FunctionExtension):
             func = self.env.function_extensions.get(expr.name)
@@ -762,6 +756,6 @@ class Parser:
                 isinstance(func, FilterFunction)
                 and func.return_type != ExpressionType.VALUE
             ):
-                raise JSONPathTypeError(
-                    f"result of {expr.name}() is not comparable", token
+                raise LiquidTypeError(
+                    f"result of {expr.name}() is not comparable", token=token
                 )

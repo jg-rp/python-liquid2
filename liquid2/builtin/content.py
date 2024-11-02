@@ -5,9 +5,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from typing import TextIO
 
+from liquid2 import CommentToken
 from liquid2 import ContentToken
+from liquid2 import LinesToken
 from liquid2 import Node
+from liquid2 import OutputToken
+from liquid2 import RawToken
 from liquid2 import Tag
+from liquid2 import TagToken
 from liquid2 import WhitespaceControl
 
 if TYPE_CHECKING:
@@ -54,13 +59,13 @@ class Content(Tag):
         token = stream.current()
         assert isinstance(token, ContentToken)
 
-        peeked = stream.peek()
+        right_trim = self.env.trim
 
-        right_trim = (
-            peeked.wc[0]  # type: ignore
-            if peeked is not None
-            else self.env.trim
-        )
+        if peeked := stream.peek():  # noqa: SIM102
+            if isinstance(
+                peeked, (TagToken, OutputToken, CommentToken, RawToken, LinesToken)
+            ):
+                right_trim = peeked.wc[0]
 
         return self.node_class(token, self.trim(token.text, left_trim, right_trim))
 

@@ -27,7 +27,7 @@ class Case:
     tags: list[str] = field(default_factory=list)
 
 
-FILENAME = "python/tests/liquid2-compliance-test-suite/cts.json"
+FILENAME = "tests/liquid2-compliance-test-suite/cts.json"
 
 
 def cases() -> list[Case]:

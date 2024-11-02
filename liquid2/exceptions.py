@@ -86,6 +86,14 @@ class LiquidTypeError(LiquidError):
     """Exception raised when an error occurs at render time."""
 
 
+class LiquidIndexError(LiquidError):
+    """An exception raised when a sequence index is out of range."""
+
+
+class LiquidNameError(LiquidError):
+    """An exception raised when an unknown function extension is called."""
+
+
 class DisabledTagError(LiquidError):
     """Exception raised when an attempt is made to render a disabled tag."""
 

@@ -8,10 +8,10 @@ from typing import Any
 
 import pytest
 
-from liquid2.exceptions import LiquidExtensionError
 from liquid2.exceptions import LiquidNameError
-from liquid2.exceptions import LiquidSyntaxError as _LiquidSyntaxError
-from liquid2.exceptions import LiquidTypeError as _LiquidTypeError
+from liquid2.exceptions import LiquidSyntaxError
+from liquid2.exceptions import LiquidTypeError
+from liquid2.lexer import tokenize_query
 from liquid2.query import JSONValue
 from liquid2.query import parse_query
 
@@ -31,7 +31,7 @@ class Case:
 
 SKIP: dict[str, str] = {}
 
-FILENAME = "python/tests/jsonpath-compliance-test-suite/cts.json"
+FILENAME = "tests/jsonpath-compliance-test-suite/cts.json"
 
 
 def cases() -> list[Case]:
@@ -54,7 +54,8 @@ def test_compliance(case: Case) -> None:
         pytest.skip(reason=SKIP[case.name])  # no cov
 
     assert case.document is not None
-    rv = find(case.selector, case.document).values()
+    query = parse_query(tokenize_query(case.selector))
+    rv = query.find(case.document).values()
 
     if case.results is not None:
         assert rv in case.results
@@ -67,7 +68,5 @@ def test_invalid_selectors(case: Case) -> None:
     if case.name in SKIP:
         pytest.skip(reason=SKIP[case.name])  # no cov
 
-    with pytest.raises(
-        (LiquidExtensionError, LiquidNameError, _LiquidSyntaxError, _LiquidTypeError)
-    ):
-        compile(parse_query(case.selector))
+    with pytest.raises((LiquidNameError, LiquidSyntaxError, LiquidTypeError)):
+        parse_query(tokenize_query(case.selector))

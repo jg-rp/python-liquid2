@@ -314,7 +314,7 @@ class BreakTag(Tag):
 
     def parse(self, stream: TokenStream) -> BreakNode:
         """Parse tokens from _stream_ into an AST node."""
-        return BreakNode(stream.current())  # type: ignore
+        return BreakNode(stream.current())
 
 
 class ContinueTag(Tag):
@@ -324,4 +324,4 @@ class ContinueTag(Tag):
 
     def parse(self, stream: TokenStream) -> ContinueNode:
         """Parse tokens from _stream_ into an AST node."""
-        return ContinueNode(stream.current())  # type: ignore
+        return ContinueNode(stream.current())

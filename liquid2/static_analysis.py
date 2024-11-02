@@ -53,7 +53,7 @@ class Span:
     @staticmethod
     def from_token(template_name: str, token: TokenT) -> Span:
         """Return a new span taking start and end positions from _token_."""
-        return Span(template_name, token.span[0], token.span[1])  # type: ignore
+        return Span(template_name, token.start, token.stop)  # type: ignore
 
     def __eq__(self, other: object) -> bool:
         return (

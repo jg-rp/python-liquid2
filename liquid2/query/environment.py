@@ -14,9 +14,10 @@ from typing import Sequence
 from typing import Type
 from typing import Union
 
+from liquid2.exceptions import LiquidNameError
+from liquid2.exceptions import LiquidTypeError
+
 from . import function_extensions
-from .exceptions import JSONPathNameError
-from .exceptions import JSONPathTypeError
 from .filter_expressions import ComparisonExpression
 from .filter_expressions import FilterExpressionLiteral
 from .filter_expressions import FilterQuery
@@ -91,7 +92,7 @@ class JSONPathEnvironment:
 
         Raises:
             JSONPathSyntaxError: If _query_ is invalid.
-            JSONPathTypeError: If filter functions are given arguments of an
+            LiquidTypeError: If filter functions are given arguments of an
                 unacceptable type.
         """
         return JSONPathQuery(
@@ -113,7 +114,7 @@ class JSONPathEnvironment:
         try:
             func = self.function_extensions[token.value]
         except KeyError as err:
-            raise JSONPathNameError(
+            raise LiquidNameError(
                 f"function {token.value!r} is not defined", token=token
             ) from err
 
@@ -129,7 +130,7 @@ class JSONPathEnvironment:
         """Check the well-typedness of a function's arguments at compile-time."""
         # Correct number of arguments?
         if len(args) != len(func.arg_types):
-            raise JSONPathTypeError(
+            raise LiquidTypeError(
                 f"{token.value!r}() requires {len(func.arg_types)} arguments",
                 token=token,
             )
@@ -143,7 +144,7 @@ class JSONPathEnvironment:
                     or (isinstance(arg, FilterQuery) and arg.query.singular_query())
                     or (self._function_return_type(arg) == ExpressionType.VALUE)
                 ):
-                    raise JSONPathTypeError(
+                    raise LiquidTypeError(
                         f"{token.value}() argument {idx} must be of ValueType",
                         token=token,
                     )
@@ -151,7 +152,7 @@ class JSONPathEnvironment:
                 if not isinstance(
                     arg, (FilterQuery, LogicalExpression, ComparisonExpression)
                 ):
-                    raise JSONPathTypeError(
+                    raise LiquidTypeError(
                         f"{token.value}() argument {idx} must be of LogicalType",
                         token=token,
                     )
@@ -159,7 +160,7 @@ class JSONPathEnvironment:
                 isinstance(arg, FilterQuery)
                 or self._function_return_type(arg) == ExpressionType.NODES
             ):
-                raise JSONPathTypeError(
+                raise LiquidTypeError(
                     f"{token.value}() argument {idx} must be of NodesType",
                     token=token,
                 )

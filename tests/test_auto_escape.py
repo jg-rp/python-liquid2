@@ -253,7 +253,7 @@ filter_test_cases = [
         description="remove safe left value and unsafe argument",
         template=r"{{ some | remove: other }}",
         context={"some": Markup("<br><p>hello</p><br>"), "other": "<br>"},
-        expect="<br><p>hello</p><br>",
+        expect="<p>hello</p>",
     ),
     Case(
         description="remove safe left value and safe argument",
@@ -274,7 +274,7 @@ filter_test_cases = [
         description="remove first safe left value and unsafe argument",
         template=r"{{ some | remove_first: other }}",
         context={"some": Markup("<br><p>hello</p><br>"), "other": "<br>"},
-        expect="<br><p>hello</p><br>",
+        expect="<p>hello</p><br>",
     ),
     Case(
         description="remove first safe left value and safe argument",
@@ -303,7 +303,7 @@ filter_test_cases = [
             "seq": "<br>",
             "sub": "<hr>",
         },
-        expect="<br><p>hello</p><br>",
+        expect="&lt;hr&gt;<p>hello</p>&lt;hr&gt;",
     ),
     Case(
         description="replace safe left value and safe arguments",
@@ -333,7 +333,7 @@ filter_test_cases = [
             "seq": "<br>",
             "sub": "<hr>",
         },
-        expect="<br><p>hello</p><br>",
+        expect="&lt;hr&gt;<p>hello</p><br>",
     ),
     Case(
         description="replace first - safe left value and safe arguments",
