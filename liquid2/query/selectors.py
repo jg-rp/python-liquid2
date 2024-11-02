@@ -18,11 +18,13 @@ from .exceptions import JSONPathTypeError
 from .filter_expressions import FilterContext
 
 if TYPE_CHECKING:
-    from liquid2.token import Token
+    from liquid2 import Token
 
     from .environment import JSONPathEnvironment
     from .filter_expressions import FilterExpression
     from .node import JSONPathNode
+    from .query import JSONPathQuery
+    from .query import SelectorTuple
 
 # TODO: try type guard for array-like and mapping-like instead of isinstance
 
@@ -47,6 +49,10 @@ class JSONPathSelector(ABC):
             The `JSONPathNode` instances created by applying this selector to _node_.
         """
 
+    def as_tuple(self) -> SelectorTuple | str:
+        """Return this selector as a tuple of strings and/or nested tuples."""
+        return str(self)
+
 
 class NameSelector(JSONPathSelector):
     """The name selector."""
@@ -67,11 +73,7 @@ class NameSelector(JSONPathSelector):
         return repr(self.name)
 
     def __eq__(self, __value: object) -> bool:
-        return (
-            isinstance(__value, NameSelector)
-            and self.name == __value.name
-            and self.token == __value.token
-        )
+        return isinstance(__value, NameSelector) and self.name == __value.name
 
     def __hash__(self) -> int:
         return hash((self.name, self.token))
@@ -106,11 +108,7 @@ class IndexSelector(JSONPathSelector):
         return str(self.index)
 
     def __eq__(self, __value: object) -> bool:
-        return (
-            isinstance(__value, IndexSelector)
-            and self.index == __value.index
-            and self.token == __value.token
-        )
+        return isinstance(__value, IndexSelector) and self.index == __value.index
 
     def __hash__(self) -> int:
         return hash((self.index, self.token))
@@ -153,11 +151,7 @@ class SliceSelector(JSONPathSelector):
         return f"{start}:{stop}:{step}"
 
     def __eq__(self, __value: object) -> bool:
-        return (
-            isinstance(__value, SliceSelector)
-            and self.slice == __value.slice
-            and self.token == __value.token
-        )
+        return isinstance(__value, SliceSelector) and self.slice == __value.slice
 
     def __hash__(self) -> int:
         return hash((str(self), self.token))
@@ -198,7 +192,7 @@ class WildcardSelector(JSONPathSelector):
         return "*"
 
     def __eq__(self, __value: object) -> bool:
-        return isinstance(__value, WildcardSelector) and self.token == __value.token
+        return isinstance(__value, WildcardSelector)
 
     def __hash__(self) -> int:
         return hash(self.token)
@@ -243,7 +237,6 @@ class FilterSelector(JSONPathSelector):
         return (
             isinstance(__value, FilterSelector)
             and self.expression == __value.expression
-            and self.token == __value.token
         )
 
     def __hash__(self) -> int:
@@ -287,3 +280,56 @@ class FilterSelector(JSONPathSelector):
                     if not err.token:
                         err.token = self.token
                     raise
+
+
+class SingularQuerySelector(JSONPathSelector):
+    """Nested query selector."""
+
+    __slots__ = ("query",)
+
+    def __init__(
+        self,
+        *,
+        env: JSONPathEnvironment,
+        token: Token,
+        query: JSONPathQuery,
+    ) -> None:
+        super().__init__(env=env, token=token)
+        self.query = query
+        self.query.token = token  # XXX: bit of a hack
+
+    def __str__(self) -> str:
+        return str(self.query)
+
+    def __eq__(self, value: object) -> bool:
+        return isinstance(value, SingularQuerySelector) and self.query == value.query
+
+    def __hash__(self) -> int:
+        return hash(str(self.query))
+
+    def _normalized_index(self, index: int, obj: Sequence[object]) -> int:
+        if index < 0 and len(obj) >= abs(index):
+            return len(obj) + index
+        return index
+
+    def resolve(self, node: JSONPathNode) -> Iterable[JSONPathNode]:
+        """Select array items or object values using the result of an embedded query."""
+        # XXX: assuming root query
+        nodes = self.query.find(node.root)
+        if not nodes:
+            return
+
+        value = nodes[0].value
+
+        if isinstance(value, int) and isinstance(node.value, Sequence):
+            norm_index = self._normalized_index(value, node.value)
+            with suppress(IndexError):
+                yield node.new_child(node.value[value], norm_index)
+
+        if isinstance(value, str) and isinstance(node.value, Mapping):
+            with suppress(KeyError):
+                yield node.new_child(node.value[value], value)
+
+    def as_tuple(self) -> SelectorTuple | str:
+        """Return this selector as a tuple of strings and/or nested tuples."""
+        return self.query.as_tuple()

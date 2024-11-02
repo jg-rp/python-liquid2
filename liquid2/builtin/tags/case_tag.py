@@ -5,22 +5,22 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from typing import TextIO
 
-from liquid2 import Markup
+from liquid2 import BlockNode
+from liquid2 import ContentToken
+from liquid2 import MetaNode
 from liquid2 import Node
-from liquid2 import Token
-from liquid2.ast import BlockNode
-from liquid2.ast import MetaNode
+from liquid2 import Tag
+from liquid2 import TagToken
+from liquid2 import TokenType
 from liquid2.builtin import parse_primitive
 from liquid2.builtin.expressions import _eq
-from liquid2.context import RenderContext
 from liquid2.exceptions import LiquidSyntaxError
 from liquid2.expression import Expression
-from liquid2.tag import Tag
 
 if TYPE_CHECKING:
+    from liquid2 import RenderContext
+    from liquid2 import TokenStream
     from liquid2 import TokenT
-    from liquid2.context import RenderContext
-    from liquid2.tokens import TokenStream
 
 
 class CaseNode(Node):
@@ -92,7 +92,7 @@ class CaseTag(Tag):
     def parse(self, stream: TokenStream) -> Node:
         """Parse tokens from _stream_ into an AST node."""
         token = stream.current()
-        assert isinstance(token, Markup.Tag)
+        assert isinstance(token, TagToken)
         expr_stream = stream.into_inner()
         left = parse_primitive(expr_stream.next())
         expr_stream.expect_eos()
@@ -101,13 +101,13 @@ class CaseTag(Tag):
         # _else_ tag. It is not allowed.
         block_token = stream.current()
         match block_token:
-            case Markup.Tag(name=name):
+            case TagToken(name=name):
                 if name not in self.end_block:
                     raise LiquidSyntaxError(
                         f"expected a 'when' tag, found '{name}'",
                         token=block_token,
                     )
-            case Markup.Content(text=text):
+            case ContentToken(text=text):
                 if not text.isspace():
                     raise LiquidSyntaxError(
                         "unexpected text after 'case' tag",
@@ -127,7 +127,7 @@ class CaseTag(Tag):
 
         while stream.is_tag("when"):
             alternative_token = stream.current()
-            assert isinstance(alternative_token, Markup.Tag)
+            assert isinstance(alternative_token, TagToken)
 
             expressions = self._parse_when_expression(stream.into_inner())
             alternative_block_token = stream.current()
@@ -144,7 +144,7 @@ class CaseTag(Tag):
 
         if stream.is_tag("else"):
             alternative_token = stream.next()
-            assert isinstance(alternative_token, Markup.Tag)
+            assert isinstance(alternative_token, TagToken)
             alternative_block = parse_block(stream, self.end_block)
             default = BlockNode(alternative_token, alternative_block)
 
@@ -159,7 +159,7 @@ class CaseTag(Tag):
 
     def _parse_when_expression(self, stream: TokenStream) -> list[Expression]:
         expressions: list[Expression] = [parse_primitive(stream.next())]
-        while isinstance(stream.current(), (Token.Comma, Token.Or)):
+        while stream.current().type_ in (TokenType.COMMA, TokenType.OR):
             stream.next()
             expressions.append(parse_primitive(stream.next()))
         stream.expect_eos()

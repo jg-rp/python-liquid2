@@ -5,14 +5,14 @@ from .environment import JSONPathEnvironment
 from .query import JSONPathQuery
 
 DEFAULT_ENV = JSONPathEnvironment()
-parse = DEFAULT_ENV.parse
+parse_query = DEFAULT_ENV.parse
 
 Query = JSONPathQuery
 
 
 def word_to_query(token: Token) -> JSONPathQuery:
     """Return _word_ as a JSONPath query containing a single shorthand name selector."""
-    return parse(
+    return parse_query(
         [
             Token(
                 type_=TokenType.PROPERTY,

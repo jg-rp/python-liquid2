@@ -5,14 +5,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from typing import TextIO
 
-from liquid2 import Markup
+from liquid2 import MetaNode
 from liquid2 import Node
-from liquid2.ast import MetaNode
+from liquid2 import Tag
+from liquid2 import TagToken
+from liquid2 import TokenStream
 from liquid2.builtin import FilteredExpression
-from liquid2.context import RenderContext
 from liquid2.stringify import to_liquid_string
-from liquid2.tag import Tag
-from liquid2.tokens import TokenStream
 
 if TYPE_CHECKING:
     from liquid2 import TokenT
@@ -63,7 +62,7 @@ class EchoTag(Tag):
     def parse(self, stream: TokenStream) -> Node:
         """Parse tokens from _stream_ into an AST node."""
         token = stream.current()
-        assert isinstance(token, Markup.Tag)
+        assert isinstance(token, TagToken)
         return self.node_class(
             token, FilteredExpression.parse(TokenStream(token.expression))
         )

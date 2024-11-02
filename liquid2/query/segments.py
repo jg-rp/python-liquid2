@@ -5,21 +5,22 @@ from __future__ import annotations
 import random
 from abc import ABC
 from abc import abstractmethod
-from collections import deque
 from typing import TYPE_CHECKING
-from typing import Deque
 from typing import Iterable
 from typing import Mapping
 from typing import Sequence
 from typing import Tuple
 
 from .exceptions import JSONPathRecursionError
+from .selectors import NameSelector
+from .selectors import WildcardSelector
 
 if TYPE_CHECKING:
     from liquid2.token import Token
 
     from .environment import JSONPathEnvironment
     from .node import JSONPathNode
+    from .query import SelectorTuple
     from .selectors import JSONPathSelector
 
 
@@ -42,6 +43,12 @@ class JSONPathSegment(ABC):
     @abstractmethod
     def resolve(self, nodes: Iterable[JSONPathNode]) -> Iterable[JSONPathNode]:
         """Apply this segment to each `JSONPathNode` in _nodes_."""
+
+    def as_tuple(self) -> SelectorTuple | str:
+        """Return this segment's selectors as a tuple of strings or nested tuples."""
+        if len(self.selectors) == 1:
+            return self.selectors[0].as_tuple()
+        return tuple(selector.as_tuple() for selector in self.selectors)
 
 
 class JSONPathChildSegment(JSONPathSegment):
@@ -72,12 +79,8 @@ class JSONPathRecursiveDescentSegment(JSONPathSegment):
 
     def resolve(self, nodes: Iterable[JSONPathNode]) -> Iterable[JSONPathNode]:
         """Select descendants of each node in _nodes_."""
-        visitor = (
-            self._nondeterministic_visit if self.env.nondeterministic else self._visit
-        )
-
         for node in nodes:
-            for _node in visitor(node):
+            for _node in self._visit(node):
                 for selector in self.selectors:
                     yield from selector.resolve(_node)
 
@@ -99,78 +102,21 @@ class JSONPathRecursiveDescentSegment(JSONPathSegment):
                     _node = node.new_child(element, i)
                     yield from self._visit(_node, depth + 1)
 
-    def _nondeterministic_visit(
-        self,
-        root: JSONPathNode,
-        depth: int = 1,
-    ) -> Iterable[JSONPathNode]:
-        """Nondeterministic node traversal."""
-        # (node, depth) tuples
-        queue: Deque[Tuple[JSONPathNode, int]] = deque()
-
-        # Visit the root node
-        yield root
-
-        # Queue root's children
-        queue.extend([(child, depth) for child in _nondeterministic_children(root)])
-
-        while queue:
-            node, depth = queue.popleft()
-            yield node
-
-            if depth >= self.env.max_recursion_depth:
-                raise JSONPathRecursionError(
-                    "recursion limit exceeded", token=self.token
-                )
-
-            # Randomly choose to visit child nodes now or queue them for later?
-            visit_children = random.choice([True, False])  # noqa: S311
-
-            for child in _nondeterministic_children(node):
-                if visit_children:
-                    yield child
-
-                    # Queue grandchildren by randomly interleaving them into the
-                    # queue while maintaining queue and grandchild order.
-                    grandchildren = [
-                        (child, depth + 2)
-                        for child in _nondeterministic_children(child)
-                    ]
-
-                    queue = deque(
-                        [
-                            next(n)
-                            for n in random.sample(
-                                [iter(queue)] * len(queue)
-                                + [iter(grandchildren)] * len(grandchildren),
-                                len(queue) + len(grandchildren),
-                            )
-                        ]
-                    )
-                else:
-                    queue.append((child, depth + 1))
-
     def __str__(self) -> str:
+        if len(self.selectors) == 1:
+            match self.selectors[0]:
+                case NameSelector(name=name):
+                    return f"..{name}"
+                case WildcardSelector():
+                    return "..*"
+
         return f"..[{', '.join(str(itm) for itm in self.selectors)}]"
 
     def __eq__(self, __value: object) -> bool:
         return (
             isinstance(__value, JSONPathRecursiveDescentSegment)
             and self.selectors == __value.selectors
-            and self.token == __value.token
         )
 
     def __hash__(self) -> int:
         return hash(("..", self.selectors, self.token))
-
-
-def _nondeterministic_children(node: JSONPathNode) -> Iterable[JSONPathNode]:
-    """Yield children of _node_ with nondeterministic object/dict iteration."""
-    if isinstance(node.value, Mapping):
-        items = list(node.value.items())
-        random.shuffle(items)
-        for name, val in items:
-            yield node.new_child(val, name)
-    elif not isinstance(node.value, str) and isinstance(node.value, Sequence):
-        for i, element in enumerate(node.value):
-            yield node.new_child(element, i)

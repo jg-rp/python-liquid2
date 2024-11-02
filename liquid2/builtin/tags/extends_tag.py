@@ -13,24 +13,24 @@ from typing import TextIO
 
 from markupsafe import Markup as Markupsafe
 
-from liquid2 import Markup
-from liquid2 import Token
-from liquid2.ast import BlockNode as TemplateBlock
-from liquid2.ast import MetaNode
-from liquid2.ast import Node
+from liquid2 import BlockNode as TemplateBlock
+from liquid2 import MetaNode
+from liquid2 import Node
+from liquid2 import Tag
+from liquid2 import TagToken
+from liquid2 import TokenStream
+from liquid2 import TokenType
 from liquid2.builtin import Identifier
 from liquid2.builtin import StringLiteral
 from liquid2.builtin import parse_string_or_identifier
 from liquid2.exceptions import RequiredBlockError
 from liquid2.exceptions import StopRender
 from liquid2.exceptions import TemplateInheritanceError
-from liquid2.tag import Tag
-from liquid2.tokens import TokenStream
 
 if TYPE_CHECKING:
+    from liquid2 import RenderContext
     from liquid2 import Template
     from liquid2 import TokenT
-    from liquid2.context import RenderContext
 
 
 class ExtendsNode(Node):
@@ -92,7 +92,7 @@ class ExtendsTag(Tag):
     def parse(self, stream: TokenStream) -> Node:
         """Parse tokens from _stream_ into an AST node."""
         token = stream.current()
-        assert isinstance(token, Markup.Tag)
+        assert isinstance(token, TagToken)
 
         tokens = TokenStream(token.expression)
         name_token = tokens.next()
@@ -245,11 +245,11 @@ class BlockTag(Tag):
     def parse(self, stream: TokenStream) -> Node:
         """Parse tokens from _stream_ into an AST node."""
         token = stream.current()
-        assert isinstance(token, Markup.Tag)
+        assert isinstance(token, TagToken)
 
         tokens = TokenStream(token.expression)
         block_name = parse_string_or_identifier(tokens.next())
-        required = isinstance(tokens.next(), Token.Required)
+        required = tokens.next().type_ == TokenType.REQUIRED
         tokens.expect_eos()
 
         block_token = stream.next()
@@ -260,7 +260,7 @@ class BlockTag(Tag):
 
         stream.expect_tag("endblock")
         end_block_token = stream.current()
-        assert isinstance(end_block_token, Markup.Tag)
+        assert isinstance(end_block_token, TagToken)
 
         if end_block_token.expression is not None:
             tokens = TokenStream(end_block_token.expression)

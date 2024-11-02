@@ -311,7 +311,7 @@ class Query(Expression):
         return context.get(self.path, token=self.token)
 
     def children(self) -> list[Expression]:
-        return [Query(token=q.token, path=q) for q in self.path.children()]  # type: ignore
+        return [Query(token=q.token, path=q) for q in self.path.children()]
 
 
 Primitive = Literal[Any] | RangeLiteral | Query | Null
@@ -593,14 +593,14 @@ class Filter:
         filters: list[Filter] = []
 
         while stream.current().type_ in delim:
-            next(stream)
+            stream.next()
             stream.expect(TokenType.WORD)
             filter_token = cast(Token, stream.next())  # TODO:
             filter_name = filter_token.value
             filter_arguments: list[KeywordArgument | PositionalArgument] = []
 
             if stream.current().type_ == TokenType.COLON:
-                next(stream)  # Move past ':'
+                stream.next()  # Move past ':'
                 while True:
                     token = stream.current()
                     if is_token_type(token, TokenType.WORD):
@@ -765,52 +765,54 @@ def parse_boolean_primitive(  # noqa: PLR0912
 ) -> Expression:
     """Parse a Boolean expression from tokens in _stream_."""
     left: Expression
-    token = next(stream, None)
+    token = stream.next()
 
-    match token:
-        case Token.True_():
-            left = TrueLiteral(token=token)
-        case Token.False_():
-            left = FalseLiteral(token=token)
-        case Token.Null():
-            left = Null(token=token)
-        case Token.Word(value):
-            if value == "empty":
-                left = Empty(token=token)
-            elif value == "blank":
-                left = Blank(token=token)
-            else:
-                left = Query(token, compile(parse_query(value)))
-        case Token.RangeLiteral(start, stop):
-            left = RangeLiteral(token, parse_primitive(start), parse_primitive(stop))
-        case Token.StringLiteral(value):
-            left = StringLiteral(token, value)
-        case Token.IntegerLiteral(value):
-            left = IntegerLiteral(token, value)
-        case Token.FloatLiteral(value):
-            left = FloatLiteral(token, value)
-        case Token.Query(path):
-            left = Query(token, compile(path))
-        case Token.Not():
-            left = LogicalNotExpression.parse(stream)
-        case Token.LeftParen():
-            left = parse_grouped_expression(stream)
-        case _:
-            raise LiquidSyntaxError(
-                "expected a primitive expression, "
-                f"found {stream.current().__class__.__name__}",
-                token=stream.current(),
-            )
+    if is_token_type(token, TokenType.TRUE):
+        left = TrueLiteral(token=token)
+    elif is_token_type(token, TokenType.FALSE):
+        left = FalseLiteral(token=token)
+    elif is_token_type(token, TokenType.NULL):
+        left = Null(token=token)
+    elif is_token_type(token, TokenType.WORD):
+        if token.value == "empty":
+            left = Empty(token=token)
+        if token.value == "blank":
+            left = Blank(token=token)
+        left = Query(token, word_to_query(token))
+    elif is_token_type(token, TokenType.INT):
+        # TODO: scientific notation
+        left = IntegerLiteral(token, to_int(token.value))
+    elif is_token_type(token, TokenType.FLOAT):
+        left = FloatLiteral(token, float(token.value))
+    elif is_token_type(token, TokenType.SINGLE_QUOTE_STRING) or is_token_type(
+        token, TokenType.DOUBLE_QUOTE_STRING
+    ):
+        left = StringLiteral(token, token.value)
+    elif is_query_token(token):
+        left = Query(token, token.path)
+    elif is_range_token(token):
+        left = RangeLiteral(
+            token, parse_primitive(token.start), parse_primitive(token.stop)
+        )
+    elif is_token_type(token, TokenType.NOT):
+        left = LogicalNotExpression.parse(stream)
+    elif is_token_type(token, TokenType.LPAREN):
+        left = parse_grouped_expression(stream)
+    else:
+        raise LiquidSyntaxError(
+            f"expected a primitive expression, found {stream.current().type_.name}",
+            token=stream.current(),
+        )
 
     while True:
         token = stream.current()
         if (
-            not token
-            or PRECEDENCES.get(token.__class__, PRECEDENCE_LOWEST) < precedence
+            token == stream.eoi
+            or PRECEDENCES.get(token.type_, PRECEDENCE_LOWEST) < precedence
         ):
             break
 
-        if token.__class__ not in BINARY_OPERATORS:
+        if token.type_ not in BINARY_OPERATORS:
             return left
 
         left = parse_infix_expression(stream, left)
@@ -820,48 +822,48 @@ def parse_boolean_primitive(  # noqa: PLR0912
 
 def parse_infix_expression(stream: TokenStream, left: Expression) -> Expression:  # noqa: PLR0911
     """Return a logical, comparison, or membership expression parsed from _stream_."""
-    token = next(stream, None)
+    token = stream.next()
     assert token is not None
-    precedence = PRECEDENCES.get(token.__class__, PRECEDENCE_LOWEST)
+    precedence = PRECEDENCES.get(token.type_, PRECEDENCE_LOWEST)
 
-    match token:
-        case Token.Eq():
+    match token.type_:
+        case TokenType.EQ:
             return EqExpression(
                 token, left, parse_boolean_primitive(stream, precedence)
             )
-        case Token.Lt():
+        case TokenType.LT:
             return LtExpression(
                 token, left, parse_boolean_primitive(stream, precedence)
             )
-        case Token.Gt():
+        case TokenType.GT:
             return GtExpression(
                 token, left, parse_boolean_primitive(stream, precedence)
             )
-        case Token.Ne():
+        case TokenType.NE:
             return NeExpression(
                 token, left, parse_boolean_primitive(stream, precedence)
             )
-        case Token.Le():
+        case TokenType.LE:
             return LeExpression(
                 token, left, parse_boolean_primitive(stream, precedence)
             )
-        case Token.Ge():
+        case TokenType.GE:
             return GeExpression(
                 token, left, parse_boolean_primitive(stream, precedence)
             )
-        case Token.Contains():
+        case TokenType.CONTAINS:
             return ContainsExpression(
                 token, left, parse_boolean_primitive(stream, precedence)
             )
-        case Token.In():
+        case TokenType.IN:
             return InExpression(
                 token, left, parse_boolean_primitive(stream, precedence)
             )
-        case Token.And():
+        case TokenType.AND:
             return LogicalAndExpression(
                 token, left, parse_boolean_primitive(stream, precedence)
             )
-        case Token.Or():
+        case TokenType.OR:
             return LogicalOrExpression(
                 token, left, parse_boolean_primitive(stream, precedence)
             )
@@ -875,13 +877,13 @@ def parse_infix_expression(stream: TokenStream, left: Expression) -> Expression:
 def parse_grouped_expression(stream: TokenStream) -> Expression:
     """Parse an expression from tokens in _stream_ until the next right parenthesis."""
     expr = parse_boolean_primitive(stream)
-    token = next(stream, None)
+    token = stream.next()
 
-    while not isinstance(token, Token.RightParen):
+    while token.type_ != TokenType.RPAREN:
         if token is None:
             raise LiquidSyntaxError("unbalanced parentheses", token=token)
 
-        if token.__class__ not in BINARY_OPERATORS:
+        if token.type_ not in BINARY_OPERATORS:
             raise LiquidSyntaxError(
                 "expected an infix expression, "
                 f"found {stream.current().__class__.__name__}",
@@ -890,7 +892,7 @@ def parse_grouped_expression(stream: TokenStream) -> Expression:
 
         expr = parse_infix_expression(stream, expr)
 
-    if not isinstance(token, Token.RightParen):
+    if token.type_ != TokenType.RPAREN:
         raise LiquidSyntaxError("unbalanced parentheses", token=token)
 
     return expr
@@ -1323,56 +1325,52 @@ class LoopExpression(Expression):
         """Parse tokens from _stream_ in to a LoopExpression."""
         token = stream.current()
         identifier = parse_identifier(token)
-        next(stream, None)
-        stream.expect(Token.In)
-        next(stream)  # Move past 'in'
+        stream.next()
+        stream.expect(TokenType.IN)
+        stream.next()  # Move past 'in'
         iterable = parse_primitive(stream.current())
-        next(stream)  # Move past identifier
+        stream.next()  # Move past identifier
 
         reversed_ = False
         offset: Expression | None = None
         limit: Expression | None = None
 
         while True:
-            arg_token = next(stream, None)
-            match arg_token:
-                case Token.Word(value):
-                    match value:
-                        case "reversed":
-                            reversed_ = True
-                        case "limit":
-                            stream.expect_one_of(Token.Colon, Token.Assign)
-                            next(stream)
-                            limit = parse_primitive(next(stream, None))
-                        case "offset":
-                            stream.expect_one_of(Token.Colon, Token.Assign)
-                            next(stream)
-                            offset_token = next(stream, None)
-                            if (
-                                isinstance(offset_token, Token.Word)
-                                and offset_token.value == "continue"
-                            ):
-                                offset = StringLiteral(
-                                    token=offset_token, value="continue"
-                                )
-                            else:
-                                offset = parse_primitive(offset_token)
-                        case _:
-                            raise LiquidSyntaxError(
-                                "expected 'reversed', 'offset' or 'limit', "
-                                f"found '{value}'",
-                                token=arg_token,
-                            )
-                case Token.Comma():
-                    continue
-                case None:
-                    break
-                case _:
-                    raise LiquidSyntaxError(
-                        f"expected 'reversed', 'offset' or 'limit', found '{value}' "
-                        f"of type {arg_token.__class__.__name__}",
-                        token=arg_token,
-                    )
+            arg_token = stream.next()
+
+            if is_token_type(arg_token, TokenType.WORD):
+                match arg_token.value:
+                    case "reversed":
+                        reversed_ = True
+                    case "limit":
+                        stream.expect_one_of(TokenType.COLON, TokenType.ASSIGN)
+                        stream.next()
+                        limit = parse_primitive(stream.next())
+                    case "offset":
+                        stream.expect_one_of(TokenType.COLON, TokenType.ASSIGN)
+                        stream.next()
+                        offset_token = stream.next()
+                        if (
+                            is_token_type(offset_token, TokenType.WORD)
+                            and offset_token.value == "continue"
+                        ):
+                            offset = StringLiteral(token=offset_token, value="continue")
+                        else:
+                            offset = parse_primitive(offset_token)
+                    case _:
+                        raise LiquidSyntaxError(
+                            "expected 'reversed', 'offset' or 'limit', ",
+                            token=arg_token,
+                        )
+            elif is_token_type(arg_token, TokenType.COMMA):
+                continue
+            elif arg_token.type_ == TokenType.EOI:
+                break
+            else:
+                raise LiquidSyntaxError(
+                    "expected 'reversed', 'offset' or 'limit'",
+                    token=arg_token,
+                )
 
         assert token is not None
         return LoopExpression(
@@ -1413,44 +1411,44 @@ class Identifier(str):
         return super().__hash__()
 
 
-def parse_identifier(token: TokenT | None) -> Identifier:
+def parse_identifier(token: TokenT) -> Identifier:
     """Parse _token_ as an identifier."""
-    match token:
-        case Token.Word(value):
-            return Identifier(value, token=token)
-        case Token.Query(path):
-            word = path.as_word()
-            if word is None:
-                raise LiquidSyntaxError(
-                    "expected an identifier, found a path", token=token
-                )
-            return Identifier(word, token=token)
-        case _:
-            raise LiquidSyntaxError(
-                f"expected an identifier, found {token.__class__.__name__}",
-                token=token,
-            )
+    if is_token_type(token, TokenType.WORD):
+        return Identifier(token.value, token=token)
+
+    # TODO: this should be unreachable
+    # if is_query_token(token):
+    #     word = token.path.as_word()
+    #     if word is None:
+    #         raise LiquidSyntaxError("expected an identifier, found a path", token=token)
+    #     return Identifier(word, token=token)
+
+    raise LiquidSyntaxError(
+        f"expected an identifier, found {token.type_.name}",
+        token=token,
+    )
 
 
-def parse_string_or_identifier(token: TokenT | None) -> Identifier:
+def parse_string_or_identifier(token: TokenT) -> Identifier:
     """Parse _token_ as an identifier or a string literal."""
-    match token:
-        case Token.StringLiteral(value):
-            return Identifier(value, token=token)
-        case Token.Word(value):
-            return Identifier(value, token=token)
-        case Token.Query(path):
-            word = path.as_word()
-            if word is None:
-                raise LiquidSyntaxError(
-                    "expected an identifier, found a path", token=token
-                )
-            return Identifier(word, token=token)
-        case _:
-            raise LiquidSyntaxError(
-                f"expected an identifier, found {token.__class__.__name__}",
-                token=token,
-            )
+    if (
+        is_token_type(token, TokenType.WORD)
+        or is_token_type(token, TokenType.SINGLE_QUOTE_STRING)
+        or is_token_type(token, TokenType.DOUBLE_QUOTE_STRING)
+    ):
+        return Identifier(token.value, token=token)
+
+    # TODO: this should be unreachable
+    # if is_query_token(token):
+    #     word = token.path.as_word()
+    #     if word is None:
+    #         raise LiquidSyntaxError("expected an identifier, found a path", token=token)
+    #     return Identifier(word, token=token)
+
+    raise LiquidSyntaxError(
+        f"expected an identifier, found {token.type_.name}",
+        token=token,
+    )
 
 
 def parse_keyword_arguments(tokens: TokenStream) -> list[KeywordArgument]:
@@ -1463,33 +1461,24 @@ def parse_keyword_arguments(tokens: TokenStream) -> list[KeywordArgument]:
 
     while True:
         token = tokens.next()
-        match token:
-            case Token.Comma():
-                # XXX: Leading and/or trailing commas are OK.
-                continue
-            case Token.Word(value=name):
-                tokens.expect_one_of(Token.Colon, Token.Assign)
-                tokens.next()  # Move past ":" or "="
-                value = parse_primitive(tokens.next())
-                args.append(KeywordArgument(name, value))
-            case Token.Query(path=path):
-                word = path.as_word()
-                if word is None:
-                    raise LiquidSyntaxError(
-                        "expected an identifier, found a path", token=token
-                    )
-                tokens.expect_one_of(Token.Colon, Token.Assign)
-                tokens.next()  # Move past ":" or "="
-                value = parse_primitive(tokens.next())
-                args.append(KeywordArgument(word, value))
-            case None:
-                break
-            case _:
-                raise LiquidSyntaxError(
-                    "expected a list of keyword arguments, "
-                    f"found {token.__class__.__name__}",
-                    token=token,
-                )
+
+        if token.type_ == TokenType.EOI:
+            break
+
+        if is_token_type(token, TokenType.COMMA):
+            # XXX: Leading and/or trailing commas are OK.
+            continue
+
+        if is_token_type(token, TokenType.WORD):
+            tokens.expect_one_of(TokenType.COLON, TokenType.ASSIGN)
+            tokens.next()  # Move past ":" or "="
+            value = parse_primitive(tokens.next())
+            args.append(KeywordArgument(token.value, value))
+        else:
+            raise LiquidSyntaxError(
+                f"expected a list of keyword arguments, found {token.type_.name}",
+                token=token,
+            )
 
     return args
 

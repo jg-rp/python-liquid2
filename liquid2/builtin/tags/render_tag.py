@@ -6,19 +6,19 @@ from typing import TYPE_CHECKING
 from typing import Sequence
 from typing import TextIO
 
-from liquid2 import Markup
+from liquid2 import MetaNode
 from liquid2 import Node
-from liquid2 import Token
-from liquid2.ast import MetaNode
+from liquid2 import Tag
+from liquid2 import TagToken
+from liquid2 import TokenStream
+from liquid2 import TokenType
+from liquid2 import is_token_type
 from liquid2.builtin import Identifier
 from liquid2.builtin import StringLiteral
 from liquid2.builtin import parse_keyword_arguments
 from liquid2.builtin import parse_primitive
 from liquid2.builtin import parse_string_or_identifier
-from liquid2.context import RenderContext
 from liquid2.exceptions import LiquidSyntaxError
-from liquid2.tag import Tag
-from liquid2.tokens import TokenStream
 
 from .for_tag import ForLoop
 
@@ -209,7 +209,7 @@ class RenderTag(Tag):
     def parse(self, stream: TokenStream) -> Node:
         """Parse tokens from _stream_ into an AST node."""
         token = stream.current()
-        assert isinstance(token, Markup.Tag)
+        assert isinstance(token, TagToken)
 
         if not token.expression:
             raise LiquidSyntaxError(
@@ -220,35 +220,39 @@ class RenderTag(Tag):
 
         # The name of the template to render. Must be a string literal.
         name_token = tokens.next()
-        match name_token:
-            case Token.StringLiteral(value):
-                name = StringLiteral(token=name_token, value=value)
-            case _token:
-                raise LiquidSyntaxError(
-                    "expected the name of a template to render as a string literal, "
-                    f"found {_token.__class__.__name__}",
-                    token=_token,
-                )
+
+        if is_token_type(name_token, TokenType.SINGLE_QUOTE_STRING) or is_token_type(
+            name_token, TokenType.DOUBLE_QUOTE_STRING
+        ):
+            name = StringLiteral(token=name_token, value=name_token.value)
+        else:
+            raise LiquidSyntaxError(
+                "expected the name of a template to render as a string literal, "
+                f"found {name_token.type_.name}",
+                token=name_token,
+            )
 
         loop = False
         var: Expression | None = None
         alias: Identifier | None = None
 
-        if isinstance(tokens.current(), Token.For) and not isinstance(
-            tokens.peek(), (Token.Colon, Token.Comma)
+        if tokens.current().type_ == TokenType.FOR and tokens.peek().type_ not in (
+            TokenType.COLON,
+            TokenType.COMMA,
         ):
             tokens.next()  # Move past "for"
             loop = True
             var = parse_primitive(tokens.next())
-            if isinstance(tokens.current(), Token.As):
+            if tokens.current().type_ == TokenType.AS:
                 tokens.next()  # Move past "as"
                 alias = parse_string_or_identifier(tokens.next())
-        elif isinstance(tokens.current(), Token.With) and not isinstance(
-            tokens.peek(), (Token.Colon, Token.Comma)
+        elif tokens.current().type_ == TokenType.WITH and tokens.peek().type_ not in (
+            TokenType.COLON,
+            TokenType.COMMA,
         ):
             tokens.next()  # Move past "with"
             var = parse_primitive(tokens.next())
-            if isinstance(tokens.current(), Token.As):
+            if tokens.current().type_ == TokenType.AS:
                 tokens.next()  # Move past "as"
                 alias = parse_string_or_identifier(tokens.next())
 

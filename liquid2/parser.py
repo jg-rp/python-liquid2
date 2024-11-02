@@ -84,7 +84,7 @@ class Parser:
                         token=_token,
                     )
 
-            next(stream, None)
+            stream.next()
 
         return nodes
 
@@ -137,7 +137,7 @@ class Parser:
                 case stream.eoi:
                     break
 
-            next(stream, None)
+            stream.next()
 
         return nodes
 
@@ -145,4 +145,5 @@ class Parser:
 def skip_block(stream: TokenStream, end: Container[str]) -> None:
     """Advance the stream until we find a tag with a name in _end_."""
     while not stream.is_one_of(end):
-        next(stream)
+        # TODO: eoi
+        stream.next()

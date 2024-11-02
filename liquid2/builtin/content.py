@@ -5,16 +5,16 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from typing import TextIO
 
+from liquid2 import ContentToken
 from liquid2 import Node
-from liquid2.tag import Tag
-from liquid2.token import ContentToken
-from liquid2.token import WhitespaceControl
+from liquid2 import Tag
+from liquid2 import WhitespaceControl
 
 if TYPE_CHECKING:
+    from liquid2 import MetaNode
+    from liquid2 import RenderContext
+    from liquid2 import TokenStream
     from liquid2 import TokenT
-    from liquid2.ast import MetaNode
-    from liquid2.context import RenderContext
-    from liquid2.stream import TokenStream
 
 
 class ContentNode(Node):

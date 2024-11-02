@@ -9,7 +9,7 @@ from typing import Optional
 from typing import Pattern
 
 from .exceptions import LiquidSyntaxError
-from .query import parse
+from .query import parse_query
 from .token import CommentToken
 from .token import ContentToken
 from .token import ErrorToken
@@ -1169,7 +1169,7 @@ def lex_query_factory(next_state: StateFn) -> StateFn:
         l.tokens.append(
             QueryToken(
                 type_=TokenType.QUERY,
-                path=parse(l.query_tokens),
+                path=parse_query(l.query_tokens),
                 index=l.query_tokens[0].index,
                 source=l.source,
             )

@@ -5,19 +5,18 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from typing import TextIO
 
-from liquid2 import Markup
+from liquid2 import BlockNode
+from liquid2 import ConditionalBlockNode
+from liquid2 import MetaNode
 from liquid2 import Node
-from liquid2.ast import BlockNode
-from liquid2.ast import ConditionalBlockNode
-from liquid2.ast import MetaNode
+from liquid2 import Tag
+from liquid2 import TagToken
+from liquid2 import TokenStream
 from liquid2.builtin import BooleanExpression
-from liquid2.context import RenderContext
-from liquid2.tag import Tag
-from liquid2.tokens import TokenStream
 
 if TYPE_CHECKING:
+    from liquid2 import RenderContext
     from liquid2 import TokenT
-    from liquid2.context import RenderContext
 
 
 class UnlessNode(Node):
@@ -111,7 +110,7 @@ class UnlessTag(Tag):
     def parse(self, stream: TokenStream) -> Node:
         """Parse tokens from _stream_ into an AST node."""
         token = next(stream)
-        assert isinstance(token, Markup.Tag)
+        assert isinstance(token, TagToken)
 
         parse_block = self.env.parser.parse_block
         parse_expression = BooleanExpression.parse
@@ -130,7 +129,7 @@ class UnlessTag(Tag):
 
         while stream.is_tag("elsif"):
             alternative_token = next(stream)
-            assert isinstance(alternative_token, Markup.Tag)
+            assert isinstance(alternative_token, TagToken)
 
             alternative_expression = parse_expression(
                 TokenStream(alternative_token.expression)

@@ -540,6 +540,7 @@ class Parser:
             query=JSONPathQuery(
                 env=self.env,
                 segments=tuple(self.parse_query(stream, in_filter=True)),
+                token=root,
             ),
         )
 
@@ -548,7 +549,9 @@ class Parser:
         return RelativeFilterQuery(
             token=tok,
             query=JSONPathQuery(
-                env=self.env, segments=tuple(self.parse_query(stream, in_filter=True))
+                env=self.env,
+                segments=tuple(self.parse_query(stream, in_filter=True)),
+                token=tok,
             ),
         )
 

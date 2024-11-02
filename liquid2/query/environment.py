@@ -94,7 +94,9 @@ class JSONPathEnvironment:
             JSONPathTypeError: If filter functions are given arguments of an
                 unacceptable type.
         """
-        return JSONPathQuery(env=self, segments=tuple(self.parser.parse(tokens)))
+        return JSONPathQuery(
+            env=self, segments=tuple(self.parser.parse(tokens)), token=tokens[0]
+        )
 
     def setup_function_extensions(self) -> None:
         """Initialize function extensions."""

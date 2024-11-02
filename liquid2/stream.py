@@ -125,7 +125,7 @@ class TokenStream(peekable):  # type: ignore
     def is_tag(self, tag_name: str) -> bool:
         """Return _True_ if the current token is a tag named _tag_name_."""
         token = self.current()
-        if isinstance(token, TagToken):
+        if isinstance(token, TagToken):  # TODO: try without isinstance
             return token.name == tag_name
         return False
 

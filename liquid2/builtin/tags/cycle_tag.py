@@ -5,21 +5,20 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from typing import TextIO
 
-from liquid2 import Markup
+from liquid2 import MetaNode
 from liquid2 import Node
-from liquid2 import Token
-from liquid2.ast import MetaNode
+from liquid2 import Tag
+from liquid2 import TagToken
+from liquid2 import TokenStream
+from liquid2 import TokenType
 from liquid2.builtin import parse_primitive
 from liquid2.builtin import parse_string_or_identifier
-from liquid2.context import RenderContext
 from liquid2.exceptions import LiquidSyntaxError
 from liquid2.stringify import to_liquid_string
-from liquid2.tag import Tag
-from liquid2.tokens import TokenStream
 
 if TYPE_CHECKING:
+    from liquid2 import RenderContext
     from liquid2 import TokenT
-    from liquid2.context import RenderContext
     from liquid2.expression import Expression
 
 
@@ -72,7 +71,7 @@ class CycleTag(Tag):
     def parse(self, stream: TokenStream) -> Node:
         """Parse tokens from _stream_ into an AST node."""
         token = stream.current()
-        assert isinstance(token, Markup.Tag)
+        assert isinstance(token, TagToken)
 
         if not token.expression:
             raise LiquidSyntaxError("expected a group name or item list", token=token)
@@ -81,9 +80,9 @@ class CycleTag(Tag):
 
         # Does this cycle tag define a name followed by a colon, before listing
         # items to cycle through?
-        if isinstance(expr_stream.peek(), Token.Colon):
-            name: str | None = parse_string_or_identifier(next(expr_stream, None))
-            expr_stream.expect(Token.Colon)
+        if expr_stream.peek().type_ == TokenType.COLON:
+            name: str | None = parse_string_or_identifier(expr_stream.next())
+            expr_stream.expect(TokenType.COLON)
             expr_stream.next()
         else:
             name = None
@@ -96,10 +95,11 @@ class CycleTag(Tag):
         while True:
             item_token = expr_stream.next()
 
-            match item_token:
-                case None:
+            # TODO: don't use match
+            match item_token.type_:
+                case TokenType.EOI:
                     break
-                case Token.Comma():
+                case TokenType.COMMA:
                     pass
                 case _:
                     raise LiquidSyntaxError(
@@ -111,10 +111,9 @@ class CycleTag(Tag):
             # Trailing commas are OK
             item_token = expr_stream.next()
 
-            match item_token:
-                case None:
-                    break
-                case _:
-                    items.append(parse_primitive(item_token))
+            if item_token.type_ == TokenType.EOI:
+                break
+
+            items.append(parse_primitive(item_token))
 
         return self.node_class(token, name, items)

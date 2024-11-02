@@ -5,17 +5,16 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from typing import TextIO
 
-from liquid2 import Markup
+from liquid2 import BlockNode
+from liquid2 import LinesToken
+from liquid2 import MetaNode
 from liquid2 import Node
-from liquid2.ast import BlockNode
-from liquid2.ast import MetaNode
-from liquid2.context import RenderContext
-from liquid2.tag import Tag
-from liquid2.tokens import TokenStream
+from liquid2 import Tag
+from liquid2 import TokenStream
 
 if TYPE_CHECKING:
+    from liquid2 import RenderContext
     from liquid2 import TokenT
-    from liquid2.context import RenderContext
 
 
 class LiquidNode(Node):
@@ -55,6 +54,6 @@ class LiquidTag(Tag):
     def parse(self, stream: TokenStream) -> Node:
         """Parse tokens from _stream_ into an AST node."""
         token = stream.current()
-        assert isinstance(token, Markup.Lines)
+        assert isinstance(token, LinesToken)
         block = self.env.parser.parse_block(TokenStream(token.statements), end=())
         return self.node_class(token, BlockNode(token, block))

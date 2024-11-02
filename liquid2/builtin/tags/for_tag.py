@@ -8,17 +8,16 @@ from typing import Iterator
 from typing import Mapping
 from typing import TextIO
 
-from liquid2 import Markup
+from liquid2 import BlockNode
+from liquid2 import MetaNode
 from liquid2 import Node
-from liquid2.ast import BlockNode
-from liquid2.ast import MetaNode
+from liquid2 import Tag
+from liquid2 import TagToken
+from liquid2 import TokenStream
 from liquid2.builtin import Identifier
 from liquid2.builtin import LoopExpression
-from liquid2.context import RenderContext
 from liquid2.exceptions import BreakLoop
 from liquid2.exceptions import ContinueLoop
-from liquid2.tag import Tag
-from liquid2.tokens import TokenStream
 
 if TYPE_CHECKING:
     from liquid2 import TokenT
@@ -153,7 +152,7 @@ class ForTag(Tag):
     def parse(self, stream: TokenStream) -> Node:
         """Parse tokens from _stream_ into an AST node."""
         token = next(stream)
-        assert isinstance(token, Markup.Tag)
+        assert isinstance(token, TagToken)
         expression = LoopExpression.parse(TokenStream(token.expression))
 
         parse_block = self.env.parser.parse_block
