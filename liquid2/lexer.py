@@ -1264,3 +1264,6 @@ def tokenize(source: str) -> list[TokenT]:
             raise LiquidSyntaxError(last_token.message, token=last_token)
 
     return lexer.markup
+
+
+# TODO: tokenize_query for testing

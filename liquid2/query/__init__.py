@@ -2,6 +2,7 @@ from liquid2 import Token
 from liquid2 import TokenType
 
 from .environment import JSONPathEnvironment
+from .environment import JSONValue
 from .query import JSONPathQuery
 
 DEFAULT_ENV = JSONPathEnvironment()
@@ -26,7 +27,8 @@ def word_to_query(token: Token) -> JSONPathQuery:
 
 __all__ = (
     "JSONPathQuery",
+    "JSONValue",
     "Query",
-    "parse",
+    "parse_query",
     "word_to_query",
 )

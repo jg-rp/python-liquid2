@@ -8,6 +8,8 @@ from typing import Optional
 if TYPE_CHECKING:
     from liquid2.token import Token
 
+# TODO: move and merge these with liquid2.exceptions
+
 
 class JSONPathError(Exception):
     """Base exception for all errors.

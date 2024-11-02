@@ -29,6 +29,8 @@ from .environment import Environment
 from .lexer import tokenize
 from .template import Template
 
+# TODO: expose undefined
+# TODO: expose some loaders
 
 __all__ = (
     "BlockNode",
