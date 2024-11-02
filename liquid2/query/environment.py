@@ -8,9 +8,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import Dict
-from typing import List
+from typing import Mapping
 from typing import Optional
+from typing import Sequence
 from typing import Type
 from typing import Union
 
@@ -34,8 +34,8 @@ if TYPE_CHECKING:
 
 
 JSONValue = Union[
-    List[Any],
-    Dict[str, Any],
+    Sequence[Any],
+    Mapping[str, Any],
     str,
     int,
     float,
@@ -75,7 +75,7 @@ class JSONPathEnvironment:
         self.parser: Parser = self.parser_class(env=self)
         """The parser bound to this environment."""
 
-        self.function_extensions: Dict[str, FilterFunction] = {}
+        self.function_extensions: dict[str, FilterFunction] = {}
         """A list of function extensions available to filters."""
 
         self.setup_function_extensions()
@@ -105,8 +105,8 @@ class JSONPathEnvironment:
         self.function_extensions["value"] = function_extensions.Value()
 
     def validate_function_extension_signature(
-        self, token: Token, args: List[Any]
-    ) -> List[Any]:
+        self, token: Token, args: list[Any]
+    ) -> list[Any]:
         """Compile-time validation of function extension arguments."""
         try:
             func = self.function_extensions[token.value]
@@ -122,7 +122,7 @@ class JSONPathEnvironment:
         self,
         token: Token,
         func: FilterFunction,
-        args: List[Expression],
+        args: list[Expression],
     ) -> None:
         """Check the well-typedness of a function's arguments at compile-time."""
         # Correct number of arguments?

@@ -1,0 +1,200 @@
+"""Filter function helpers."""
+
+from __future__ import annotations
+
+from decimal import Decimal
+from functools import wraps
+from typing import Any
+from typing import Callable
+from typing import Iterable
+from typing import Iterator
+from typing import Mapping
+from typing import Sequence
+
+from .exceptions import LiquidTypeError
+from .limits import to_int
+from .stringify import to_liquid_string
+from .undefined import is_undefined
+
+
+def bool_arg(value: object) -> bool:
+    """Return _True_ if _value_ is liquid truthy."""
+    return value is None or value is False or (is_undefined(value) and value.poke())
+
+
+def mapping_arg(value: object) -> Mapping[Any, Any]:
+    """Make sure _value_ is a mapping type."""
+    if is_undefined(value):
+        value.poke()
+        return {}
+
+    if not isinstance(value, Mapping):
+        raise LiquidTypeError(
+            f"expected a mapping, found {value.__class__.__name__}", token=None
+        )
+
+    return value
+
+
+def int_arg(val: Any, default: int | None = None) -> int:
+    """Return `val` as an int or `default` if `val` can't be cast to an int."""
+    try:
+        return to_int(val)
+    except ValueError as err:
+        if default is not None:
+            return default
+        raise LiquidTypeError(
+            f"expected an int or string, found {type(val).__name__}",
+            token=None,
+        ) from err
+
+
+def num_arg(val: Any, default: float | int | None = None) -> float | int:
+    """Return `val` as an int or float.
+
+    If `val` can't be cast to an int or float, return `default`.
+    """
+    if isinstance(val, (int, float)):
+        return val
+
+    if isinstance(val, str):
+        try:
+            return to_int(val)
+        except ValueError:
+            pass
+
+        try:
+            return float(val)
+        except ValueError as err:
+            if default is not None:
+                return default
+            raise LiquidTypeError(
+                f"could not cast string '{val}' to a number",
+                token=None,
+            ) from err
+
+    elif default is not None:
+        return default
+
+    raise LiquidTypeError(
+        f"expected an int, float or string, found {type(val).__name__}",
+        token=None,
+    )
+
+
+def decimal_arg(val: Any, default: int | Decimal | None = None) -> int | Decimal:
+    """Return _val_ as an int or decimal.
+
+    If _val_ can't be cast to an int or decimal, return `default`.
+    """
+    if isinstance(val, int):
+        return val
+    if isinstance(val, float):
+        return Decimal(str(val))
+
+    if isinstance(val, str):
+        try:
+            return to_int(val)
+        except ValueError:
+            pass
+
+        try:
+            return Decimal(val)
+        except ValueError as err:
+            if default is not None:
+                return default
+            raise LiquidTypeError(
+                f"could not cast string '{val}' to a number",
+                token=None,
+            ) from err
+
+    elif default is not None:
+        return default
+
+    raise LiquidTypeError(
+        f"expected an int, float or string, found {type(val).__name__}",
+        token=None,
+    )
+
+
+def with_context(_filter: Callable[..., Any]) -> Callable[..., Any]:
+    """Pass the active render context to decorated filter functions.
+
+    If a function is decorated with `with_context`, that function should
+    accept a `context` keyword argument, being the active render context.
+
+    Args:
+        _filter: The filter function to decorate.
+    """
+    _filter.with_context = True  # type: ignore
+    return _filter
+
+
+def with_environment(_filter: Callable[..., Any]) -> Callable[..., Any]:
+    """Pass the active environment to decorated filter functions.
+
+    If a function is decorated with `with_environment`, that function should
+    accept an `environment` keyword argument, being the active environment.
+
+    Args:
+        _filter: The filter function to decorate.
+    """
+    _filter.with_environment = True  # type: ignore
+    return _filter
+
+
+def string_filter(_filter: Callable[..., Any]) -> Callable[..., Any]:
+    """A filter function decorator that converts the first argument to a string."""
+
+    @wraps(_filter)
+    def wrapper(val: object, *args: Any, **kwargs: Any) -> Any:
+        return _filter(to_liquid_string(val, auto_escape=False), *args, **kwargs)
+
+    return wrapper
+
+
+def sequence_filter(_filter: Callable[..., Any]) -> Callable[..., Any]:
+    """Coerce the left value to sequence.
+
+    This is intended to mimic the semantics of the reference implementation's
+    `InputIterator` class.
+    """
+
+    @wraps(_filter)
+    def wrapper(val: object, *args: Any, **kwargs: Any) -> Any:
+        if is_undefined(val):
+            val.poke()
+            val = []
+        elif isinstance(val, str):
+            val = list(val)
+        elif isinstance(val, Sequence):
+            val = _flatten(val)
+        elif isinstance(val, Mapping) or not isinstance(val, Iterable):
+            val = [val]
+        return _filter(val, *args, **kwargs)
+
+    return wrapper
+
+
+def math_filter(_filter: Callable[..., Any]) -> Callable[..., Any]:
+    """Raise a `FilterArgumentError` if the filter value can not be a number."""
+
+    @wraps(_filter)
+    def wrapper(val: object, *args: Any, **kwargs: Any) -> Any:
+        val = num_arg(val, default=0)
+        return _filter(val, *args, **kwargs)
+
+    return wrapper
+
+
+def _flatten(it: Iterable[Any], level: int = 5) -> list[object]:
+    """Flatten nested "liquid arrays" into a list."""
+
+    def flatten(it: Iterable[Any], level: int = 5) -> Iterator[object]:
+        for obj in it:
+            if not level or not isinstance(obj, (list, tuple)):
+                yield obj
+            else:
+                yield from flatten(obj, level=level - 1)
+
+    return list(flatten(it, level))

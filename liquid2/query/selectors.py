@@ -9,6 +9,7 @@ from contextlib import suppress
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Iterable
+from typing import Mapping
 from typing import Optional
 from typing import Sequence
 
@@ -22,6 +23,8 @@ if TYPE_CHECKING:
     from .environment import JSONPathEnvironment
     from .filter_expressions import FilterExpression
     from .node import JSONPathNode
+
+# TODO: try type guard for array-like and mapping-like instead of isinstance
 
 
 class JSONPathSelector(ABC):
@@ -75,7 +78,7 @@ class NameSelector(JSONPathSelector):
 
     def resolve(self, node: JSONPathNode) -> Iterable[JSONPathNode]:
         """Select a value from a dict/object by its property/key."""
-        if isinstance(node.value, dict):
+        if isinstance(node.value, Mapping):
             with suppress(KeyError):
                 yield node.new_child(node.value[self.name], self.name)
 
@@ -119,7 +122,7 @@ class IndexSelector(JSONPathSelector):
 
     def resolve(self, node: JSONPathNode) -> Iterable[JSONPathNode]:
         """Select an element from an array by index."""
-        if isinstance(node.value, list):
+        if not isinstance(node.value, str) and isinstance(node.value, Sequence):
             norm_index = self._normalized_index(node.value)
             with suppress(IndexError):
                 yield node.new_child(node.value[self.index], norm_index)
@@ -173,7 +176,11 @@ class SliceSelector(JSONPathSelector):
 
     def resolve(self, node: JSONPathNode) -> Iterable[JSONPathNode]:
         """Select a range of values from an array/list."""
-        if isinstance(node.value, list) and self.slice.step != 0:
+        if (
+            not isinstance(node.value, str)
+            and isinstance(node.value, Sequence)
+            and self.slice.step != 0
+        ):
             idx = self.slice.start or 0
             step = self.slice.step or 1
             for element in node.value[self.slice]:
@@ -198,7 +205,7 @@ class WildcardSelector(JSONPathSelector):
 
     def resolve(self, node: JSONPathNode) -> Iterable[JSONPathNode]:
         """Select all elements from a array/list or values from a dict/object."""
-        if isinstance(node.value, dict):
+        if isinstance(node.value, Mapping):
             if self.env.nondeterministic:
                 _members = list(node.value.items())
                 random.shuffle(_members)
@@ -209,7 +216,7 @@ class WildcardSelector(JSONPathSelector):
             for name, val in members:
                 yield node.new_child(val, name)
 
-        elif isinstance(node.value, list):
+        elif not isinstance(node.value, str) and isinstance(node.value, Sequence):
             for i, element in enumerate(node.value):
                 yield node.new_child(element, i)
 
@@ -244,7 +251,7 @@ class FilterSelector(JSONPathSelector):
 
     def resolve(self, node: JSONPathNode) -> Iterable[JSONPathNode]:  # noqa: PLR0912
         """Select array/list items or dict/object values where with a filter."""
-        if isinstance(node.value, dict):
+        if isinstance(node.value, Mapping):
             if self.env.nondeterministic:
                 _members = list(node.value.items())
                 random.shuffle(_members)
@@ -266,7 +273,7 @@ class FilterSelector(JSONPathSelector):
                         err.token = self.token
                     raise
 
-        elif isinstance(node.value, list):
+        elif not isinstance(node.value, str) and isinstance(node.value, Sequence):
             for i, element in enumerate(node.value):
                 context = FilterContext(
                     env=self.env,

@@ -9,6 +9,8 @@ from collections import deque
 from typing import TYPE_CHECKING
 from typing import Deque
 from typing import Iterable
+from typing import Mapping
+from typing import Sequence
 from typing import Tuple
 
 from .exceptions import JSONPathRecursionError
@@ -86,14 +88,14 @@ class JSONPathRecursiveDescentSegment(JSONPathSegment):
 
         yield node
 
-        if isinstance(node.value, dict):
+        if isinstance(node.value, Mapping):
             for name, val in node.value.items():
-                if isinstance(val, (dict, list)):
+                if isinstance(val, (Mapping, Sequence)):
                     _node = node.new_child(val, name)
                     yield from self._visit(_node, depth + 1)
-        elif isinstance(node.value, list):
+        elif not isinstance(node.value, str) and isinstance(node.value, Sequence):
             for i, element in enumerate(node.value):
-                if isinstance(element, (dict, list)):
+                if isinstance(element, (Mapping, Sequence)):
                     _node = node.new_child(element, i)
                     yield from self._visit(_node, depth + 1)
 
@@ -164,11 +166,11 @@ class JSONPathRecursiveDescentSegment(JSONPathSegment):
 
 def _nondeterministic_children(node: JSONPathNode) -> Iterable[JSONPathNode]:
     """Yield children of _node_ with nondeterministic object/dict iteration."""
-    if isinstance(node.value, dict):
+    if isinstance(node.value, Mapping):
         items = list(node.value.items())
         random.shuffle(items)
         for name, val in items:
             yield node.new_child(val, name)
-    elif isinstance(node.value, list):
+    elif not isinstance(node.value, str) and isinstance(node.value, Sequence):
         for i, element in enumerate(node.value):
             yield node.new_child(element, i)

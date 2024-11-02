@@ -16,11 +16,13 @@ from .token import ErrorToken
 from .token import LinesToken
 from .token import OutputToken
 from .token import QueryToken
+from .token import RangeToken
 from .token import RawToken
 from .token import TagToken
 from .token import Token
 from .token import TokenType
 from .token import WhitespaceControl
+from .token import is_token_type
 
 if TYPE_CHECKING:
     from .token import TokenT
@@ -90,6 +92,7 @@ class Lexer:
     __slots__ = (
         "query_tokens",
         "filter_depth",
+        "in_range",
         "line_start",
         "line_statements",
         "markup",
@@ -143,6 +146,9 @@ class Lexer:
 
         self.tag_name = ""
         """The name of the current tag."""
+
+        self.in_range: bool = False
+        """Indicates if we're currently parsing a range literal."""
 
         self.source = source
         """The template source text being scanned."""
@@ -457,6 +463,7 @@ def lex_inside_output_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, P
             l.emit_token(TokenType.NOT_WORD)
         elif l.accept(".."):
             l.emit_token(TokenType.DOUBLE_DOT)
+            l.in_range = True
         elif l.accept("||"):
             l.emit_token(TokenType.DOUBLE_PIPE)
         else:
@@ -470,6 +477,8 @@ def lex_inside_output_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, P
                 l.emit_token(TokenType.LPAREN)
             elif c == ")":
                 l.emit_token(TokenType.RPAREN)
+                if l.in_range:
+                    return lex_range_inside_output_statement
             elif c == "<":
                 l.emit_token(TokenType.LT)
             elif c == ">":
@@ -583,6 +592,7 @@ def lex_inside_tag(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR0912, PLR09
             l.emit_token(TokenType.NOT_WORD)
         elif l.accept(".."):
             l.emit_token(TokenType.DOUBLE_DOT)
+            l.in_range = True
         elif l.accept("||"):
             l.emit_token(TokenType.DOUBLE_PIPE)
         else:
@@ -598,6 +608,8 @@ def lex_inside_tag(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR0912, PLR09
                 l.emit_token(TokenType.LPAREN)
             elif c == ")":
                 l.emit_token(TokenType.RPAREN)
+                if l.in_range:
+                    return lex_range_inside_tag_expression
             elif c == "<":
                 l.emit_token(TokenType.LT)
             elif c == ">":
@@ -737,6 +749,7 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR
             l.emit_token(TokenType.NOT_WORD)
         elif l.accept(".."):
             l.emit_token(TokenType.DOUBLE_DOT)
+            l.in_range = True
         elif l.accept("||"):
             l.emit_token(TokenType.DOUBLE_PIPE)
         else:
@@ -752,6 +765,8 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR
                 l.emit_token(TokenType.LPAREN)
             elif c == ")":
                 l.emit_token(TokenType.RPAREN)
+                if l.in_range:
+                    return lex_range_inside_line_statement
             elif c == "<":
                 l.emit_token(TokenType.LT)
             elif c == ">":
@@ -1169,6 +1184,73 @@ def lex_query_factory(next_state: StateFn) -> StateFn:
 lex_query_inside_output_statement = lex_query_factory(lex_inside_output_statement)
 lex_query_inside_tag_expression = lex_query_factory(lex_inside_tag)
 lex_query_inside_line_statement = lex_query_factory(lex_inside_line_statement)
+
+
+def lex_range_factory(next_state: StateFn) -> StateFn:
+    def _lex_range(l: Lexer) -> StateFn | None:
+        # TODO: handle IndexError from pop
+        rparen = l.tokens.pop()
+        assert is_token_type(rparen, TokenType.RPAREN)
+
+        range_stop_token = l.tokens.pop()
+        if range_stop_token.type_ not in (
+            TokenType.INT,
+            TokenType.SINGLE_QUOTE_STRING,
+            TokenType.DOUBLE_QUOTE_STRING,
+            TokenType.QUERY,
+        ):
+            # TODO: fix error index
+            l.error(
+                "expected an integer or variable to stop a range expression, "
+                f"found {range_stop_token.type_.name}"
+            )
+            return None
+
+        dotdot = l.tokens.pop()
+        if not is_token_type(dotdot, TokenType.DOUBLE_DOT):
+            # TODO: fix error index
+            l.error("malformed range expression")
+            return None
+
+        range_start_token = l.tokens.pop()
+        if range_start_token.type_ not in (
+            TokenType.INT,
+            TokenType.SINGLE_QUOTE_STRING,
+            TokenType.DOUBLE_QUOTE_STRING,
+            TokenType.QUERY,
+        ):
+            # TODO: fix error index
+            l.error(
+                "expected an integer or variable to start a range expression, "
+                f"found {range_start_token.type_.name}"
+            )
+            return None
+
+        lparen = l.tokens.pop()
+        if not is_token_type(lparen, TokenType.LPAREN):
+            # TODO: fix error index
+            l.error("range expressions must be surrounded by parentheses")
+            return None
+
+        l.tokens.append(
+            RangeToken(
+                type_=TokenType.RANGE,
+                start=range_start_token,
+                stop=range_stop_token,
+                index=lparen.index,
+                source=l.source,
+            )
+        )
+
+        l.in_range = False
+        return next_state
+
+    return _lex_range
+
+
+lex_range_inside_output_statement = lex_range_factory(lex_inside_output_statement)
+lex_range_inside_tag_expression = lex_range_factory(lex_inside_tag)
+lex_range_inside_line_statement = lex_range_factory(lex_inside_line_statement)
 
 
 def tokenize(source: str) -> list[TokenT]:

@@ -7,7 +7,7 @@ from abc import ABC
 from abc import abstractmethod
 from typing import TYPE_CHECKING
 from typing import Generic
-from typing import List
+from typing import Mapping
 from typing import Sequence
 from typing import TypeVar
 
@@ -256,7 +256,9 @@ class RelativeFilterQuery(FilterQuery):
 
     def evaluate(self, context: FilterContext) -> object:
         """Evaluate the filter expression in the given _context_."""
-        if not isinstance(context.current, (list, dict)):
+        if isinstance(context.current, str) or not isinstance(
+            context.current, (Sequence, Mapping)
+        ):
             if self.query.empty():
                 return context.current
             return JSONPathNodeList()
@@ -308,9 +310,9 @@ class FunctionExtension(Expression):
         return func(*self._unpack_node_lists(func, args))
 
     def _unpack_node_lists(
-        self, func: FilterFunction, args: List[object]
-    ) -> List[object]:
-        _args: List[object] = []
+        self, func: FilterFunction, args: list[object]
+    ) -> list[object]:
+        _args: list[object] = []
         for idx, arg in enumerate(args):
             if func.arg_types[idx] != ExpressionType.NODES and isinstance(
                 arg, JSONPathNodeList
