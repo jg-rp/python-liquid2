@@ -88,7 +88,6 @@ tests/test_dev.py
 
 # Test fixtures
 comparison_regression_suite.yaml
-cts.json
 
 # System
 .DS_Store

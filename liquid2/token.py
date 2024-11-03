@@ -41,6 +41,7 @@ class TokenType(Enum):
     TAG = auto()
 
     QUERY = auto()
+    RANGE = auto()
 
     AND = auto()  # &&
     AND_WORD = auto()  # and
@@ -80,7 +81,6 @@ class TokenType(Enum):
     PIPE = auto()
     PROPERTY = auto()
     FILTER = auto()  # ? (start of a JSONPath filter selector)
-    RANGE = auto()
     RBRACKET = auto()
     REQUIRED = auto()
     ROOT = auto()
@@ -218,6 +218,18 @@ class Token(TokenT):
 @dataclass(frozen=True, kw_only=True, slots=True)
 class QueryToken(TokenT):
     path: JSONPathQuery
+    start: int
+    stop: int
+    source: str = field(repr=False)
+
+    def __str__(self) -> str:
+        return str(self.path)
+
+
+@dataclass(frozen=True, kw_only=True, slots=True)
+class RangeToken(TokenT):
+    start: TokenT
+    stop: TokenT
     index: int
     source: str = field(repr=False)
 
@@ -234,32 +246,45 @@ class ErrorToken(TokenT):
 
 
 def is_content_token(token: TokenT) -> TypeGuard[ContentToken]:
+    """A _ContentToken_ type guard."""
     return token.type_ == TokenType.CONTENT
 
 
 def is_comment_token(token: TokenT) -> TypeGuard[CommentToken]:
+    """A _CommentToken_ type guard."""
     return token.type_ == TokenType.COMMENT
 
 
 def is_tag_token(token: TokenT) -> TypeGuard[TagToken]:
+    """A _TagToken_ type guard."""
     return token.type_ == TokenType.TAG
 
 
 def is_output_token(token: TokenT) -> TypeGuard[OutputToken]:
+    """An _OutputToken_ type guard."""
     return token.type_ == TokenType.OUTPUT
 
 
 def is_raw_token(token: TokenT) -> TypeGuard[RawToken]:
+    """A _RawToken_ type guard."""
     return token.type_ == TokenType.RAW
 
 
 def is_lines_token(token: TokenT) -> TypeGuard[LinesToken]:
+    """A _LinesToken_ type guard."""
     return token.type_ == TokenType.LINES
 
 
 def is_query_token(token: TokenT) -> TypeGuard[QueryToken]:
+    """A _QueryToken_ type guard."""
     return token.type_ == TokenType.QUERY
 
 
+def is_range_token(token: TokenT) -> TypeGuard[RangeToken]:
+    """A _RangeToken_ type guard."""
+    return token.type_ == TokenType.RANGE
+
+
 def is_token_type(token: TokenT, t: TokenType) -> TypeGuard[Token]:
+    """A _Token_ type guard."""
     return token.type_ == t

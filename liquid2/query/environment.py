@@ -8,15 +8,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import Dict
-from typing import List
+from typing import Mapping
 from typing import Optional
+from typing import Sequence
 from typing import Type
 from typing import Union
 
+from liquid2.exceptions import LiquidNameError
+from liquid2.exceptions import LiquidTypeError
+
 from . import function_extensions
-from .exceptions import JSONPathNameError
-from .exceptions import JSONPathTypeError
 from .filter_expressions import ComparisonExpression
 from .filter_expressions import FilterExpressionLiteral
 from .filter_expressions import FilterQuery
@@ -34,8 +35,8 @@ if TYPE_CHECKING:
 
 
 JSONValue = Union[
-    List[Any],
-    Dict[str, Any],
+    Sequence[Any],
+    Mapping[str, Any],
     str,
     int,
     float,
@@ -75,7 +76,7 @@ class JSONPathEnvironment:
         self.parser: Parser = self.parser_class(env=self)
         """The parser bound to this environment."""
 
-        self.function_extensions: Dict[str, FilterFunction] = {}
+        self.function_extensions: dict[str, FilterFunction] = {}
         """A list of function extensions available to filters."""
 
         self.setup_function_extensions()
@@ -91,10 +92,12 @@ class JSONPathEnvironment:
 
         Raises:
             JSONPathSyntaxError: If _query_ is invalid.
-            JSONPathTypeError: If filter functions are given arguments of an
+            LiquidTypeError: If filter functions are given arguments of an
                 unacceptable type.
         """
-        return JSONPathQuery(env=self, segments=tuple(self.parser.parse(tokens)))
+        return JSONPathQuery(
+            env=self, segments=tuple(self.parser.parse(tokens)), token=tokens[0]
+        )
 
     def setup_function_extensions(self) -> None:
         """Initialize function extensions."""
@@ -105,13 +108,13 @@ class JSONPathEnvironment:
         self.function_extensions["value"] = function_extensions.Value()
 
     def validate_function_extension_signature(
-        self, token: Token, args: List[Any]
-    ) -> List[Any]:
+        self, token: Token, args: list[Any]
+    ) -> list[Any]:
         """Compile-time validation of function extension arguments."""
         try:
             func = self.function_extensions[token.value]
         except KeyError as err:
-            raise JSONPathNameError(
+            raise LiquidNameError(
                 f"function {token.value!r} is not defined", token=token
             ) from err
 
@@ -122,12 +125,12 @@ class JSONPathEnvironment:
         self,
         token: Token,
         func: FilterFunction,
-        args: List[Expression],
+        args: list[Expression],
     ) -> None:
         """Check the well-typedness of a function's arguments at compile-time."""
         # Correct number of arguments?
         if len(args) != len(func.arg_types):
-            raise JSONPathTypeError(
+            raise LiquidTypeError(
                 f"{token.value!r}() requires {len(func.arg_types)} arguments",
                 token=token,
             )
@@ -141,7 +144,7 @@ class JSONPathEnvironment:
                     or (isinstance(arg, FilterQuery) and arg.query.singular_query())
                     or (self._function_return_type(arg) == ExpressionType.VALUE)
                 ):
-                    raise JSONPathTypeError(
+                    raise LiquidTypeError(
                         f"{token.value}() argument {idx} must be of ValueType",
                         token=token,
                     )
@@ -149,7 +152,7 @@ class JSONPathEnvironment:
                 if not isinstance(
                     arg, (FilterQuery, LogicalExpression, ComparisonExpression)
                 ):
-                    raise JSONPathTypeError(
+                    raise LiquidTypeError(
                         f"{token.value}() argument {idx} must be of LogicalType",
                         token=token,
                     )
@@ -157,7 +160,7 @@ class JSONPathEnvironment:
                 isinstance(arg, FilterQuery)
                 or self._function_return_type(arg) == ExpressionType.NODES
             ):
-                raise JSONPathTypeError(
+                raise LiquidTypeError(
                     f"{token.value}() argument {idx} must be of NodesType",
                     token=token,
                 )

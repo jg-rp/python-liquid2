@@ -9,18 +9,20 @@ from typing import Optional
 from typing import Pattern
 
 from .exceptions import LiquidSyntaxError
-from .query import parse
+from .query import parse_query
 from .token import CommentToken
 from .token import ContentToken
 from .token import ErrorToken
 from .token import LinesToken
 from .token import OutputToken
 from .token import QueryToken
+from .token import RangeToken
 from .token import RawToken
 from .token import TagToken
 from .token import Token
 from .token import TokenType
 from .token import WhitespaceControl
+from .token import is_token_type
 
 if TYPE_CHECKING:
     from .token import TokenT
@@ -31,6 +33,8 @@ RE_CONTENT = re.compile(r".+?(?=(\{\{|\{%|\{#+|$))", re.DOTALL)
 RE_COMMENT = re.compile(
     r"\{(?P<hashes>#+)([\-+~]?)(.*)([\-+~]?)(?P=hashes)\}", re.DOTALL
 )
+
+RE_LINE_COMMENT = re.compile(r"\#.*?(?=(\n|[\-+~]?%\}))")
 
 RE_RAW = re.compile(
     r"\{%([\-+~]?)\s*raw\s([\-+~]?)%\}(.*)\{%([\-+~]?)\s*endraw\s([\-+~]?)%\}",
@@ -90,12 +94,14 @@ class Lexer:
     __slots__ = (
         "query_tokens",
         "filter_depth",
+        "in_range",
         "line_start",
         "line_statements",
         "markup",
         "markup_start",
         "paren_stack",
         "pos",
+        "singular_query_depth",
         "source",
         "start",
         "tag_name",
@@ -106,6 +112,9 @@ class Lexer:
     def __init__(self, source: str) -> None:
         self.filter_depth = 0
         """Filter nesting level."""
+
+        self.singular_query_depth = 0
+        """Singular query selector nesting level."""
 
         self.paren_stack: list[int] = []
         """A running count of parentheses for each, possibly nested, function call.
@@ -143,6 +152,9 @@ class Lexer:
 
         self.tag_name = ""
         """The name of the current tag."""
+
+        self.in_range: bool = False
+        """Indicates if we're currently parsing a range literal."""
 
         self.source = source
         """The template source text being scanned."""
@@ -454,9 +466,10 @@ def lex_inside_output_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, P
         elif l.accept("=="):
             l.emit_token(TokenType.EQ)
         elif l.accept("!=") or l.accept("<>"):
-            l.emit_token(TokenType.NOT_WORD)
+            l.emit_token(TokenType.NE)
         elif l.accept(".."):
             l.emit_token(TokenType.DOUBLE_DOT)
+            l.in_range = True
         elif l.accept("||"):
             l.emit_token(TokenType.DOUBLE_PIPE)
         else:
@@ -470,6 +483,8 @@ def lex_inside_output_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, P
                 l.emit_token(TokenType.LPAREN)
             elif c == ")":
                 l.emit_token(TokenType.RPAREN)
+                if l.in_range:
+                    return lex_range_inside_output_statement
             elif c == "<":
                 l.emit_token(TokenType.LT)
             elif c == ">":
@@ -486,10 +501,11 @@ def lex_inside_output_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, P
                 l.ignore()
                 return lex_query_inside_output_statement
             elif c == "[":
+                l.backup()
                 return lex_query_inside_output_statement
-
-            l.error(f"unknown symbol '{c}'")
-            return None
+            else:
+                l.error(f"unknown symbol '{c}'")
+                return None
 
 
 def lex_tag(l: Lexer) -> StateFn | None:
@@ -580,9 +596,10 @@ def lex_inside_tag(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR0912, PLR09
         elif l.accept("=="):
             l.emit_token(TokenType.EQ)
         elif l.accept("!=") or l.accept("<>"):
-            l.emit_token(TokenType.NOT_WORD)
+            l.emit_token(TokenType.NE)
         elif l.accept(".."):
             l.emit_token(TokenType.DOUBLE_DOT)
+            l.in_range = True
         elif l.accept("||"):
             l.emit_token(TokenType.DOUBLE_PIPE)
         else:
@@ -598,6 +615,8 @@ def lex_inside_tag(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR0912, PLR09
                 l.emit_token(TokenType.LPAREN)
             elif c == ")":
                 l.emit_token(TokenType.RPAREN)
+                if l.in_range:
+                    return lex_range_inside_tag_expression
             elif c == "<":
                 l.emit_token(TokenType.LT)
             elif c == ">":
@@ -614,6 +633,7 @@ def lex_inside_tag(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR0912, PLR09
                 l.ignore()
                 return lex_query_inside_tag_expression
             elif c == "[":
+                l.backup()
                 return lex_query_inside_tag_expression
             else:
                 l.error(f"unknown symbol '{c}'")
@@ -646,12 +666,25 @@ def lex_inside_liquid_tag(l: Lexer) -> StateFn | None:
         l.tag_name = l.source[l.start : l.pos]
         l.line_start = l.start
         l.ignore()
-    else:
-        l.next()
-        l.error("expected a tag name")
-        return None
+        return lex_inside_line_statement
 
-    return lex_inside_line_statement
+    if l.accept_match(RE_LINE_COMMENT):
+        l.line_statements.append(
+            CommentToken(
+                type_=TokenType.COMMENT,
+                start=l.start,
+                stop=l.pos,
+                wc=WC_DEFAULT,
+                text=l.source[l.start : l.pos],
+                hashes="#",
+            )
+        )
+        l.start = l.pos
+        return lex_inside_liquid_tag
+
+    l.next()
+    l.error("expected a tag name")
+    return None
 
 
 def lex_inside_line_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR0912, PLR0915
@@ -734,9 +767,10 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR
         elif l.accept("=="):
             l.emit_token(TokenType.EQ)
         elif l.accept("!=") or l.accept("<>"):
-            l.emit_token(TokenType.NOT_WORD)
+            l.emit_token(TokenType.NE)
         elif l.accept(".."):
             l.emit_token(TokenType.DOUBLE_DOT)
+            l.in_range = True
         elif l.accept("||"):
             l.emit_token(TokenType.DOUBLE_PIPE)
         else:
@@ -752,6 +786,8 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR
                 l.emit_token(TokenType.LPAREN)
             elif c == ")":
                 l.emit_token(TokenType.RPAREN)
+                if l.in_range:
+                    return lex_range_inside_line_statement
             elif c == "<":
                 l.emit_token(TokenType.LT)
             elif c == ">":
@@ -768,6 +804,7 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR
                 l.ignore()
                 return lex_query_inside_line_statement
             elif c == "[":
+                l.backup()
                 return lex_query_inside_line_statement
             elif c == "\r":
                 l.ignore()  # TODO:
@@ -787,7 +824,6 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR
                 l.tokens = []
                 return lex_inside_liquid_tag
 
-            # TODO: line comment
             else:
                 l.error(f"unknown symbol '{c}'")
                 return None
@@ -809,7 +845,7 @@ def lex_segment(l: Lexer) -> Optional[StateFn]:  # noqa: D103, PLR0911
     c = l.next()
 
     if c == "":
-        l.error("unexpected end of query")
+        # l.error("unexpected end of query")
         return None
 
     if c == ".":
@@ -880,7 +916,7 @@ def lex_shorthand_selector(l: Lexer) -> Optional[StateFn]:  # noqa: D103
     return None
 
 
-def lex_inside_bracketed_segment(l: Lexer) -> Optional[StateFn]:  # noqa: PLR0911, D103
+def lex_inside_bracketed_segment(l: Lexer) -> Optional[StateFn]:  # noqa: D103, PLR0911, PLR0912
     while True:
         l.ignore_whitespace()
         c = l.next()
@@ -927,6 +963,13 @@ def lex_inside_bracketed_segment(l: Lexer) -> Optional[StateFn]:  # noqa: PLR091
             # Index selector or part of a slice selector.
             l.emit_query_token(TokenType.INDEX)
             continue
+
+        if c == "[":
+            return lex_inside_singular_query
+
+        if l.accept_match(RE_PROPERTY):
+            l.emit_query_token(TokenType.PROPERTY)
+            return lex_inside_singular_query
 
         l.error(f"unexpected token {c!r} in bracketed selection")
         return None
@@ -1055,11 +1098,66 @@ def lex_inside_filter(l: Lexer) -> Optional[StateFn]:  # noqa: D103, PLR0915, PL
             return None
 
 
+def lex_inside_singular_query(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR0912
+    while True:
+        l.ignore_whitespace()
+        c = l.next()
+
+        if c == "]":
+            if l.singular_query_depth:
+                l.emit_query_token(TokenType.RBRACKET)
+                l.singular_query_depth -= 1
+                continue
+
+            l.backup()
+            return lex_inside_bracketed_segment
+
+        if c == "":
+            l.error("unclosed singular query selector")
+            return None
+
+        if c == ".":
+            l.ignore()
+            if l.accept_match(RE_WHITESPACE):
+                l.error("unexpected whitespace after dot")
+                return None
+
+            if l.accept_match(RE_PROPERTY):
+                l.emit_query_token(TokenType.PROPERTY)
+            else:
+                l.error("trailing dot in singular query selector")
+                return None
+
+        elif c == "[":
+            l.ignore()
+            l.ignore_whitespace()
+
+            if l.peek() == "'":
+                # We're relying on lex_.. to check for closing square bracket.
+                return lex_single_quoted_string_inside_singular_query
+
+            if l.peek() == '"':
+                return lex_double_quoted_string_inside_singular_query
+
+            if l.accept_match(RE_INDEX):
+                l.emit_query_token(TokenType.INDEX)
+            elif l.accept_match(RE_PROPERTY):
+                l.emit_query_token(TokenType.PROPERTY)
+                l.singular_query_depth += 1
+
+            if not l.accept("]"):
+                l.error("unclosed singular query selector")
+                return None
+
+            l.ignore()  # skip "]"
+
+
 def lex_string_factory(
     quote: str,
     state: StateFn,
     *,
     inside_query: bool = False,
+    inside_singular_query: bool = False,
 ) -> StateFn:
     """Return a state function for scanning string literals.
 
@@ -1067,6 +1165,8 @@ def lex_string_factory(
         quote: One of `'` or `"`. The string delimiter.
         state: The state function to return control to after scanning the string.
         inside_query: Indicate if we're emitting from inside a query.
+        inside_singular_query: Indicate if we're scanning a string from a singular query
+            selector.
     """
     tt = (
         TokenType.SINGLE_QUOTE_STRING if quote == "'" else TokenType.DOUBLE_QUOTE_STRING
@@ -1102,6 +1202,11 @@ def lex_string_factory(
                 l.emit_query_token(tt) if inside_query else l.emit_token(tt)
                 l.next()
                 l.ignore()  # ignore closing quote
+                if inside_singular_query:
+                    l.ignore_whitespace()
+                    if not l.accept("]"):
+                        l.error("unclosed singular query selector")
+                        return None
                 return state
 
     return _lex_string
@@ -1113,6 +1218,20 @@ lex_single_quoted_string_inside_bracket_segment = lex_string_factory(
 
 lex_double_quoted_string_inside_bracket_segment = lex_string_factory(
     '"', lex_inside_bracketed_segment, inside_query=True
+)
+
+lex_single_quoted_string_inside_singular_query = lex_string_factory(
+    "'",
+    lex_inside_singular_query,
+    inside_query=True,
+    inside_singular_query=True,
+)
+
+lex_double_quoted_string_inside_singular_query = lex_string_factory(
+    '"',
+    lex_inside_singular_query,
+    inside_query=True,
+    inside_singular_query=True,
 )
 
 lex_single_quoted_string_inside_filter_expression = lex_string_factory(
@@ -1145,17 +1264,20 @@ lex_double_quoted_string_inside_line_statement = lex_string_factory(
 
 
 def lex_query_factory(next_state: StateFn) -> StateFn:
-    def _lex_query(l: Lexer) -> StateFn:
-        # TODO: implement singular query selector
+    def _lex_query(l: Lexer) -> StateFn | None:
         state: Optional[StateFn] = lex_segment
         while state is not None:
             state = state(l)
 
+        if l.markup and l.markup[-1].type_ == TokenType.ERROR:
+            return None
+
         l.tokens.append(
             QueryToken(
                 type_=TokenType.QUERY,
-                path=parse(l.query_tokens),
-                index=l.query_tokens[0].index,
+                path=parse_query(l.query_tokens),
+                start=l.query_tokens[0].index,
+                stop=l.pos - 1,
                 source=l.source,
             )
         )
@@ -1171,6 +1293,73 @@ lex_query_inside_tag_expression = lex_query_factory(lex_inside_tag)
 lex_query_inside_line_statement = lex_query_factory(lex_inside_line_statement)
 
 
+def lex_range_factory(next_state: StateFn) -> StateFn:
+    def _lex_range(l: Lexer) -> StateFn | None:
+        # TODO: handle IndexError from pop
+        rparen = l.tokens.pop()
+        assert is_token_type(rparen, TokenType.RPAREN)
+
+        range_stop_token = l.tokens.pop()
+        if range_stop_token.type_ not in (
+            TokenType.INT,
+            TokenType.SINGLE_QUOTE_STRING,
+            TokenType.DOUBLE_QUOTE_STRING,
+            TokenType.QUERY,
+        ):
+            # TODO: fix error index
+            l.error(
+                "expected an integer or variable to stop a range expression, "
+                f"found {range_stop_token.type_.name}"
+            )
+            return None
+
+        dotdot = l.tokens.pop()
+        if not is_token_type(dotdot, TokenType.DOUBLE_DOT):
+            # TODO: fix error index
+            l.error("malformed range expression")
+            return None
+
+        range_start_token = l.tokens.pop()
+        if range_start_token.type_ not in (
+            TokenType.INT,
+            TokenType.SINGLE_QUOTE_STRING,
+            TokenType.DOUBLE_QUOTE_STRING,
+            TokenType.QUERY,
+        ):
+            # TODO: fix error index
+            l.error(
+                "expected an integer or variable to start a range expression, "
+                f"found {range_start_token.type_.name}"
+            )
+            return None
+
+        lparen = l.tokens.pop()
+        if not is_token_type(lparen, TokenType.LPAREN):
+            # TODO: fix error index
+            l.error("range expressions must be surrounded by parentheses")
+            return None
+
+        l.tokens.append(
+            RangeToken(
+                type_=TokenType.RANGE,
+                start=range_start_token,
+                stop=range_stop_token,
+                index=lparen.index,
+                source=l.source,
+            )
+        )
+
+        l.in_range = False
+        return next_state
+
+    return _lex_range
+
+
+lex_range_inside_output_statement = lex_range_factory(lex_inside_output_statement)
+lex_range_inside_tag_expression = lex_range_factory(lex_inside_tag)
+lex_range_inside_line_statement = lex_range_factory(lex_inside_line_statement)
+
+
 def tokenize(source: str) -> list[TokenT]:
     """Scan Liquid template _source_ and return a list of Markup objects."""
     lexer = Lexer(source)
@@ -1182,3 +1371,21 @@ def tokenize(source: str) -> list[TokenT]:
             raise LiquidSyntaxError(last_token.message, token=last_token)
 
     return lexer.markup
+
+
+def tokenize_query(query: str) -> list[Token]:
+    l = Lexer(query)
+
+    state: Optional[StateFn] = lex_root
+    while state is not None:
+        state = state(l)
+
+    if c := l.next():
+        l.error(f"expected '.', '..' or a bracketed selection, found {c!r}")
+
+    if l.markup:
+        last_token = l.markup[-1]
+        if isinstance(last_token, ErrorToken):
+            raise LiquidSyntaxError(last_token.message, token=last_token)
+
+    return l.query_tokens
