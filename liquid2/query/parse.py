@@ -42,6 +42,7 @@ from .selectors import FilterSelector
 from .selectors import IndexSelector
 from .selectors import JSONPathSelector
 from .selectors import NameSelector
+from .selectors import SingularQuerySelector
 from .selectors import SliceSelector
 from .selectors import WildcardSelector
 
@@ -383,6 +384,8 @@ class Parser:
                 )
             elif stream.current.type_ == TokenType.FILTER:
                 selectors.append(self.parse_filter_selector(stream))
+            elif stream.current.type_ in (TokenType.PROPERTY, TokenType.LBRACKET):
+                selectors.append(self.parse_singular_query_selector(stream))
             elif stream.current.type_ == TokenType.EOI:
                 raise LiquidSyntaxError("unexpected end of query", token=stream.current)
             else:
@@ -408,6 +411,20 @@ class Parser:
             raise LiquidSyntaxError("empty bracketed segment", token=tok)
 
         return selectors
+
+    def parse_singular_query_selector(
+        self, stream: TokenStream
+    ) -> SingularQuerySelector:
+        tok = stream.current
+        return SingularQuerySelector(
+            env=self.env,
+            token=tok,
+            query=JSONPathQuery(
+                env=self.env,
+                segments=tuple(self.parse_query(stream, in_filter=True)),
+                token=tok,
+            ),
+        )
 
     def parse_filter_selector(self, stream: TokenStream) -> FilterSelector:
         tok = stream.next_token()

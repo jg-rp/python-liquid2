@@ -221,6 +221,9 @@ class QueryToken(TokenT):
     index: int
     source: str = field(repr=False)
 
+    def __str__(self) -> str:
+        return str(self.path)
+
 
 @dataclass(frozen=True, kw_only=True, slots=True)
 class RangeToken(TokenT):

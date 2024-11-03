@@ -99,6 +99,7 @@ class Lexer:
         "markup_start",
         "paren_stack",
         "pos",
+        "singular_query_depth",
         "source",
         "start",
         "tag_name",
@@ -109,6 +110,9 @@ class Lexer:
     def __init__(self, source: str) -> None:
         self.filter_depth = 0
         """Filter nesting level."""
+
+        self.singular_query_depth = 0
+        """Singular query selector nesting level."""
 
         self.paren_stack: list[int] = []
         """A running count of parentheses for each, possibly nested, function call.
@@ -895,7 +899,7 @@ def lex_shorthand_selector(l: Lexer) -> Optional[StateFn]:  # noqa: D103
     return None
 
 
-def lex_inside_bracketed_segment(l: Lexer) -> Optional[StateFn]:  # noqa: PLR0911, D103
+def lex_inside_bracketed_segment(l: Lexer) -> Optional[StateFn]:  # noqa: D103, PLR0911, PLR0912
     while True:
         l.ignore_whitespace()
         c = l.next()
@@ -942,6 +946,13 @@ def lex_inside_bracketed_segment(l: Lexer) -> Optional[StateFn]:  # noqa: PLR091
             # Index selector or part of a slice selector.
             l.emit_query_token(TokenType.INDEX)
             continue
+
+        if c == "[":
+            return lex_inside_singular_query
+
+        if l.accept_match(RE_PROPERTY):
+            l.emit_query_token(TokenType.PROPERTY)
+            return lex_inside_singular_query
 
         l.error(f"unexpected token {c!r} in bracketed selection")
         return None
@@ -1070,11 +1081,66 @@ def lex_inside_filter(l: Lexer) -> Optional[StateFn]:  # noqa: D103, PLR0915, PL
             return None
 
 
+def lex_inside_singular_query(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR0912
+    while True:
+        l.ignore_whitespace()
+        c = l.next()
+
+        if c == "]":
+            if l.singular_query_depth:
+                l.emit_query_token(TokenType.RBRACKET)
+                l.singular_query_depth -= 1
+                continue
+
+            l.backup()
+            return lex_inside_bracketed_segment
+
+        if c == "":
+            l.error("unclosed singular query selector")
+            return None
+
+        if c == ".":
+            l.ignore()
+            if l.accept_match(RE_WHITESPACE):
+                l.error("unexpected whitespace after dot")
+                return None
+
+            if l.accept_match(RE_PROPERTY):
+                l.emit_query_token(TokenType.PROPERTY)
+            else:
+                l.error("trailing dot in singular query selector")
+                return None
+
+        elif c == "[":
+            l.ignore()
+            l.ignore_whitespace()
+
+            if l.peek() == "'":
+                # We're relying on lex_.. to check for closing square bracket.
+                return lex_single_quoted_string_inside_singular_query
+
+            if l.peek() == '"':
+                return lex_double_quoted_string_inside_singular_query
+
+            if l.accept_match(RE_INDEX):
+                l.emit_query_token(TokenType.INDEX)
+            elif l.accept_match(RE_PROPERTY):
+                l.emit_query_token(TokenType.PROPERTY)
+                l.singular_query_depth += 1
+
+            if not l.accept("]"):
+                l.error("unclosed singular query selector")
+                return None
+
+            l.ignore()  # skip "]"
+
+
 def lex_string_factory(
     quote: str,
     state: StateFn,
     *,
     inside_query: bool = False,
+    inside_singular_query: bool = False,
 ) -> StateFn:
     """Return a state function for scanning string literals.
 
@@ -1082,6 +1148,8 @@ def lex_string_factory(
         quote: One of `'` or `"`. The string delimiter.
         state: The state function to return control to after scanning the string.
         inside_query: Indicate if we're emitting from inside a query.
+        inside_singular_query: Indicate if we're scanning a string from a singular query
+            selector.
     """
     tt = (
         TokenType.SINGLE_QUOTE_STRING if quote == "'" else TokenType.DOUBLE_QUOTE_STRING
@@ -1117,6 +1185,11 @@ def lex_string_factory(
                 l.emit_query_token(tt) if inside_query else l.emit_token(tt)
                 l.next()
                 l.ignore()  # ignore closing quote
+                if inside_singular_query:
+                    l.ignore_whitespace()
+                    if not l.accept("]"):
+                        l.error("unclosed singular query selector")
+                        return None
                 return state
 
     return _lex_string
@@ -1128,6 +1201,20 @@ lex_single_quoted_string_inside_bracket_segment = lex_string_factory(
 
 lex_double_quoted_string_inside_bracket_segment = lex_string_factory(
     '"', lex_inside_bracketed_segment, inside_query=True
+)
+
+lex_single_quoted_string_inside_singular_query = lex_string_factory(
+    "'",
+    lex_inside_singular_query,
+    inside_query=True,
+    inside_singular_query=True,
+)
+
+lex_double_quoted_string_inside_singular_query = lex_string_factory(
+    '"',
+    lex_inside_singular_query,
+    inside_query=True,
+    inside_singular_query=True,
 )
 
 lex_single_quoted_string_inside_filter_expression = lex_string_factory(
@@ -1160,11 +1247,13 @@ lex_double_quoted_string_inside_line_statement = lex_string_factory(
 
 
 def lex_query_factory(next_state: StateFn) -> StateFn:
-    def _lex_query(l: Lexer) -> StateFn:
-        # TODO: implement singular query selector
+    def _lex_query(l: Lexer) -> StateFn | None:
         state: Optional[StateFn] = lex_segment
         while state is not None:
             state = state(l)
+
+        if l.markup and l.markup[-1].type_ == TokenType.ERROR:
+            return None
 
         l.tokens.append(
             QueryToken(

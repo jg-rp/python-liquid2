@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from abc import ABC
 from abc import abstractmethod
 from typing import TYPE_CHECKING
@@ -22,6 +23,8 @@ if TYPE_CHECKING:
     from .node import JSONPathNode
     from .query import SelectorTuple
     from .selectors import JSONPathSelector
+
+RE_SHORTHAND_NAME = re.compile(r"[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*")
 
 
 class JSONPathSegment(ABC):
@@ -61,6 +64,16 @@ class JSONPathChildSegment(JSONPathSegment):
                 yield from selector.resolve(node)
 
     def __str__(self) -> str:
+        # Shorthand name?
+        if len(self.selectors) == 1:
+            match self.selectors[0]:
+                case NameSelector(name=name):
+                    if RE_SHORTHAND_NAME.fullmatch(name):
+                        return f".{name}"
+                    return f"['{name}']"
+                case WildcardSelector():
+                    return ".*"
+
         return f"[{', '.join(str(itm) for itm in self.selectors)}]"
 
     def __eq__(self, __value: object) -> bool:
