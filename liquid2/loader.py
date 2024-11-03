@@ -125,7 +125,7 @@ class TemplateSource(NamedTuple):
 
     Attributes:
         source: The liquid template source code.
-        filename: The liquid template file name or other string identifying its origin.
+        name: The liquid template file name or other string identifying its origin.
         uptodate: Optional callable that will return `True` if the template is up to
             date, or `False` if it needs to be reloaded.
         matter: Optional mapping containing variables associated with the template.
