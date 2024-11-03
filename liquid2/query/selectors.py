@@ -77,7 +77,7 @@ class NameSelector(JSONPathSelector):
         return isinstance(__value, NameSelector) and self.name == __value.name
 
     def __hash__(self) -> int:
-        return hash((self.name, self.token))
+        return hash(self.name)
 
     def resolve(self, node: JSONPathNode) -> Iterable[JSONPathNode]:
         """Select a value from a dict/object by its property/key."""
@@ -112,7 +112,7 @@ class IndexSelector(JSONPathSelector):
         return isinstance(__value, IndexSelector) and self.index == __value.index
 
     def __hash__(self) -> int:
-        return hash((self.index, self.token))
+        return hash(self.index)
 
     def _normalized_index(self, obj: Sequence[object]) -> int:
         if self.index < 0 and len(obj) >= abs(self.index):
@@ -155,7 +155,7 @@ class SliceSelector(JSONPathSelector):
         return isinstance(__value, SliceSelector) and self.slice == __value.slice
 
     def __hash__(self) -> int:
-        return hash((str(self), self.token))
+        return hash(str(self))
 
     def _check_range(self, *indices: Optional[int]) -> None:
         for i in indices:
@@ -196,7 +196,7 @@ class WildcardSelector(JSONPathSelector):
         return isinstance(__value, WildcardSelector)
 
     def __hash__(self) -> int:
-        return hash(self.token)
+        return hash("*")
 
     def resolve(self, node: JSONPathNode) -> Iterable[JSONPathNode]:
         """Select all elements from a array/list or values from a dict/object."""
@@ -241,7 +241,7 @@ class FilterSelector(JSONPathSelector):
         )
 
     def __hash__(self) -> int:
-        return hash((str(self.expression), self.token))
+        return hash(str(self.expression))
 
     def resolve(self, node: JSONPathNode) -> Iterable[JSONPathNode]:  # noqa: PLR0912
         """Select array/list items or dict/object values where with a filter."""

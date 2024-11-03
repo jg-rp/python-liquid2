@@ -25,6 +25,7 @@ from .exceptions import StopRender
 from .exceptions import TemplateInheritanceError
 from .exceptions import TemplateNotFound
 from .exceptions import TemplateTraversalError
+from .token import Token
 from .token import is_lines_token
 from .token import is_tag_token
 from .utils import ReadOnlyChainMap
@@ -53,6 +54,9 @@ class Span:
     @staticmethod
     def from_token(template_name: str, token: TokenT) -> Span:
         """Return a new span taking start and end positions from _token_."""
+        if isinstance(token, Token):
+            return Span(template_name, token.index, token.index + len(token.value))
+        # TODO:
         return Span(template_name, token.start, token.stop)  # type: ignore
 
     def __eq__(self, other: object) -> bool:

@@ -279,7 +279,9 @@ class RenderContext:
         """Return the index of the next item in the named cycle."""
         namespace = self.tag_namespace["cycles"]
         if cycle_hash not in namespace:
-            namespace[cycle_hash] = cycle(range(length))
+            namespace[cycle_hash] = cycle(
+                range(length)
+            )  # TODO: benchmark without cycle
         return next(namespace[cycle_hash])  # type: ignore
 
     def increment(self, name: str) -> int:

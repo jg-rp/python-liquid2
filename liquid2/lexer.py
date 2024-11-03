@@ -34,6 +34,8 @@ RE_COMMENT = re.compile(
     r"\{(?P<hashes>#+)([\-+~]?)(.*)([\-+~]?)(?P=hashes)\}", re.DOTALL
 )
 
+RE_LINE_COMMENT = re.compile(r"\#.*?(?=(\n|[\-+~]?%\}))")
+
 RE_RAW = re.compile(
     r"\{%([\-+~]?)\s*raw\s([\-+~]?)%\}(.*)\{%([\-+~]?)\s*endraw\s([\-+~]?)%\}",
     re.DOTALL,
@@ -664,12 +666,25 @@ def lex_inside_liquid_tag(l: Lexer) -> StateFn | None:
         l.tag_name = l.source[l.start : l.pos]
         l.line_start = l.start
         l.ignore()
-    else:
-        l.next()
-        l.error("expected a tag name")
-        return None
+        return lex_inside_line_statement
 
-    return lex_inside_line_statement
+    if l.accept_match(RE_LINE_COMMENT):
+        l.line_statements.append(
+            CommentToken(
+                type_=TokenType.COMMENT,
+                start=l.start,
+                stop=l.pos,
+                wc=WC_DEFAULT,
+                text=l.source[l.start : l.pos],
+                hashes="#",
+            )
+        )
+        l.start = l.pos
+        return lex_inside_liquid_tag
+
+    l.next()
+    l.error("expected a tag name")
+    return None
 
 
 def lex_inside_line_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR0912, PLR0915
@@ -809,7 +824,6 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR
                 l.tokens = []
                 return lex_inside_liquid_tag
 
-            # TODO: line comment
             else:
                 l.error(f"unknown symbol '{c}'")
                 return None
@@ -1262,7 +1276,8 @@ def lex_query_factory(next_state: StateFn) -> StateFn:
             QueryToken(
                 type_=TokenType.QUERY,
                 path=parse_query(l.query_tokens),
-                index=l.query_tokens[0].index,
+                start=l.query_tokens[0].index,
+                stop=l.pos - 1,
                 source=l.source,
             )
         )

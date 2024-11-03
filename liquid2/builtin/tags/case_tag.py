@@ -131,7 +131,6 @@ class CaseTag(Tag):
 
             expressions = self._parse_when_expression(stream.into_inner())
             alternative_block_token = stream.current()
-            assert alternative_block_token is not None
             alternative_block = parse_block(stream, self.end_block)
 
             whens.append(
@@ -159,7 +158,7 @@ class CaseTag(Tag):
 
     def _parse_when_expression(self, stream: TokenStream) -> list[Expression]:
         expressions: list[Expression] = [parse_primitive(stream.next())]
-        while stream.current().type_ in (TokenType.COMMA, TokenType.OR):
+        while stream.current().type_ in (TokenType.COMMA, TokenType.OR_WORD):
             stream.next()
             expressions.append(parse_primitive(stream.next()))
         stream.expect_eos()

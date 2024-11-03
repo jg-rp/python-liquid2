@@ -63,6 +63,9 @@ class EchoTag(Tag):
         """Parse tokens from _stream_ into an AST node."""
         token = stream.current()
         assert isinstance(token, TagToken)
-        return self.node_class(
-            token, FilteredExpression.parse(TokenStream(token.expression))
-        )
+
+        expr_stream = TokenStream(token.expression)
+        expr = FilteredExpression.parse(expr_stream)
+        expr_stream.expect_eos()
+
+        return self.node_class(token, expr)

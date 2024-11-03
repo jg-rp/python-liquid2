@@ -218,7 +218,8 @@ class Token(TokenT):
 @dataclass(frozen=True, kw_only=True, slots=True)
 class QueryToken(TokenT):
     path: JSONPathQuery
-    index: int
+    start: int
+    stop: int
     source: str = field(repr=False)
 
     def __str__(self) -> str:

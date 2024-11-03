@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from typing import Container
 from typing import Iterable
-from typing import Type
 
 from more_itertools import peekable
 
@@ -14,6 +13,7 @@ from .token import TagToken
 from .token import Token
 from .token import TokenType
 from .token import WhitespaceControl
+from .token import is_token_type
 
 if TYPE_CHECKING:
     from .token import TokenT
@@ -105,7 +105,7 @@ class TokenStream(peekable):  # type: ignore
         token = self.current()
         if not isinstance(token, TagToken):
             raise LiquidSyntaxError(
-                f"expected tag '{tag_name}', found {token.__class__.__name__}",
+                f"expected tag '{tag_name}', found {token.type_.name}",
                 token=token,
             )
 
@@ -118,8 +118,12 @@ class TokenStream(peekable):  # type: ignore
         """Raise a syntax error if we're not at the end of the stream."""
         token = self.current()
         if token.type_ != TokenType.EOI:
+            if is_token_type(token, TokenType.WORD):
+                name = repr(token.value)
+            else:
+                name = token.type_.name
             raise LiquidSyntaxError(
-                f"unexpected {token.__class__.__name__}", token=token
+                f"expected end of expression, found {name}", token=token
             )
 
     def is_tag(self, tag_name: str) -> bool:
@@ -167,7 +171,7 @@ class TokenStream(peekable):  # type: ignore
 
         if not isinstance(token, TagToken):
             raise LiquidSyntaxError(
-                f"expected a tag, found {token.__class__.__name__}", token=token
+                f"expected a tag, found {token.type_.name}", token=token
             )
 
         if not token.expression:
