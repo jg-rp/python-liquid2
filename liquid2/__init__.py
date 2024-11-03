@@ -25,6 +25,7 @@ from .ast import ConditionalBlockNode
 from .ast import MetaNode
 from .ast import Node
 from .context import RenderContext
+from .unescape import unescape
 from .environment import Environment
 from .lexer import tokenize
 from .template import Template
@@ -62,5 +63,6 @@ __all__ = (
     "TokenStream",
     "TokenT",
     "TokenType",
+    "unescape",
     "WhitespaceControl",
 )

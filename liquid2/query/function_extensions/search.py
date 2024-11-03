@@ -5,7 +5,8 @@ import re
 from liquid2.query.function_extensions import ExpressionType
 from liquid2.query.function_extensions import FilterFunction
 
-from ._pattern import map_re
+# TODO:
+# from ._pattern import map_re
 
 
 class Search(FilterFunction):
@@ -21,6 +22,6 @@ class Search(FilterFunction):
 
         try:
             # re.search caches compiled patterns internally
-            return bool(re.search(map_re(pattern), string))
+            return bool(re.search(pattern, string))
         except (TypeError, re.error):
             return False

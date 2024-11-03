@@ -635,6 +635,8 @@ class Parser:
         return left
 
     def _decode_string_literal(self, token: Token) -> str:
+        # TODO: use liquid2.unescape (remember that liquid string a multi-line strings,
+        # whereas JSONPath string are not.)
         if token.type_ == TokenType.SINGLE_QUOTE_STRING:
             value = token.value.replace('"', '\\"').replace("\\'", "'")
         else:

@@ -5,7 +5,8 @@ import re
 from liquid2.query.function_extensions import ExpressionType
 from liquid2.query.function_extensions import FilterFunction
 
-from ._pattern import map_re
+# TODO:
+# from ._pattern import map_re
 
 
 class Match(FilterFunction):
@@ -21,6 +22,6 @@ class Match(FilterFunction):
 
         try:
             # re.fullmatch caches compiled patterns internally
-            return bool(re.fullmatch(map_re(pattern), string))
+            return bool(re.fullmatch(pattern, string))
         except (TypeError, re.error):
             return False

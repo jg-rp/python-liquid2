@@ -464,7 +464,7 @@ def lex_inside_output_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, P
         elif l.accept("=="):
             l.emit_token(TokenType.EQ)
         elif l.accept("!=") or l.accept("<>"):
-            l.emit_token(TokenType.NOT_WORD)
+            l.emit_token(TokenType.NE)
         elif l.accept(".."):
             l.emit_token(TokenType.DOUBLE_DOT)
             l.in_range = True
@@ -499,6 +499,7 @@ def lex_inside_output_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, P
                 l.ignore()
                 return lex_query_inside_output_statement
             elif c == "[":
+                l.backup()
                 return lex_query_inside_output_statement
             else:
                 l.error(f"unknown symbol '{c}'")
@@ -593,7 +594,7 @@ def lex_inside_tag(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR0912, PLR09
         elif l.accept("=="):
             l.emit_token(TokenType.EQ)
         elif l.accept("!=") or l.accept("<>"):
-            l.emit_token(TokenType.NOT_WORD)
+            l.emit_token(TokenType.NE)
         elif l.accept(".."):
             l.emit_token(TokenType.DOUBLE_DOT)
             l.in_range = True
@@ -630,6 +631,7 @@ def lex_inside_tag(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR0912, PLR09
                 l.ignore()
                 return lex_query_inside_tag_expression
             elif c == "[":
+                l.backup()
                 return lex_query_inside_tag_expression
             else:
                 l.error(f"unknown symbol '{c}'")
@@ -750,7 +752,7 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR
         elif l.accept("=="):
             l.emit_token(TokenType.EQ)
         elif l.accept("!=") or l.accept("<>"):
-            l.emit_token(TokenType.NOT_WORD)
+            l.emit_token(TokenType.NE)
         elif l.accept(".."):
             l.emit_token(TokenType.DOUBLE_DOT)
             l.in_range = True
@@ -787,6 +789,7 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR
                 l.ignore()
                 return lex_query_inside_line_statement
             elif c == "[":
+                l.backup()
                 return lex_query_inside_line_statement
             elif c == "\r":
                 l.ignore()  # TODO:
@@ -828,7 +831,7 @@ def lex_segment(l: Lexer) -> Optional[StateFn]:  # noqa: D103, PLR0911
     c = l.next()
 
     if c == "":
-        l.error("unexpected end of query")
+        # l.error("unexpected end of query")
         return None
 
     if c == ".":

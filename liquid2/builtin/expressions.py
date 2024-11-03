@@ -23,6 +23,7 @@ from liquid2 import TokenType
 from liquid2 import is_query_token
 from liquid2 import is_range_token
 from liquid2 import is_token_type
+from liquid2 import unescape
 from liquid2.exceptions import LiquidSyntaxError
 from liquid2.exceptions import LiquidTypeError
 from liquid2.expression import Expression
@@ -388,10 +389,13 @@ def parse_primitive(token: TokenT) -> Expression:  # noqa: PLR0911
     if is_token_type(token, TokenType.FLOAT):
         return FloatLiteral(token, float(token.value))
 
-    if is_token_type(token, TokenType.SINGLE_QUOTE_STRING) or is_token_type(
-        token, TokenType.DOUBLE_QUOTE_STRING
-    ):
-        return StringLiteral(token, token.value)
+    if is_token_type(token, TokenType.DOUBLE_QUOTE_STRING):
+        return StringLiteral(token, unescape(token.value, token=token))
+
+    if is_token_type(token, TokenType.SINGLE_QUOTE_STRING):
+        return StringLiteral(
+            token, unescape(token.value.replace("\\'", "'"), token=token)
+        )
 
     if is_query_token(token):
         return Query(token, token.path)
@@ -737,9 +741,9 @@ PRECEDENCES = {
     TokenType.GE: PRECEDENCE_RELATIONAL,
     TokenType.CONTAINS: PRECEDENCE_MEMBERSHIP,
     TokenType.IN: PRECEDENCE_MEMBERSHIP,
-    TokenType.AND: PRECEDENCE_LOGICAL_AND,
-    TokenType.OR: PRECEDENCE_LOGICAL_OR,
-    TokenType.NOT: PRECEDENCE_PREFIX,
+    TokenType.AND_WORD: PRECEDENCE_LOGICAL_AND,
+    TokenType.OR_WORD: PRECEDENCE_LOGICAL_OR,
+    TokenType.NOT_WORD: PRECEDENCE_PREFIX,
     TokenType.RPAREN: PRECEDENCE_LOWEST,
 }
 
@@ -753,8 +757,8 @@ BINARY_OPERATORS = frozenset(
         TokenType.GE,
         TokenType.CONTAINS,
         TokenType.IN,
-        TokenType.AND,
-        TokenType.OR,
+        TokenType.AND_WORD,
+        TokenType.OR_WORD,
     ]
 )
 
@@ -775,31 +779,33 @@ def parse_boolean_primitive(  # noqa: PLR0912
     elif is_token_type(token, TokenType.WORD):
         if token.value == "empty":
             left = Empty(token=token)
-        if token.value == "blank":
+        elif token.value == "blank":
             left = Blank(token=token)
-        left = Query(token, word_to_query(token))
+        else:
+            left = Query(token, word_to_query(token))
     elif is_token_type(token, TokenType.INT):
-        # TODO: scientific notation
         left = IntegerLiteral(token, to_int(float(token.value)))
     elif is_token_type(token, TokenType.FLOAT):
         left = FloatLiteral(token, float(token.value))
-    elif is_token_type(token, TokenType.SINGLE_QUOTE_STRING) or is_token_type(
-        token, TokenType.DOUBLE_QUOTE_STRING
-    ):
-        left = StringLiteral(token, token.value)
+    elif is_token_type(token, TokenType.DOUBLE_QUOTE_STRING):
+        left = StringLiteral(token, unescape(token.value, token=token))
+    elif is_token_type(token, TokenType.SINGLE_QUOTE_STRING):
+        left = StringLiteral(
+            token, unescape(token.value.replace("\\'", "'"), token=token)
+        )
     elif is_query_token(token):
         left = Query(token, token.path)
     elif is_range_token(token):
         left = RangeLiteral(
             token, parse_primitive(token.start), parse_primitive(token.stop)
         )
-    elif is_token_type(token, TokenType.NOT):
+    elif is_token_type(token, TokenType.NOT_WORD):
         left = LogicalNotExpression.parse(stream)
     elif is_token_type(token, TokenType.LPAREN):
         left = parse_grouped_expression(stream)
     else:
         raise LiquidSyntaxError(
-            f"expected a primitive expression, found {stream.current().type_.name}",
+            f"expected a primitive expression, found {token.type_.name}",
             token=stream.current(),
         )
 
@@ -858,11 +864,11 @@ def parse_infix_expression(stream: TokenStream, left: Expression) -> Expression:
             return InExpression(
                 token, left, parse_boolean_primitive(stream, precedence)
             )
-        case TokenType.AND:
+        case TokenType.AND_WORD:
             return LogicalAndExpression(
                 token, left, parse_boolean_primitive(stream, precedence)
             )
-        case TokenType.OR:
+        case TokenType.OR_WORD:
             return LogicalOrExpression(
                 token, left, parse_boolean_primitive(stream, precedence)
             )
@@ -1435,6 +1441,7 @@ def parse_string_or_identifier(token: TokenT) -> Identifier:
         or is_token_type(token, TokenType.SINGLE_QUOTE_STRING)
         or is_token_type(token, TokenType.DOUBLE_QUOTE_STRING)
     ):
+        # TODO: unescape
         return Identifier(token.value, token=token)
 
     # TODO: this should be unreachable

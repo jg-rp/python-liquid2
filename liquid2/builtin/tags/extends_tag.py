@@ -262,9 +262,9 @@ class BlockTag(Tag):
         end_block_token = stream.current()
         assert isinstance(end_block_token, TagToken)
 
-        if end_block_token.expression is not None:
+        if end_block_token.expression:
             tokens = TokenStream(end_block_token.expression)
-            if tokens.current() is not None:
+            if tokens.current().type_ != TokenType.EOI:
                 end_block_name = parse_string_or_identifier(tokens.current())
                 if end_block_name != block_name:
                     raise TemplateInheritanceError(

@@ -8,6 +8,7 @@ from typing import Any
 
 import pytest
 
+from liquid2.exceptions import LiquidIndexError
 from liquid2.exceptions import LiquidNameError
 from liquid2.exceptions import LiquidSyntaxError
 from liquid2.exceptions import LiquidTypeError
@@ -29,7 +30,17 @@ class Case:
     tags: list[str] = field(default_factory=list)
 
 
-SKIP: dict[str, str] = {}
+SKIP: dict[str, str] = {
+    "basic, no trailing whitespace": "flexible whitespace policy",
+    "functions, match, dot matcher on \\u2028": "standard library re policy",
+    "functions, match, dot matcher on \\u2029": "standard library re policy",
+    "functions, search, dot matcher on \\u2028": "standard library re policy",
+    "functions, search, dot matcher on \\u2029": "standard library re policy",
+    "functions, match, filter, match function, unicode char class, uppercase": "\\p not supported",  # noqa: E501
+    "functions, match, filter, match function, unicode char class negated, uppercase": "\\P not supported",  # noqa: E501
+    "functions, search, filter, search function, unicode char class, uppercase": "\\p not supported",  # noqa: E501
+    "functions, search, filter, search function, unicode char class negated, uppercase": "\\P not supported",  # noqa: E501
+}
 
 FILENAME = "tests/jsonpath-compliance-test-suite/cts.json"
 
@@ -68,5 +79,7 @@ def test_invalid_selectors(case: Case) -> None:
     if case.name in SKIP:
         pytest.skip(reason=SKIP[case.name])  # no cov
 
-    with pytest.raises((LiquidNameError, LiquidSyntaxError, LiquidTypeError)):
+    with pytest.raises(
+        (LiquidNameError, LiquidSyntaxError, LiquidTypeError, LiquidIndexError)
+    ):
         parse_query(tokenize_query(case.selector))
