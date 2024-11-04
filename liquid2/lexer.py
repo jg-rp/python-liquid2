@@ -79,23 +79,23 @@ RE_FUNCTION_NAME = re.compile(r"[a-z][a-z_0-9]*")
 ESCAPES = frozenset(["b", "f", "n", "r", "t", "u", "/", "\\"])
 
 # NOTE: assumes dict insertion ordering
-KEYWORDS: dict[str, str] = {
-    "TRUE": r"true\b",
-    "FALSE": r"false\b",
-    "AND": r"and\b",
-    "OR": r"or\b",
-    "IN": r"in\b",
-    "NOT": r"not\b",
-    "CONTAINS": r"contains\b",
-    "NIL": r"nil\b",
-    "NULL": r"null\b",
-    "IF": r"if\b",
-    "ELSE": r"else\b",
-    "WITH": r"with\b",
-    "REQUIRED": r"required\b",
-    "AS": r"as\b",
-    "FOR": r"for\b",
-}
+# KEYWORDS: dict[str, str] = {
+#     "TRUE": r"true\b",
+#     "FALSE": r"false\b",
+#     "AND": r"and\b",
+#     "OR": r"or\b",
+#     "IN": r"in\b",
+#     "NOT": r"not\b",
+#     "CONTAINS": r"contains\b",
+#     "NIL": r"nil\b",
+#     "NULL": r"null\b",
+#     "IF": r"if\b",
+#     "ELSE": r"else\b",
+#     "WITH": r"with\b",
+#     "REQUIRED": r"required\b",
+#     "AS": r"as\b",
+#     "FOR": r"for\b",
+# }
 
 SYMBOLS: dict[str, str] = {
     "GE": r">=",
@@ -108,11 +108,11 @@ SYMBOLS: dict[str, str] = {
     "DOUBLE_DOT": r"\.\.",
     "DOUBLE_PIPE": r"\|\|",
     "ASSIGN": r"=",
-    "ROOT_SELECTOR": r"$",
+    "ROOT": r"\$",
     "LPAREN": r"\(",
     "RPAREN": r"\)",
-    "SINGLE_QUOTE": r"'",
-    "DOUBLE_QUOTE": r"\"",
+    "SINGLE_QUOTE_STRING": r"'",
+    "DOUBLE_QUOTE_STRING": r"\"",
     "COLON": r":",
     "COMMA": r",",
     "PIPE": r"\|",
@@ -130,6 +130,50 @@ WORD: dict[str, str] = {
     "WORD": r"[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*",
 }
 
+KEYWORD_MAP: dict[str, TokenType] = {
+    "true": TokenType.TRUE,
+    "false": TokenType.FALSE,
+    "and": TokenType.AND_WORD,
+    "or": TokenType.OR_WORD,
+    "in": TokenType.IN,
+    "not": TokenType.NOT_WORD,
+    "contains": TokenType.CONTAINS,
+    "nil": TokenType.NULL,
+    "null": TokenType.NULL,
+    "if": TokenType.IF,
+    "else": TokenType.ELSE,
+    "with": TokenType.WITH,
+    "required": TokenType.REQUIRED,
+    "as": TokenType.AS,
+    "for": TokenType.FOR,
+}
+
+TOKEN_MAP: dict[str, TokenType] = {
+    **KEYWORD_MAP,
+    "FLOAT": TokenType.FLOAT,
+    "INT": TokenType.INT,
+    "GE": TokenType.GE,
+    "LE": TokenType.LE,
+    "EQ": TokenType.EQ,
+    "NE": TokenType.NE,
+    "LG": TokenType.NE,
+    "GT": TokenType.GT,
+    "LT": TokenType.LT,
+    "DOUBLE_DOT": TokenType.DOUBLE_DOT,
+    "DOUBLE_PIPE": TokenType.DOUBLE_PIPE,
+    "ASSIGN": TokenType.ASSIGN,
+    "ROOT": TokenType.ROOT,
+    "LPAREN": TokenType.LPAREN,
+    "RPAREN": TokenType.RPAREN,
+    "SINGLE_QUOTE_STRING": TokenType.SINGLE_QUOTE_STRING,
+    "DOUBLE_QUOTE_STRING": TokenType.DOUBLE_QUOTE_STRING,
+    "COLON": TokenType.COLON,
+    "COMMA": TokenType.COMMA,
+    "PIPE": TokenType.PIPE,
+    "LBRACKET": TokenType.LBRACKET,
+    "RBRACKET": TokenType.RBRACKET,
+    # "NEWLINE": TokenType.NEWLINE,
+}
 
 WC_MAP = {
     "": WhitespaceControl.DEFAULT,
@@ -149,7 +193,7 @@ def _compile(*rules: dict[str, str]) -> Pattern[str]:
     return re.compile(pattern)
 
 
-RULES = _compile(KEYWORDS, NUMBERS, SYMBOLS, WORD)
+RULES = _compile(NUMBERS, SYMBOLS, WORD)
 
 
 class Lexer:
@@ -441,92 +485,68 @@ class Lexer:
             return False
 
         kind = match.lastgroup
+        assert kind is not None
+
         value = match.group()
         self.pos += len(value)
 
-        if kind == "TRUE":
-            self.emit_token(TokenType.TRUE)
-        elif kind == "FALSE":
-            self.emit_token(TokenType.FALSE)
-        elif kind == "AND":
-            self.emit_token(TokenType.AND_WORD)
-        elif kind == "OR":
-            self.emit_token(TokenType.OR_WORD)
-        elif kind == "IN":
-            self.emit_token(TokenType.IN)
-        elif kind == "NOT":
-            self.emit_token(TokenType.NOT_WORD)
-        elif kind == "CONTAINS":
-            self.emit_token(TokenType.CONTAINS)
-        elif kind in ("NIL", "NULL"):
-            self.emit_token(TokenType.NULL)
-        elif kind == "IF":
-            self.emit_token(TokenType.IF)
-        elif kind == "ELSE":
-            self.emit_token(TokenType.ELSE)
-        elif kind == "WITH":
-            self.emit_token(TokenType.WITH)
-        elif kind == "REQUIRED":
-            self.emit_token(TokenType.REQUIRED)
-        elif kind == "AS":
-            self.emit_token(TokenType.AS)
-        elif kind == "FOR":
-            self.emit_token(TokenType.FOR)
-        elif kind == "FLOAT":
-            self.emit_token(TokenType.FLOAT)
-        elif kind == "INT":
-            self.emit_token(TokenType.INT)
-        elif kind == "GE":
-            self.emit_token(TokenType.GE)
-        elif kind == "LE":
-            self.emit_token(TokenType.LE)
-        elif kind == "EQ":
-            self.emit_token(TokenType.EQ)
-        elif kind in ("NE", "LG"):
-            self.emit_token(TokenType.NE)
-        elif kind == "DOUBLE_DOT":
-            self.emit_token(TokenType.DOUBLE_DOT)
-            self.in_range = True
-        elif kind == "DOUBLE_PIPE":
-            self.emit_token(TokenType.DOUBLE_PIPE)
-        elif kind == "SINGLE_QUOTE":
+        # TODO: jump table
+
+        if kind == "SINGLE_QUOTE_STRING":
             return single_quote_state
-        elif kind == "DOUBLE_QUOTE":
+
+        if kind == "DOUBLE_QUOTE_STRING":
             return double_quote_state
-        elif kind == "LPAREN":
-            self.emit_token(TokenType.LPAREN)
-        elif kind == "RPAREN":
-            self.emit_token(TokenType.RPAREN)
-            if self.in_range:
-                return range_state
-        elif kind == "LT":
-            self.emit_token(TokenType.LT)
-        elif kind == "GT":
-            self.emit_token(TokenType.GT)
-        elif kind == "COLON":
-            self.emit_token(TokenType.COLON)
-        elif kind == "COMMA":
-            self.emit_token(TokenType.COMMA)
-        elif kind == "PIPE":
-            self.emit_token(TokenType.PIPE)
-        elif kind == "ASSIGN":
-            self.emit_token(TokenType.ASSIGN)
-        elif kind == "ROOT_SELECTOR":
+
+        if kind == "ROOT":
             self.ignore()
             return query_state
-        elif kind == "LBRACKET":
+
+        if kind == "LBRACKET":
             self.backup()
             return query_state
-        elif kind == "WORD":
+
+        if kind == "WORD":
             if self.peek() in (".", "["):
                 self.emit_query_token(TokenType.PROPERTY)
                 return query_state
-            self.emit_token(TokenType.WORD)
-        else:
-            self.error(f"unknown token {self.source[self.start:self.pos]!r}")
-            return None
 
-        return next_state
+            if token_type := KEYWORD_MAP.get(value):
+                self.tokens.append(
+                    Token(
+                        type_=token_type,
+                        value=value,
+                        index=self.start,
+                        source=self.source,
+                    )
+                )
+                self.start = self.pos
+            else:
+                self.emit_token(TokenType.WORD)  # TODO:
+
+            return next_state
+
+        if token_type := TOKEN_MAP.get(kind):
+            self.tokens.append(
+                Token(
+                    type_=token_type,
+                    value=value,
+                    index=self.start,
+                    source=self.source,
+                )
+            )
+            self.start = self.pos
+
+            if kind == "DOUBLE_DOT":
+                self.in_range = True
+
+            if kind == "RPAREN" and self.in_range:
+                return range_state
+
+            return next_state
+
+        self.error(f"unknown token {self.source[self.start:self.pos]!r}")
+        return None
 
 
 def lex_markup(l: Lexer) -> StateFn | None:

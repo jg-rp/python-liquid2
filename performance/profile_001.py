@@ -73,7 +73,7 @@ def profile_parse(search_path: str) -> None:
     template = templates["main.html"]
     env = Environment()
 
-    for _ in range(100000):
+    for _ in range(10000):
         env.from_string(template)
 
 
