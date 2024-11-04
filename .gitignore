@@ -49,6 +49,8 @@ cov.xml
 
 # Profiling data
 mprofile*
+*.prof
+*.svg
 
 # Translations
 *.mo

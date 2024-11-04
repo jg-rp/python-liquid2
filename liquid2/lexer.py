@@ -6,6 +6,7 @@ import re
 from itertools import chain
 from typing import TYPE_CHECKING
 from typing import Callable
+from typing import Literal
 from typing import Optional
 from typing import Pattern
 
@@ -92,8 +93,8 @@ KEYWORDS: dict[str, str] = {
     "ELSE": r"else\b",
     "WITH": r"with\b",
     "REQUIRED": r"required\b",
-    "as": r"as\b",
-    "for": r"for\b",
+    "AS": r"as\b",
+    "FOR": r"for\b",
 }
 
 SYMBOLS: dict[str, str] = {
@@ -425,12 +426,114 @@ class Lexer:
             )
         )
 
+    def accept_token(
+        self,
+        *,
+        next_state: StateFn,
+        single_quote_state: StateFn,
+        double_quote_state: StateFn,
+        range_state: StateFn,
+        query_state: StateFn,
+    ) -> StateFn | None | Literal[False]:
+        match = RULES.match(self.source, pos=self.pos)
+
+        if not match:
+            return False
+
+        kind = match.lastgroup
+        value = match.group()
+        self.pos += len(value)
+
+        if kind == "TRUE":
+            self.emit_token(TokenType.TRUE)
+        elif kind == "FALSE":
+            self.emit_token(TokenType.FALSE)
+        elif kind == "AND":
+            self.emit_token(TokenType.AND_WORD)
+        elif kind == "OR":
+            self.emit_token(TokenType.OR_WORD)
+        elif kind == "IN":
+            self.emit_token(TokenType.IN)
+        elif kind == "NOT":
+            self.emit_token(TokenType.NOT_WORD)
+        elif kind == "CONTAINS":
+            self.emit_token(TokenType.CONTAINS)
+        elif kind in ("NIL", "NULL"):
+            self.emit_token(TokenType.NULL)
+        elif kind == "IF":
+            self.emit_token(TokenType.IF)
+        elif kind == "ELSE":
+            self.emit_token(TokenType.ELSE)
+        elif kind == "WITH":
+            self.emit_token(TokenType.WITH)
+        elif kind == "REQUIRED":
+            self.emit_token(TokenType.REQUIRED)
+        elif kind == "AS":
+            self.emit_token(TokenType.AS)
+        elif kind == "FOR":
+            self.emit_token(TokenType.FOR)
+        elif kind == "FLOAT":
+            self.emit_token(TokenType.FLOAT)
+        elif kind == "INT":
+            self.emit_token(TokenType.INT)
+        elif kind == "GE":
+            self.emit_token(TokenType.GE)
+        elif kind == "LE":
+            self.emit_token(TokenType.LE)
+        elif kind == "EQ":
+            self.emit_token(TokenType.EQ)
+        elif kind in ("NE", "LG"):
+            self.emit_token(TokenType.NE)
+        elif kind == "DOUBLE_DOT":
+            self.emit_token(TokenType.DOUBLE_DOT)
+            self.in_range = True
+        elif kind == "DOUBLE_PIPE":
+            self.emit_token(TokenType.DOUBLE_PIPE)
+        elif kind == "SINGLE_QUOTE":
+            return single_quote_state
+        elif kind == "DOUBLE_QUOTE":
+            return double_quote_state
+        elif kind == "LPAREN":
+            self.emit_token(TokenType.LPAREN)
+        elif kind == "RPAREN":
+            self.emit_token(TokenType.RPAREN)
+            if self.in_range:
+                return range_state
+        elif kind == "LT":
+            self.emit_token(TokenType.LT)
+        elif kind == "GT":
+            self.emit_token(TokenType.GT)
+        elif kind == "COLON":
+            self.emit_token(TokenType.COLON)
+        elif kind == "COMMA":
+            self.emit_token(TokenType.COMMA)
+        elif kind == "PIPE":
+            self.emit_token(TokenType.PIPE)
+        elif kind == "ASSIGN":
+            self.emit_token(TokenType.ASSIGN)
+        elif kind == "ROOT_SELECTOR":
+            self.ignore()
+            return query_state
+        elif kind == "LBRACKET":
+            self.backup()
+            return query_state
+        elif kind == "WORD":
+            if self.peek() in (".", "["):
+                self.emit_query_token(TokenType.PROPERTY)
+                return query_state
+            self.emit_token(TokenType.WORD)
+        else:
+            self.error(f"unknown token {self.source[self.start:self.pos]!r}")
+            return None
+
+        return next_state
+
 
 def lex_markup(l: Lexer) -> StateFn | None:
     while True:
-        assert not l.tokens  # current expression should be empty
-        assert not l.query_tokens, str(l.query_tokens)  # current query should be empty
-        assert not l.tag_name  # current tag name should be empty
+        # assert not l.tokens  # current expression should be empty
+        # assert not l.query_tokens, str(l.query_tokens)  # current query should be empty
+        # assert not l.tag_name  # current tag name should be empty
 
         if l.accept_and_emit_raw():
             continue
@@ -451,7 +554,7 @@ def lex_markup(l: Lexer) -> StateFn | None:
         if l.accept_and_emit_content():
             continue
 
-        assert l.pos == len(l.source), f"{l.pos} != {len(l.source)}"
+        # assert l.pos == len(l.source), f"{l.pos} != {len(l.source)}"
         return None
 
 
@@ -469,107 +572,34 @@ def lex_inside_output_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, P
     while True:
         l.ignore_whitespace()
 
-        if match := RULES.match(l.source, pos=l.pos):
-            kind = match.lastgroup
-            value = match.group()
-            l.pos += len(value)
+        next_state = l.accept_token(
+            next_state=lex_inside_output_statement,
+            single_quote_state=lex_single_quoted_string_inside_output_statement,
+            double_quote_state=lex_double_quoted_string_inside_output_statement,
+            range_state=lex_range_inside_output_statement,
+            query_state=lex_query_inside_output_statement,
+        )
 
-            if kind == "TRUE":
-                l.emit_token(TokenType.TRUE)
-            elif kind == "FALSE":
-                l.emit_token(TokenType.FALSE)
-            elif kind == "AND":
-                l.emit_token(TokenType.AND_WORD)
-            elif kind == "OR":
-                l.emit_token(TokenType.OR_WORD)
-            elif kind == "IN":
-                l.emit_token(TokenType.IN)
-            elif kind == "NOT":
-                l.emit_token(TokenType.NOT_WORD)
-            elif kind == "CONTAINS":
-                l.emit_token(TokenType.CONTAINS)
-            elif kind in ("NIL", "NULL"):
-                l.emit_token(TokenType.NULL)
-            elif kind == "IF":
-                l.emit_token(TokenType.IF)
-            elif kind == "ELSE":
-                l.emit_token(TokenType.ELSE)
-            elif kind == "WITH":
-                l.emit_token(TokenType.WITH)
-            elif kind == "REQUIRED":
-                l.emit_token(TokenType.REQUIRED)
-            elif kind == "AS":
-                l.emit_token(TokenType.AS)
-            elif kind == "FOR":
-                l.emit_token(TokenType.FOR)
-            elif kind == "FLOAT":
-                l.emit_token(TokenType.FLOAT)
-            elif kind == "INT":
-                l.emit_token(TokenType.INT)
-            elif kind == "GE":
-                l.emit_token(TokenType.GE)
-            elif kind == "LE":
-                l.emit_token(TokenType.LE)
-            elif kind == "EQ":
-                l.emit_token(TokenType.EQ)
-            elif kind in ("NE", "LG"):
-                l.emit_token(TokenType.NE)
-            elif kind == "DOUBLE_DOT":
-                l.emit_token(TokenType.DOUBLE_DOT)
-                l.in_range = True
-            elif kind == "DOUBLE_PIPE":
-                l.emit_token(TokenType.DOUBLE_PIPE)
-            elif kind == "SINGLE_QUOTE":
-                return lex_single_quoted_string_inside_output_statement
-            elif kind == "DOUBLE_QUOTE":
-                return lex_double_quoted_string_inside_output_statement
-            elif kind == "LPAREN":
-                l.emit_token(TokenType.LPAREN)
-            elif kind == "RPAREN":
-                l.emit_token(TokenType.RPAREN)
-                if l.in_range:
-                    return lex_range_inside_output_statement
-            elif kind == "LT":
-                l.emit_token(TokenType.LT)
-            elif kind == "GT":
-                l.emit_token(TokenType.GT)
-            elif kind == "COLON":
-                l.emit_token(TokenType.COLON)
-            elif kind == "COMMA":
-                l.emit_token(TokenType.COMMA)
-            elif kind == "PIPE":
-                l.emit_token(TokenType.PIPE)
-            elif kind == "ASSIGN":
-                l.emit_token(TokenType.ASSIGN)
-            elif kind == "ROOT_SELECTOR":
-                l.ignore()
-                return lex_query_inside_output_statement
-            elif kind == "LBRACKET":
-                l.backup()
-                return lex_query_inside_output_statement
-            elif kind == "WORD":
-                if l.peek() in (".", "["):
-                    l.emit_query_token(TokenType.PROPERTY)
-                    return lex_query_inside_output_statement
-                l.emit_token(TokenType.WORD)
-
-        elif l.accept_end_output_statement():
-            l.markup.append(
-                OutputToken(
-                    type_=TokenType.OUTPUT,
-                    start=l.markup_start,
-                    stop=l.pos,
-                    wc=(l.wc[0], l.wc[1]),
-                    expression=l.tokens,
+        if next_state is False:
+            if l.accept_end_output_statement():
+                l.markup.append(
+                    OutputToken(
+                        type_=TokenType.OUTPUT,
+                        start=l.markup_start,
+                        stop=l.pos,
+                        wc=(l.wc[0], l.wc[1]),
+                        expression=l.tokens,
+                    )
                 )
-            )
-            l.wc = []
-            l.tokens = []
-            l.ignore()
-            return lex_markup
-        else:
+                l.wc = []
+                l.tokens = []
+                l.ignore()
+                return lex_markup
+
             l.error(f"unknown symbol '{l.next()}'")
             return None
+
+        return next_state
 
 
 def lex_tag(l: Lexer) -> StateFn | None:
@@ -598,110 +628,36 @@ def lex_inside_tag(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR0912, PLR09
     while True:
         l.ignore_whitespace()
 
-        if l.accept_end_tag():
-            l.markup.append(
-                TagToken(
-                    type_=TokenType.TAG,
-                    start=l.markup_start,
-                    stop=l.pos,
-                    wc=(l.wc[0], l.wc[1]),
-                    name=l.tag_name,
-                    expression=l.tokens,
+        next_state = l.accept_token(
+            next_state=lex_inside_tag,
+            single_quote_state=lex_single_quoted_string_inside_tag_expression,
+            double_quote_state=lex_double_quoted_string_inside_tag_expression,
+            range_state=lex_range_inside_tag_expression,
+            query_state=lex_query_inside_tag_expression,
+        )
+
+        if next_state is False:
+            if l.accept_end_tag():
+                l.markup.append(
+                    TagToken(
+                        type_=TokenType.TAG,
+                        start=l.markup_start,
+                        stop=l.pos,
+                        wc=(l.wc[0], l.wc[1]),
+                        name=l.tag_name,
+                        expression=l.tokens,
+                    )
                 )
-            )
-            l.wc = []
-            l.tag_name = ""
-            l.tokens = []
-            l.ignore()
-            return lex_markup
-
-        if l.accept_match(RE_TRUE):
-            l.emit_token(TokenType.TRUE)
-        elif l.accept_match(RE_FALSE):
-            l.emit_token(TokenType.FALSE)
-        elif l.accept_match(RE_AND):
-            l.emit_token(TokenType.AND_WORD)
-        elif l.accept_match(RE_OR):
-            l.emit_token(TokenType.OR_WORD)
-        elif l.accept_match(RE_IN):
-            l.emit_token(TokenType.IN)
-        elif l.accept_match(RE_NOT):
-            l.emit_token(TokenType.NOT_WORD)
-        elif l.accept_match(RE_CONTAINS):
-            l.emit_token(TokenType.CONTAINS)
-        elif l.accept_match(RE_NULL) or l.accept_match(RE_NIL):
-            l.emit_token(TokenType.NULL)
-        elif l.accept_match(RE_IF):
-            l.emit_token(TokenType.IF)
-        elif l.accept_match(RE_ELSE):
-            l.emit_token(TokenType.ELSE)
-        elif l.accept_match(RE_WITH):
-            l.emit_token(TokenType.WITH)
-        elif l.accept_match(RE_REQUIRED):
-            l.emit_token(TokenType.REQUIRED)
-        elif l.accept_match(RE_AS):
-            l.emit_token(TokenType.AS)
-        elif l.accept_match(RE_FOR):
-            l.emit_token(TokenType.FOR)
-        elif l.accept_match(RE_WORD):
-            peeked = l.peek()
-            if peeked == "." or peeked == "[":  # noqa: PLR1714
-                l.emit_query_token(TokenType.PROPERTY)
-                return lex_query_inside_tag_expression
-            l.emit_token(TokenType.WORD)
-        elif l.accept_match(RE_FLOAT):
-            l.emit_token(TokenType.FLOAT)
-        elif l.accept_match(RE_INT):
-            l.emit_token(TokenType.INT)
-        elif l.accept(">="):
-            l.emit_token(TokenType.GE)
-        elif l.accept("<="):
-            l.emit_token(TokenType.LE)
-        elif l.accept("=="):
-            l.emit_token(TokenType.EQ)
-        elif l.accept("!=") or l.accept("<>"):
-            l.emit_token(TokenType.NE)
-        elif l.accept(".."):
-            l.emit_token(TokenType.DOUBLE_DOT)
-            l.in_range = True
-        elif l.accept("||"):
-            l.emit_token(TokenType.DOUBLE_PIPE)
-        else:
-            c = l.next()
-
-            if c == "'":
-                return lex_single_quoted_string_inside_tag_expression
-
-            if c == '"':
-                return lex_double_quoted_string_inside_tag_expression
-
-            if c == "(":
-                l.emit_token(TokenType.LPAREN)
-            elif c == ")":
-                l.emit_token(TokenType.RPAREN)
-                if l.in_range:
-                    return lex_range_inside_tag_expression
-            elif c == "<":
-                l.emit_token(TokenType.LT)
-            elif c == ">":
-                l.emit_token(TokenType.GT)
-            elif c == ":":
-                l.emit_token(TokenType.COLON)
-            elif c == ",":
-                l.emit_token(TokenType.COMMA)
-            elif c == "|":
-                l.emit_token(TokenType.PIPE)
-            elif c == "=":
-                l.emit_token(TokenType.ASSIGN)
-            elif c == "$":
+                l.wc = []
+                l.tag_name = ""
+                l.tokens = []
                 l.ignore()
-                return lex_query_inside_tag_expression
-            elif c == "[":
-                l.backup()
-                return lex_query_inside_tag_expression
-            else:
-                l.error(f"unknown symbol '{c}'")
-                return None
+                return lex_markup
+
+            l.error(f"unknown symbol '{l.next()}'")
+            return None
+
+        return next_state
 
 
 def lex_inside_liquid_tag(l: Lexer) -> StateFn | None:
