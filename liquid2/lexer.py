@@ -519,19 +519,13 @@ def lex_markup(l: Lexer) -> StateFn | None:
         value = match.group()
         l.pos += len(value)
 
-        if kind == "RAW":
+        if kind == "CONTENT":
             l.markup.append(
-                RawToken(
-                    type_=TokenType.RAW,
+                ContentToken(
+                    type_=TokenType.CONTENT,
                     start=l.start,
                     stop=l.pos,
-                    wc=(
-                        WC_MAP[match.group("RAW_WC0")],
-                        WC_MAP[match.group("RAW_WC1")],
-                        WC_MAP[match.group("RAW_WC2")],
-                        WC_MAP[match.group("RAW_WC3")],
-                    ),
-                    text=match.group("RAW_TEXT"),
+                    text=value,
                 )
             )
             continue
@@ -566,14 +560,19 @@ def lex_markup(l: Lexer) -> StateFn | None:
             )
             continue
 
-        if kind == "CONTENT":
-            # TODO: can do right trim WC here
+        if kind == "RAW":
             l.markup.append(
-                ContentToken(
-                    type_=TokenType.CONTENT,
+                RawToken(
+                    type_=TokenType.RAW,
                     start=l.start,
                     stop=l.pos,
-                    text=value,
+                    wc=(
+                        WC_MAP[match.group("RAW_WC0")],
+                        WC_MAP[match.group("RAW_WC1")],
+                        WC_MAP[match.group("RAW_WC2")],
+                        WC_MAP[match.group("RAW_WC3")],
+                    ),
+                    text=match.group("RAW_TEXT"),
                 )
             )
             continue
@@ -600,7 +599,7 @@ def lex_inside_output_statement(
                         expression=l.tokens,
                     )
                 )
-                l.wc = []
+                l.wc.clear()
                 l.tokens = []
                 l.ignore()
                 return lex_markup
@@ -628,7 +627,7 @@ def lex_inside_tag(l: Lexer) -> StateFn | None:
                         expression=l.tokens,
                     )
                 )
-                l.wc = []
+                l.wc.clear()
                 l.tag_name = ""
                 l.tokens = []
                 l.ignore()
@@ -655,7 +654,7 @@ def lex_inside_liquid_tag(l: Lexer) -> StateFn | None:
             )
         )
 
-        l.wc = []
+        l.wc.clear()
         l.tag_name = ""
         l.line_statements = []
         l.tokens = []
@@ -1231,8 +1230,8 @@ def lex_range_factory(next_state: StateFn) -> StateFn:
             )
             return None
 
-        dotdot = l.tokens.pop()
-        if not is_token_type(dotdot, TokenType.DOUBLE_DOT):
+        double_dot = l.tokens.pop()
+        if not is_token_type(double_dot, TokenType.DOUBLE_DOT):
             # TODO: fix error index
             l.error("malformed range expression")
             return None

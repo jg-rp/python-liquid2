@@ -1,9 +1,10 @@
-import cProfile
+import json
 import sys
 import timeit
 from pathlib import Path
 
 from liquid2 import Environment
+from liquid2.builtin.loaders.dict_loader import DictLoader
 from liquid2.lexer import tokenize
 
 
@@ -30,10 +31,14 @@ def print_result(
 
 
 def benchmark(search_path: str, number: int = 1000, repeat: int = 5) -> None:
+    data = json.load((Path(search_path).parent / "data.json").open())
     templates = fixture(Path(search_path))
-    template = templates["main.html"]
+    env = Environment(loader=DictLoader(templates), global_context_data=data)
+    source = templates["main.html"]
+    # NOTE: included templates get parsed, main.html does not
+    template = env.get_template("main.html")
 
-    print(len(template))
+    print(len(source))
 
     print((f"Best of {repeat} rounds with {number} iterations per round."))
 
@@ -42,7 +47,7 @@ def benchmark(search_path: str, number: int = 1000, repeat: int = 5) -> None:
         timeit.repeat(
             "tokenize(template)",
             globals={
-                "template": template,
+                "template": source,
                 "tokenize": tokenize,
             },
             number=number,
@@ -57,8 +62,22 @@ def benchmark(search_path: str, number: int = 1000, repeat: int = 5) -> None:
         timeit.repeat(
             "env.from_string(template)",
             globals={
-                "template": template,
+                "template": source,
                 "env": Environment(),
+            },
+            number=number,
+            repeat=repeat,
+        ),
+        number,
+        1,
+    )
+
+    print_result(
+        "render templates",
+        timeit.repeat(
+            "template.render()",
+            globals={
+                "template": template,
             },
             number=number,
             repeat=repeat,
