@@ -30,20 +30,7 @@ from .token import is_token_type
 if TYPE_CHECKING:
     from .token import TokenT
 
-
-RE_CONTENT = re.compile(r".+?(?=(\{\{|\{%|\{#+|$))", re.DOTALL)
-
-RE_COMMENT = re.compile(
-    r"\{(?P<hashes>#+)([\-+~]?)(.*)([\-+~]?)(?P=hashes)\}", re.DOTALL
-)
-
 RE_LINE_COMMENT = re.compile(r"\#.*?(?=(\n|[\-+~]?%\}))")
-
-RE_RAW = re.compile(
-    r"\{%([\-+~]?)\s*raw\s([\-+~]?)%\}(.*)\{%([\-+~]?)\s*endraw\s([\-+~]?)%\}",
-    re.DOTALL,
-)
-
 RE_OUTPUT_END = re.compile(r"([+\-~]?)\}\}")
 RE_TAG_END = re.compile(r"([+\-~]?)%\}")
 RE_WHITESPACE_CONTROL = re.compile(r"[+\-~]")
@@ -84,7 +71,6 @@ SYMBOLS: dict[str, str] = {
     "PIPE": r"\|",
     "LBRACKET": r"\[",
     "RBRACKET": r"\]",
-    # "NEWLINE": r"\r?\n",
 }
 
 NUMBERS: dict[str, str] = {
@@ -141,8 +127,25 @@ TOKEN_MAP: dict[str, TokenType] = {
     # "NEWLINE": TokenType.NEWLINE,
 }
 
+MARKUP: dict[str, str] = {
+    "RAW": (
+        r"\{%(?P<RAW_WC0>[\-+~]?)\s*raw\s(?P<RAW_WC1>[\-+~]?)%\}"
+        r"(?P<RAW_TEXT>.*)"
+        r"\{%(?P<RAW_WC2>[\-+~]?)\s*endraw\s(?P<RAW_WC3>[\-+~]?)%\}"
+    ),
+    "OUTPUT": r"\{\{(?P<OUT_WC>[\-+~]?)\s*",
+    "TAG": r"\{%(?P<TAG_WC>[\-+~]?)\s*(?P<TAG_NAME>[a-z][a-z_0-9]*)",
+    "COMMENT": (
+        r"\{(?P<HASHES>#+)(?P<COMMENT_WC0>[\-+~]?)"
+        r"(?P<COMMENT_TEXT>.*)"
+        r"(?P<COMMENT_WC1>[\-+~]?)(?P=HASHES)\}"
+    ),
+    "CONTENT": r".+?(?=(\{\{|\{%|\{#+|$))",
+}
+
 WC_MAP = {
     "": WhitespaceControl.DEFAULT,
+    None: WhitespaceControl.DEFAULT,
     "-": WhitespaceControl.MINUS,
     "+": WhitespaceControl.PLUS,
     "~": WhitespaceControl.TILDE,
@@ -153,13 +156,15 @@ WC_DEFAULT = (WhitespaceControl.DEFAULT, WhitespaceControl.DEFAULT)
 StateFn = Callable[["Lexer"], Optional["StateFn"]]
 
 
-def _compile(*rules: dict[str, str]) -> Pattern[str]:
+def _compile(*rules: dict[str, str], flags: int = 0) -> Pattern[str]:
     _rules = chain.from_iterable(rule_set.items() for rule_set in rules)
     pattern = "|".join(f"(?P<{name}>{pattern})" for name, pattern in _rules)
-    return re.compile(pattern)
+    return re.compile(pattern, flags)
 
 
-RULES = _compile(NUMBERS, SYMBOLS, WORD)
+MARKUP_RULES = _compile(MARKUP, flags=re.DOTALL)
+
+TOKEN_RULES = _compile(NUMBERS, SYMBOLS, WORD)
 
 
 class Lexer:
@@ -344,69 +349,9 @@ class Lexer:
             return True
         return False
 
-    def accept_and_emit_content(self) -> bool:
-        match = RE_CONTENT.match(self.source, self.pos)
-        if match:
-            self.pos += len(match.group(0))
-            self.markup.append(
-                ContentToken(
-                    type_=TokenType.CONTENT,
-                    start=self.start,
-                    stop=self.pos,
-                    text=match.group(0),
-                )
-            )
-            self.start = self.pos
-            return True
-        return False
-
-    def accept_and_emit_raw(self) -> bool:
-        match = RE_RAW.match(self.source, self.pos)
-        if match:
-            self.pos += len(match.group(0))
-            self.markup.append(
-                RawToken(
-                    type_=TokenType.RAW,
-                    start=self.start,
-                    stop=self.pos,
-                    wc=(
-                        WC_MAP[match.group(1)],
-                        WC_MAP[match.group(2)],
-                        WC_MAP[match.group(4)],
-                        WC_MAP[match.group(5)],
-                    ),
-                    text=match.group(3),
-                )
-            )
-            self.start = self.pos
-            return True
-        return False
-
-    def accept_and_emit_comment(self) -> bool:
-        match = RE_COMMENT.match(self.source, self.pos)
-        if match:
-            self.pos += len(match.group(0))
-            self.markup.append(
-                CommentToken(
-                    type_=TokenType.COMMENT,
-                    start=self.start,
-                    stop=self.pos,
-                    wc=(
-                        WC_MAP[match.group(2)],
-                        WC_MAP[match.group(4)],
-                    ),
-                    text=match.group(3),
-                    hashes=match.group(1),
-                )
-            )
-            self.start = self.pos
-            return True
-        return False
-
     def accept_end_output_statement(self) -> bool:
         """Accepts the output end sequence, possibly preceded by whitespace control."""
-        match = RE_OUTPUT_END.match(self.source, self.pos)
-        if match:
+        if match := RE_OUTPUT_END.match(self.source, self.pos):
             wc_group = match.group(1)
             if wc_group:
                 self.wc.append(WC_MAP[wc_group])
@@ -419,8 +364,7 @@ class Lexer:
 
     def accept_end_tag(self) -> bool:
         """Accepts the tag end sequence, possibly preceded by whitespace control."""
-        match = RE_TAG_END.match(self.source, self.pos)
-        if match:
+        if match := RE_TAG_END.match(self.source, self.pos):
             wc_group = match.group(1)
             if wc_group:
                 self.pos += 1
@@ -475,7 +419,7 @@ class Lexer:
         range_state: StateFn,
         query_state: StateFn,
     ) -> StateFn | None | Literal[False]:
-        match = RULES.match(self.source, pos=self.pos)
+        match = TOKEN_RULES.match(self.source, pos=self.pos)
 
         if not match:
             return False
@@ -565,42 +509,82 @@ def lex_markup(l: Lexer) -> StateFn | None:
         assert not l.query_tokens, str(l.query_tokens)  # current query should be empty
         assert not l.tag_name  # current tag name should be empty
 
-        # TODO: replace accept_and_emit_* with direct match and append
-        # TODO: .. with integrated whitespace control
+        match = MARKUP_RULES.match(l.source, pos=l.pos)
 
-        if l.accept_and_emit_raw():
+        if not match:
+            assert l.pos == len(l.source), f"{l.pos}:{l.source[l.pos: 10]!r}.."
+            return None
+
+        kind = match.lastgroup
+        value = match.group()
+        l.pos += len(value)
+
+        if kind == "RAW":
+            l.markup.append(
+                RawToken(
+                    type_=TokenType.RAW,
+                    start=l.start,
+                    stop=l.pos,
+                    wc=(
+                        WC_MAP[match.group("RAW_WC0")],
+                        WC_MAP[match.group("RAW_WC1")],
+                        WC_MAP[match.group("RAW_WC2")],
+                        WC_MAP[match.group("RAW_WC3")],
+                    ),
+                    text=match.group("RAW_TEXT"),
+                )
+            )
             continue
 
-        if l.accept(r"{{"):
+        if kind == "OUTPUT":
             l.markup_start = l.start
+            l.wc.append(WC_MAP[match.group("OUT_WC")])
             l.ignore()
-            return lex_output_statement
+            return lex_inside_output_statement
 
-        if l.accept(r"{%"):
+        if kind == "TAG":
             l.markup_start = l.start
+            l.wc.append(WC_MAP[match.group("TAG_WC")])
+            tag_name = match.group("TAG_NAME")
+            l.tag_name = tag_name
             l.ignore()
-            return lex_tag
+            return lex_inside_liquid_tag if tag_name == "liquid" else lex_inside_tag
 
-        if l.accept_and_emit_comment():
+        if kind == "COMMENT":
+            l.markup.append(
+                CommentToken(
+                    type_=TokenType.COMMENT,
+                    start=l.start,
+                    stop=l.pos,
+                    wc=(
+                        WC_MAP[match.group("COMMENT_WC0")],
+                        WC_MAP[match.group("COMMENT_WC1")],
+                    ),
+                    text=match.group("COMMENT_TEXT"),
+                    hashes=match.group("HASHES"),
+                )
+            )
             continue
 
-        if l.accept_and_emit_content():
+        if kind == "CONTENT":
+            # TODO: can do right trim WC here
+            l.markup.append(
+                ContentToken(
+                    type_=TokenType.CONTENT,
+                    start=l.start,
+                    stop=l.pos,
+                    text=value,
+                )
+            )
             continue
 
+        l.error("unreachable")
         return None
 
 
-def lex_output_statement(l: Lexer) -> StateFn | None:
-    if l.accept_match(RE_WHITESPACE_CONTROL):
-        l.wc.append(WC_MAP[l.source[l.start]])
-        l.ignore()
-    else:
-        l.wc.append(WhitespaceControl.DEFAULT)
-
-    return lex_inside_output_statement
-
-
-def lex_inside_output_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR0912, PLR0915
+def lex_inside_output_statement(
+    l: Lexer,
+) -> StateFn | None:  # noqa: PLR0911, PLR0912, PLR0915
     while True:
         l.ignore_whitespace()
         next_state = l.accept_output_token()
@@ -627,29 +611,7 @@ def lex_inside_output_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, P
         return next_state
 
 
-def lex_tag(l: Lexer) -> StateFn | None:
-    if l.accept_match(RE_WHITESPACE_CONTROL):
-        l.wc.append(WC_MAP[l.source[l.start]])
-        l.ignore()
-    else:
-        l.wc.append(WhitespaceControl.DEFAULT)
-
-    l.ignore_whitespace()
-
-    if l.accept_match(RE_TAG_NAME):
-        l.tag_name = l.source[l.start : l.pos]
-        l.ignore()
-    else:
-        c = l.next()
-        l.error(f"expected a tag name, found {c!r}")
-        return None
-
-    if l.tag_name == "liquid":
-        return lex_inside_liquid_tag
-    return lex_inside_tag
-
-
-def lex_inside_tag(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR0912, PLR0915
+def lex_inside_tag(l: Lexer) -> StateFn | None:
     while True:
         l.ignore_whitespace()
         next_state = l.accept_tag_token()
@@ -725,7 +687,7 @@ def lex_inside_liquid_tag(l: Lexer) -> StateFn | None:
     return None
 
 
-def lex_inside_line_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR0912, PLR0915
+def lex_inside_line_statement(l: Lexer) -> StateFn | None:
     while True:
         l.ignore_line_space()
 
@@ -872,7 +834,7 @@ def lex_shorthand_selector(l: Lexer) -> Optional[StateFn]:  # noqa: D103
     return None
 
 
-def lex_inside_bracketed_segment(l: Lexer) -> Optional[StateFn]:  # noqa: D103, PLR0911, PLR0912
+def lex_inside_bracketed_segment(l: Lexer) -> Optional[StateFn]:
     while True:
         l.ignore_whitespace()
         c = l.next()
@@ -931,7 +893,7 @@ def lex_inside_bracketed_segment(l: Lexer) -> Optional[StateFn]:  # noqa: D103, 
         return None
 
 
-def lex_inside_filter(l: Lexer) -> Optional[StateFn]:  # noqa: D103, PLR0915, PLR0912, PLR0911
+def lex_inside_filter(l: Lexer) -> Optional[StateFn]:
     while True:
         l.ignore_whitespace()
         c = l.next()

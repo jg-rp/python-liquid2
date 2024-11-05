@@ -80,18 +80,16 @@ def profile_parse(search_path: str) -> None:
 def main() -> None:
     search_path = "performance/fixtures/001/templates/"
 
-    # args = sys.argv
-    # n_args = len(args)
+    args = sys.argv
+    n_args = len(args)
 
-    # if n_args == 1:
-    #     benchmark(search_path)
-    # elif n_args == 2 and args[1] == "--profile":
-    #     profile_parse(search_path)
-    # else:
-    #     sys.stderr.write(f"usage: python {args[0]} [--profile]\n")
-    #     sys.exit(1)
-
-    profile_parse(search_path)
+    if n_args == 1:
+        benchmark(search_path)
+    elif n_args == 2 and args[1] == "--profile":
+        profile_parse(search_path)
+    else:
+        sys.stderr.write(f"usage: python {args[0]} [--profile]\n")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
