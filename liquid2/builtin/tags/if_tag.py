@@ -109,7 +109,7 @@ class IfTag(Tag):
 
     def parse(self, stream: TokenStream) -> Node:
         """Parse tokens from _stream_ into an AST node."""
-        token = next(stream)
+        token = stream.next()
         assert isinstance(token, TagToken)
 
         parse_block = self.env.parser.parse_block

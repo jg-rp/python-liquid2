@@ -13,6 +13,7 @@ from .token import TagToken
 from .token import Token
 from .token import TokenType
 from .token import WhitespaceControl
+from .token import is_tag_token
 from .token import is_token_type
 
 if TYPE_CHECKING:
@@ -129,21 +130,21 @@ class TokenStream(peekable):  # type: ignore
     def is_tag(self, tag_name: str) -> bool:
         """Return _True_ if the current token is a tag named _tag_name_."""
         token = self.current()
-        if isinstance(token, TagToken):  # TODO: try without isinstance
+        if is_tag_token(token):  # TODO: try without isinstance
             return token.name == tag_name
         return False
 
     def is_word(self, value: str) -> bool:
         """Return _True_ if the current token is a word with value equal to _value_."""
         token = self.current()
-        if isinstance(token, Token) and token.type_ == TokenType.WORD:
+        if is_token_type(token, TokenType.WORD):
             return token.value == value
         return False
 
     def peek_word(self, value: str) -> bool:
         """Return _True_ if the next token is a word with value equal to _value_."""
         token = self.peek()
-        if isinstance(token, Token) and token.type_ == TokenType.WORD:
+        if is_token_type(token, TokenType.WORD):
             return token.value == value
         return False
 
