@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from functools import partial
 from itertools import chain
 from typing import TYPE_CHECKING
 from typing import Callable
@@ -43,32 +44,15 @@ RE_RAW = re.compile(
     re.DOTALL,
 )
 
-
 RE_OUTPUT_END = re.compile(r"([+\-~]?)\}\}")
 RE_TAG_END = re.compile(r"([+\-~]?)%\}")
 RE_WHITESPACE_CONTROL = re.compile(r"[+\-~]")
 
-RE_TRUE = re.compile(r"\btrue\b")
-RE_FALSE = re.compile(r"\bfalse\b")
-RE_AND = re.compile(r"\band\b")
-RE_OR = re.compile(r"\bor\b")
-RE_IN = re.compile(r"\bin\b")
-RE_NOT = re.compile(r"\bnot\b")
-RE_CONTAINS = re.compile(r"\bcontains\b")
-RE_NIL = re.compile(r"\bnil\b")
-RE_NULL = re.compile(r"\bnull\b")
-RE_IF = re.compile(r"\bif\b")
-RE_ELSE = re.compile(r"\belse\b")
-RE_WITH = re.compile(r"\bwith\b")
-RE_REQUIRED = re.compile(r"\brequired\b")
-RE_AS = re.compile(r"\bas\b")
-RE_FOR = re.compile(r"\bfor\b")
-
-RE_WORD = re.compile(r"[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*")
-RE_TAG_NAME = re.compile(r"\b[a-z][a-z_0-9]*\b")
+RE_TAG_NAME = re.compile(r"[a-z][a-z_0-9]*\b")
 
 RE_WHITESPACE = re.compile(r"[ \n\r\t]+")
 RE_LINE_SPACE = re.compile(r"[ \t]+")
+RE_LINE_TERM = re.compile(r"\r?\n")
 
 RE_PROPERTY = re.compile(r"[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*")
 RE_INDEX = re.compile(r"-?[0-9]+")
@@ -78,24 +62,6 @@ RE_FLOAT = re.compile(r"(:?-?[0-9]+\.[0-9]+(?:[eE][+-]?[0-9]+)?)|(-?[0-9]+[eE]-[
 RE_FUNCTION_NAME = re.compile(r"[a-z][a-z_0-9]*")
 ESCAPES = frozenset(["b", "f", "n", "r", "t", "u", "/", "\\"])
 
-# NOTE: assumes dict insertion ordering
-# KEYWORDS: dict[str, str] = {
-#     "TRUE": r"true\b",
-#     "FALSE": r"false\b",
-#     "AND": r"and\b",
-#     "OR": r"or\b",
-#     "IN": r"in\b",
-#     "NOT": r"not\b",
-#     "CONTAINS": r"contains\b",
-#     "NIL": r"nil\b",
-#     "NULL": r"null\b",
-#     "IF": r"if\b",
-#     "ELSE": r"else\b",
-#     "WITH": r"with\b",
-#     "REQUIRED": r"required\b",
-#     "AS": r"as\b",
-#     "FOR": r"for\b",
-# }
 
 SYMBOLS: dict[str, str] = {
     "GE": r">=",
@@ -118,7 +84,7 @@ SYMBOLS: dict[str, str] = {
     "PIPE": r"\|",
     "LBRACKET": r"\[",
     "RBRACKET": r"\]",
-    "NEWLINE": r"\r?\n",
+    # "NEWLINE": r"\r?\n",
 }
 
 NUMBERS: dict[str, str] = {
@@ -215,6 +181,9 @@ class Lexer:
         "tag_name",
         "tokens",
         "wc",
+        "accept_output_token",
+        "accept_tag_token",
+        "accept_lines_token",
     )
 
     def __init__(self, source: str) -> None:
@@ -266,6 +235,33 @@ class Lexer:
 
         self.source = source
         """The template source text being scanned."""
+
+        self.accept_output_token = partial(
+            self.accept_token,
+            next_state=lex_inside_output_statement,
+            single_quote_state=lex_single_quoted_string_inside_output_statement,
+            double_quote_state=lex_double_quoted_string_inside_output_statement,
+            range_state=lex_range_inside_output_statement,
+            query_state=lex_query_inside_output_statement,
+        )
+
+        self.accept_tag_token = partial(
+            self.accept_token,
+            next_state=lex_inside_tag,
+            single_quote_state=lex_single_quoted_string_inside_tag_expression,
+            double_quote_state=lex_double_quoted_string_inside_tag_expression,
+            range_state=lex_range_inside_tag_expression,
+            query_state=lex_query_inside_tag_expression,
+        )
+
+        self.accept_lines_token = partial(
+            self.accept_token,
+            next_state=lex_inside_line_statement,
+            single_quote_state=lex_single_quoted_string_inside_line_statement,
+            double_quote_state=lex_double_quoted_string_inside_line_statement,
+            range_state=lex_range_inside_line_statement,
+            query_state=lex_query_inside_line_statement,
+        )
 
     def run(self) -> None:
         """Populate _self.tokens_."""
@@ -470,7 +466,7 @@ class Lexer:
             )
         )
 
-    def accept_token(
+    def accept_token(  # noqa: PLR0911
         self,
         *,
         next_state: StateFn,
@@ -490,8 +486,6 @@ class Lexer:
         value = match.group()
         self.pos += len(value)
 
-        # TODO: jump table
-
         if kind == "SINGLE_QUOTE_STRING":
             return single_quote_state
 
@@ -508,7 +502,15 @@ class Lexer:
 
         if kind == "WORD":
             if self.peek() in (".", "["):
-                self.emit_query_token(TokenType.PROPERTY)
+                self.query_tokens.append(
+                    Token(
+                        type_=TokenType.PROPERTY,
+                        value=value,
+                        index=self.start,
+                        source=self.source,
+                    )
+                )
+                self.start = self.pos
                 return query_state
 
             if token_type := KEYWORD_MAP.get(value):
@@ -520,10 +522,17 @@ class Lexer:
                         source=self.source,
                     )
                 )
-                self.start = self.pos
             else:
-                self.emit_token(TokenType.WORD)  # TODO:
+                self.tokens.append(
+                    Token(
+                        type_=TokenType.WORD,
+                        value=value,
+                        index=self.start,
+                        source=self.source,
+                    )
+                )
 
+            self.start = self.pos
             return next_state
 
         if token_type := TOKEN_MAP.get(kind):
@@ -537,6 +546,7 @@ class Lexer:
             )
             self.start = self.pos
 
+            # Special case for detecting range expressions
             if kind == "DOUBLE_DOT":
                 self.in_range = True
 
@@ -551,9 +561,12 @@ class Lexer:
 
 def lex_markup(l: Lexer) -> StateFn | None:
     while True:
-        # assert not l.tokens  # current expression should be empty
-        # assert not l.query_tokens, str(l.query_tokens)  # current query should be empty
-        # assert not l.tag_name  # current tag name should be empty
+        assert not l.tokens  # current expression should be empty
+        assert not l.query_tokens, str(l.query_tokens)  # current query should be empty
+        assert not l.tag_name  # current tag name should be empty
+
+        # TODO: replace accept_and_emit_* with direct match and append
+        # TODO: .. with integrated whitespace control
 
         if l.accept_and_emit_raw():
             continue
@@ -574,7 +587,6 @@ def lex_markup(l: Lexer) -> StateFn | None:
         if l.accept_and_emit_content():
             continue
 
-        # assert l.pos == len(l.source), f"{l.pos} != {len(l.source)}"
         return None
 
 
@@ -591,14 +603,7 @@ def lex_output_statement(l: Lexer) -> StateFn | None:
 def lex_inside_output_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR0912, PLR0915
     while True:
         l.ignore_whitespace()
-
-        next_state = l.accept_token(
-            next_state=lex_inside_output_statement,
-            single_quote_state=lex_single_quoted_string_inside_output_statement,
-            double_quote_state=lex_double_quoted_string_inside_output_statement,
-            range_state=lex_range_inside_output_statement,
-            query_state=lex_query_inside_output_statement,
-        )
+        next_state = l.accept_output_token()
 
         if next_state is False:
             if l.accept_end_output_statement():
@@ -647,14 +652,7 @@ def lex_tag(l: Lexer) -> StateFn | None:
 def lex_inside_tag(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR0912, PLR0915
     while True:
         l.ignore_whitespace()
-
-        next_state = l.accept_token(
-            next_state=lex_inside_tag,
-            single_quote_state=lex_single_quoted_string_inside_tag_expression,
-            double_quote_state=lex_double_quoted_string_inside_tag_expression,
-            range_state=lex_range_inside_tag_expression,
-            query_state=lex_query_inside_tag_expression,
-        )
+        next_state = l.accept_tag_token()
 
         if next_state is False:
             if l.accept_end_tag():
@@ -731,7 +729,7 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR
     while True:
         l.ignore_line_space()
 
-        if l.accept_end_tag():
+        if l.accept_match(RE_LINE_TERM):
             l.ignore()
             l.line_statements.append(
                 TagToken(
@@ -743,112 +741,14 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR
                     expression=l.tokens,
                 )
             )
-
-            l.markup.append(
-                LinesToken(
-                    type_=TokenType.LINES,
-                    start=l.markup_start,
-                    stop=l.pos,
-                    wc=(l.wc[0], l.wc[1]),
-                    name="liquid",
-                    statements=l.line_statements,
-                )
-            )
-
-            l.wc = []
             l.tag_name = ""
-            l.line_statements = []
             l.tokens = []
-            l.ignore()
-            return lex_markup
+            return lex_inside_liquid_tag
 
-        if l.accept_match(RE_TRUE):
-            l.emit_token(TokenType.TRUE)
-        elif l.accept_match(RE_FALSE):
-            l.emit_token(TokenType.FALSE)
-        elif l.accept_match(RE_AND):
-            l.emit_token(TokenType.AND_WORD)
-        elif l.accept_match(RE_OR):
-            l.emit_token(TokenType.OR_WORD)
-        elif l.accept_match(RE_IN):
-            l.emit_token(TokenType.IN)
-        elif l.accept_match(RE_NOT):
-            l.emit_token(TokenType.NOT_WORD)
-        elif l.accept_match(RE_CONTAINS):
-            l.emit_token(TokenType.CONTAINS)
-        elif l.accept_match(RE_NULL) or l.accept_match(RE_NIL):
-            l.emit_token(TokenType.NULL)
-        elif l.accept_match(RE_IF):
-            l.emit_token(TokenType.IF)
-        elif l.accept_match(RE_ELSE):
-            l.emit_token(TokenType.ELSE)
-        elif l.accept_match(RE_WITH):
-            l.emit_token(TokenType.WITH)
-        elif l.accept_match(RE_REQUIRED):
-            l.emit_token(TokenType.REQUIRED)
-        elif l.accept_match(RE_AS):
-            l.emit_token(TokenType.AS)
-        elif l.accept_match(RE_FOR):
-            l.emit_token(TokenType.FOR)
-        elif l.accept_match(RE_WORD):
-            peeked = l.peek()
-            if peeked == "." or peeked == "[":  # noqa: PLR1714
-                l.emit_query_token(TokenType.PROPERTY)
-                return lex_query_inside_line_statement
-            l.emit_token(TokenType.WORD)
-        elif l.accept_match(RE_FLOAT):
-            l.emit_token(TokenType.FLOAT)
-        elif l.accept_match(RE_INT):
-            l.emit_token(TokenType.INT)
-        elif l.accept(">="):
-            l.emit_token(TokenType.GE)
-        elif l.accept("<="):
-            l.emit_token(TokenType.LE)
-        elif l.accept("=="):
-            l.emit_token(TokenType.EQ)
-        elif l.accept("!=") or l.accept("<>"):
-            l.emit_token(TokenType.NE)
-        elif l.accept(".."):
-            l.emit_token(TokenType.DOUBLE_DOT)
-            l.in_range = True
-        elif l.accept("||"):
-            l.emit_token(TokenType.DOUBLE_PIPE)
-        else:
-            c = l.next()
+        next_state = l.accept_lines_token()
 
-            if c == "'":
-                return lex_single_quoted_string_inside_line_statement
-
-            if c == '"':
-                return lex_double_quoted_string_inside_line_statement
-
-            if c == "(":
-                l.emit_token(TokenType.LPAREN)
-            elif c == ")":
-                l.emit_token(TokenType.RPAREN)
-                if l.in_range:
-                    return lex_range_inside_line_statement
-            elif c == "<":
-                l.emit_token(TokenType.LT)
-            elif c == ">":
-                l.emit_token(TokenType.GT)
-            elif c == ":":
-                l.emit_token(TokenType.COLON)
-            elif c == ",":
-                l.emit_token(TokenType.COMMA)
-            elif c == "|":
-                l.emit_token(TokenType.PIPE)
-            elif c == "=":
-                l.emit_token(TokenType.ASSIGN)
-            elif c == "$":
-                l.ignore()
-                return lex_query_inside_line_statement
-            elif c == "[":
-                l.backup()
-                return lex_query_inside_line_statement
-            elif c == "\r":
-                l.ignore()  # TODO:
-            elif c == "\n":
+        if next_state is False:
+            if l.accept_end_tag():
                 l.ignore()
                 l.line_statements.append(
                     TagToken(
@@ -860,13 +760,29 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR
                         expression=l.tokens,
                     )
                 )
-                l.tag_name = ""
-                l.tokens = []
-                return lex_inside_liquid_tag
 
-            else:
-                l.error(f"unknown symbol '{c}'")
-                return None
+                l.markup.append(
+                    LinesToken(
+                        type_=TokenType.LINES,
+                        start=l.markup_start,
+                        stop=l.pos,
+                        wc=(l.wc[0], l.wc[1]),
+                        name="liquid",
+                        statements=l.line_statements,
+                    )
+                )
+
+                l.wc = []
+                l.tag_name = ""
+                l.line_statements = []
+                l.tokens = []
+                l.ignore()
+                return lex_markup
+
+            l.error(f"unknown symbol '{l.next()}'")
+            return None
+
+        return next_state
 
 
 def lex_root(l: Lexer) -> Optional[StateFn]:  # noqa: D103
