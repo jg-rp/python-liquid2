@@ -64,6 +64,7 @@ SYMBOLS: dict[str, str] = {
     "COLON": r":",
     "COMMA": r",",
     "PIPE": r"\|",
+    "LBRACKET": r"\[",
 }
 
 NUMBERS: dict[str, str] = {
@@ -472,6 +473,7 @@ def lex_markup(l: Lexer) -> StateFn | None:
                     text=value,
                 )
             )
+            l.start = l.pos
             continue
 
         if kind == "OUTPUT":
@@ -519,6 +521,7 @@ def lex_markup(l: Lexer) -> StateFn | None:
                     text=match.group("RAW_TEXT"),
                 )
             )
+            l.start = l.pos
             continue
 
         l.error("unreachable")
@@ -635,17 +638,17 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:
         l.ignore_line_space()
 
         if l.accept_match(RE_LINE_TERM):
-            l.ignore()
             l.line_statements.append(
                 TagToken(
                     type_=TokenType.TAG,
                     start=l.line_start,
-                    stop=l.pos,
+                    stop=l.start,
                     wc=WC_DEFAULT,
                     name=l.tag_name,
                     expression=l.expression,
                 )
             )
+            l.ignore()
             l.tag_name = ""
             l.expression = []
             return lex_inside_liquid_tag
@@ -726,13 +729,12 @@ def accept_path(l: Lexer, *, carry: bool = False) -> None:
             if len(l.path_stack) == 1:
                 l.ignore()
                 l.path_stack[0].stop = l.start
-                return
-
-            path = l.path_stack.pop()
-            path.stop = l.start
-            l.ignore()
-            l.path_stack[-1].path.append(path)  # TODO: handle unbalanced brackets
-            l.path_stack[-1].stop = l.pos
+            else:
+                path = l.path_stack.pop()
+                path.stop = l.start
+                l.ignore()
+                l.path_stack[-1].path.append(path)  # TODO: handle unbalanced brackets
+                l.path_stack[-1].stop = l.pos
 
         elif c == "[":
             l.ignore()
@@ -825,6 +827,7 @@ def lex_range_factory(next_state: StateFn) -> StateFn:
             TokenType.SINGLE_QUOTE_STRING,
             TokenType.DOUBLE_QUOTE_STRING,
             TokenType.PATH,
+            TokenType.WORD,
         ):
             # TODO: fix error index
             l.error(

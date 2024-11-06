@@ -9,10 +9,10 @@ import pytest
 from liquid2 import Environment
 from liquid2 import Token
 from liquid2 import TokenType
+from liquid2.builtin.expressions import Path
 from liquid2.exceptions import LiquidTypeError
 from liquid2.filter import int_arg
 from liquid2.filter import with_context
-from liquid2.query import word_to_query
 
 if TYPE_CHECKING:
     from liquid2.context import RenderContext
@@ -22,8 +22,8 @@ if TYPE_CHECKING:
 def mock_filter(val: str, arg: str, *, context: RenderContext) -> str:
     """Mock filter function making use of `with_context`."""
     dummy_token = Token(type_=TokenType.WORD, value=arg, index=-1, source="")
-    query = word_to_query(dummy_token)
-    return val + str(context.get(query, token=dummy_token))
+    query = Path(dummy_token, [arg])
+    return val + str(query.evaluate(context))
 
 
 def test_with_context() -> None:

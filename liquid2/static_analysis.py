@@ -272,7 +272,7 @@ class _TemplateCounter:
         # pushing the next block scope. This should highlight names that are
         # expected to be "global".
         for query, token in refs.queries:
-            _query = query.root
+            _query = query.head()
             if (
                 _query not in self._scope
                 and Identifier(_query, token=token) not in self.template_locals
@@ -795,8 +795,8 @@ class _InheritanceChainCounter(_TemplateCounter):
     def _contains_super(self, expression: Expression) -> bool:
         if (
             isinstance(expression, Path)
-            and expression.root == "block"
-            and expression.path[-1] == "super"
+            and expression.head() == "block"
+            and expression.tail() == "super"
         ):
             return True
 
@@ -804,8 +804,8 @@ class _InheritanceChainCounter(_TemplateCounter):
 
         if isinstance(expression, FilteredExpression) and (
             isinstance(expression.left, Path)
-            and expression.left.root == "block"
-            and expression.left.path[-1] == "super"
+            and expression.left.head() == "block"
+            and expression.left.tail() == "super"
         ):
             return True
 

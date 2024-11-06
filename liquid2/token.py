@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from dataclasses import field
 from enum import Enum
@@ -202,6 +203,8 @@ class Token(TokenT):
 
 PathT: TypeAlias = list[Union[int, str, "PathToken"]]
 
+RE_PROPERTY = re.compile(r"[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*")
+
 
 @dataclass(kw_only=True, slots=True)
 class PathToken(TokenT):
@@ -211,7 +214,19 @@ class PathToken(TokenT):
     source: str = field(repr=False)
 
     def __str__(self) -> str:
-        return str(self.path)  # TODO:
+        it = iter(self.path)
+        buf = [str(next(it))]
+        for segment in it:
+            if isinstance(segment, PathToken):
+                buf.append(f"[{segment}]")
+            elif isinstance(segment, str):
+                if RE_PROPERTY.fullmatch(segment):
+                    buf.append(f".{segment}")
+                else:
+                    buf.append(f"[{segment!r}]")
+            else:
+                buf.append(f"[{segment}]")
+        return "".join(buf)
 
 
 @dataclass(kw_only=True, slots=True)

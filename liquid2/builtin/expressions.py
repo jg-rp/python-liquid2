@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import sys
 from decimal import Decimal
 from itertools import islice
@@ -17,6 +18,7 @@ from typing import cast
 
 from markupsafe import Markup
 
+from liquid2 import PathToken
 from liquid2 import RenderContext
 from liquid2 import Token
 from liquid2 import TokenType
@@ -290,30 +292,53 @@ class RangeLiteral(Expression):
         return [self.start, self.stop]
 
 
-class Path(Expression):
-    __slots__ = ("path", "root")
+RE_PROPERTY = re.compile(r"[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*")
 
-    def __init__(self, token: TokenT, root: str, path: PathT) -> None:
+
+class Path(Expression):
+    __slots__ = ("path",)
+
+    def __init__(self, token: TokenT, path: PathT) -> None:
         super().__init__(token=token)
-        self.root = root
-        self.path = path
+        self.path = [Path(p, p.path) if isinstance(p, PathToken) else p for p in path]
 
     def __str__(self) -> str:
-        return str(self.path)  # TODO:
+        it = iter(self.path)
+        buf = [str(next(it))]
+        for segment in it:
+            if isinstance(segment, Path):
+                buf.append(f"[{segment}]")
+            elif isinstance(segment, str):
+                if RE_PROPERTY.fullmatch(segment):
+                    buf.append(f".{segment}")
+                else:
+                    buf.append(f"[{segment!r}]")
+            else:
+                buf.append(f"[{segment}]")
+        return "".join(buf)
 
     def __hash__(self) -> int:
-        return hash(self.path)
+        return hash(str(self))
 
     def __sizeof__(self) -> int:
         return super().__sizeof__() + sys.getsizeof(self.path)
 
     def evaluate(self, context: RenderContext) -> object:
-        # TODO:
-        return context.get(self.root, self.path, token=self.token)
+        return context.get(
+            (p.evaluate(context) if isinstance(p, Path) else p for p in self.path),
+            token=self.token,
+        )
+
+    # TODO: async
 
     def children(self) -> list[Expression]:
-        # TODO:
-        return [Path(token=q.token, path=q) for q in self.path.children()]
+        return [p for p in self.path if isinstance(p, Path)]
+
+    def head(self) -> int | str | Path:
+        return self.path[0]
+
+    def tail(self) -> int | str | Path:
+        return self.path[-1]
 
 
 Primitive = Literal[Any] | RangeLiteral | Path | Null
@@ -382,7 +407,7 @@ def parse_primitive(token: TokenT) -> Expression:  # noqa: PLR0911
             return Empty(token=token)
         if token.value == "blank":
             return Blank(token=token)
-        return Path(token, token.value, [])
+        return Path(token, [token.value])
 
     if is_token_type(token, TokenType.INT):
         return IntegerLiteral(token, to_int(float(token.value)))
@@ -399,7 +424,7 @@ def parse_primitive(token: TokenT) -> Expression:  # noqa: PLR0911
         )
 
     if is_path_token(token):
-        return Path(token, token.path[0], token.path[1:])  # TODO:
+        return Path(token, token.path)
 
     if is_range_token(token):
         return RangeLiteral(
@@ -623,13 +648,11 @@ class Filter:
                         else:
                             # A positional query that is a single word
                             filter_arguments.append(
-                                PositionalArgument(Path(token, token.value, []))
+                                PositionalArgument(Path(token, [token.value]))
                             )
                     elif is_path_token(token):
                         filter_arguments.append(
-                            PositionalArgument(
-                                Path(token, token.path[0], token.path[1:])  # TODO:
-                            )
+                            PositionalArgument(Path(token, token.path))
                         )
                     elif token.type_ in (
                         TokenType.INT,
@@ -780,7 +803,7 @@ def parse_boolean_primitive(  # noqa: PLR0912
         elif token.value == "blank":
             left = Blank(token=token)
         else:
-            left = Path(token, token.value, [])
+            left = Path(token, [token.value])
     elif is_token_type(token, TokenType.INT):
         left = IntegerLiteral(token, to_int(float(token.value)))
     elif is_token_type(token, TokenType.FLOAT):
@@ -792,7 +815,7 @@ def parse_boolean_primitive(  # noqa: PLR0912
             token, unescape(token.value.replace("\\'", "'"), token=token)
         )
     elif is_path_token(token):
-        left = Path(token, token.path[0], token.path[1:])  # TODO:
+        left = Path(token, token.path)
     elif is_range_token(token):
         left = RangeLiteral(
             token, parse_primitive(token.start), parse_primitive(token.stop)
@@ -1419,13 +1442,6 @@ def parse_identifier(token: TokenT) -> Identifier:
     if is_token_type(token, TokenType.WORD):
         return Identifier(token.value, token=token)
 
-    # TODO: this should be unreachable
-    # if is_path_token(token):
-    #     word = token.path.as_word()
-    #     if word is None:
-    #         raise LiquidSyntaxError("expected an identifier, found a path", token=token)
-    #     return Identifier(word, token=token)
-
     raise LiquidSyntaxError(
         f"expected an identifier, found {token.type_.name}",
         token=token,
@@ -1441,13 +1457,6 @@ def parse_string_or_identifier(token: TokenT) -> Identifier:
     ):
         # TODO: unescape
         return Identifier(token.value, token=token)
-
-    # TODO: this should be unreachable
-    # if is_path_token(token):
-    #     word = token.path.as_word()
-    #     if word is None:
-    #         raise LiquidSyntaxError("expected an identifier, found a path", token=token)
-    #     return Identifier(word, token=token)
 
     raise LiquidSyntaxError(
         f"expected an identifier, found {token.type_.name}",

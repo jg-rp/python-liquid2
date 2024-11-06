@@ -103,13 +103,15 @@ class RenderContext:
     # TODO: async get
     def get(
         self,
-        root: str,
-        path: list[str | int],
+        path: Iterator[object],
         *,
         token: TokenT,
         default: object = UNDEFINED,
     ) -> object:
         """Resolve the variable _path_ in the current namespace."""
+        root = next(path)
+        assert isinstance(root, str)
+
         try:
             obj = self.scope[root]
         except (KeyError, TypeError, IndexError):
