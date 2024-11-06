@@ -41,7 +41,7 @@ RE_LINE_SPACE = re.compile(r"[ \t]+")
 RE_LINE_TERM = re.compile(r"\r?\n")
 
 RE_PROPERTY = re.compile(r"[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*")
-RE_INDEX = re.compile(r"[0-9]+")
+RE_INDEX = re.compile(r"-?[0-9]+")
 ESCAPES = frozenset(["b", "f", "n", "r", "t", "u", "/", "\\"])
 
 
@@ -109,8 +109,6 @@ TOKEN_MAP: dict[str, TokenType] = {
     "ASSIGN": TokenType.ASSIGN,
     "LPAREN": TokenType.LPAREN,
     "RPAREN": TokenType.RPAREN,
-    "SINGLE_QUOTE_STRING": TokenType.SINGLE_QUOTE_STRING,
-    "DOUBLE_QUOTE_STRING": TokenType.DOUBLE_QUOTE_STRING,
     "COLON": TokenType.COLON,
     "COMMA": TokenType.COMMA,
     "PIPE": TokenType.PIPE,
@@ -174,7 +172,6 @@ class Lexer:
         "accept_output_token",
         "accept_tag_token",
         "accept_lines_token",
-        "path",
         "path_stack",
     )
 
@@ -278,13 +275,6 @@ class Lexer:
         except IndexError:
             return ""
 
-    def accept(self, s: str) -> bool:
-        """Increment the pointer if the current position starts with _s_."""
-        if self.source.startswith(s, self.pos):
-            self.pos += len(s)
-            return True
-        return False
-
     def accept_match(self, pattern: Pattern[str]) -> bool:
         """Match _pattern_ starting from the pointer."""
         match = pattern.match(self.source, self.pos)
@@ -383,6 +373,8 @@ class Lexer:
                 )
             )
             self.start = self.pos
+            assert self.next() == "'"
+            self.ignore()
 
         elif kind == "DOUBLE_QUOTE_STRING":
             self.ignore()
@@ -396,13 +388,15 @@ class Lexer:
                 )
             )
             self.start = self.pos
+            assert self.next() == '"'
+            self.ignore()
 
         elif kind == "LBRACKET":
             self.backup()
             accept_path(self)
             self.expression.append(self.path_stack.pop())
 
-        if kind == "WORD":
+        elif kind == "WORD":
             if self.peek() in (".", "["):
                 accept_path(self, carry=True)
                 self.expression.append(self.path_stack.pop())
@@ -429,7 +423,7 @@ class Lexer:
             self.start = self.pos
             return next_state
 
-        if token_type := TOKEN_MAP.get(kind):
+        elif token_type := TOKEN_MAP.get(kind):
             self.expression.append(
                 Token(
                     type_=token_type,
@@ -448,9 +442,10 @@ class Lexer:
                 return range_state
 
             return next_state
-
-        self.error(f"unknown token {self.source[self.start:self.pos]!r}")
-        return None
+        else:
+            self.error(f"unknown token {self.source[self.start:self.pos]!r}")
+            return None
+        return next_state
 
 
 def lex_markup(l: Lexer) -> StateFn | None:

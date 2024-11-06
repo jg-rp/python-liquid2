@@ -23,11 +23,11 @@ from liquid2 import TokenType
 from liquid2 import is_path_token
 from liquid2 import is_range_token
 from liquid2 import is_token_type
-from liquid2 import unescape
 from liquid2.exceptions import LiquidSyntaxError
 from liquid2.exceptions import LiquidTypeError
 from liquid2.expression import Expression
 from liquid2.limits import to_int
+from liquid2.unescape import unescape
 
 if TYPE_CHECKING:
     from liquid2 import PathT
@@ -290,7 +290,7 @@ class RangeLiteral(Expression):
         return [self.start, self.stop]
 
 
-class Query(Expression):
+class Path(Expression):
     __slots__ = ("path", "root")
 
     def __init__(self, token: TokenT, root: str, path: PathT) -> None:
@@ -299,7 +299,7 @@ class Query(Expression):
         self.path = path
 
     def __str__(self) -> str:
-        return str(self.path)
+        return str(self.path)  # TODO:
 
     def __hash__(self) -> int:
         return hash(self.path)
@@ -313,10 +313,10 @@ class Query(Expression):
 
     def children(self) -> list[Expression]:
         # TODO:
-        return [Query(token=q.token, path=q) for q in self.path.children()]
+        return [Path(token=q.token, path=q) for q in self.path.children()]
 
 
-Primitive = Literal[Any] | RangeLiteral | Query | Null
+Primitive = Literal[Any] | RangeLiteral | Path | Null
 
 
 class FilteredExpression(Expression):
@@ -382,7 +382,7 @@ def parse_primitive(token: TokenT) -> Expression:  # noqa: PLR0911
             return Empty(token=token)
         if token.value == "blank":
             return Blank(token=token)
-        return Query(token, token.value, [])
+        return Path(token, token.value, [])
 
     if is_token_type(token, TokenType.INT):
         return IntegerLiteral(token, to_int(float(token.value)))
@@ -399,7 +399,7 @@ def parse_primitive(token: TokenT) -> Expression:  # noqa: PLR0911
         )
 
     if is_path_token(token):
-        return Query(token, token.path[0], token.path[1:])  # TODO:
+        return Path(token, token.path[0], token.path[1:])  # TODO:
 
     if is_range_token(token):
         return RangeLiteral(
@@ -623,12 +623,12 @@ class Filter:
                         else:
                             # A positional query that is a single word
                             filter_arguments.append(
-                                PositionalArgument(Query(token, token.value, []))
+                                PositionalArgument(Path(token, token.value, []))
                             )
                     elif is_path_token(token):
                         filter_arguments.append(
                             PositionalArgument(
-                                Query(token, token.path[0], token.path[1:])  # TODO:
+                                Path(token, token.path[0], token.path[1:])  # TODO:
                             )
                         )
                     elif token.type_ in (
@@ -780,7 +780,7 @@ def parse_boolean_primitive(  # noqa: PLR0912
         elif token.value == "blank":
             left = Blank(token=token)
         else:
-            left = Query(token, token.value, [])
+            left = Path(token, token.value, [])
     elif is_token_type(token, TokenType.INT):
         left = IntegerLiteral(token, to_int(float(token.value)))
     elif is_token_type(token, TokenType.FLOAT):
@@ -792,7 +792,7 @@ def parse_boolean_primitive(  # noqa: PLR0912
             token, unescape(token.value.replace("\\'", "'"), token=token)
         )
     elif is_path_token(token):
-        left = Query(token, token.path[0], token.path[1:])  # TODO:
+        left = Path(token, token.path[0], token.path[1:])  # TODO:
     elif is_range_token(token):
         left = RangeLiteral(
             token, parse_primitive(token.start), parse_primitive(token.stop)

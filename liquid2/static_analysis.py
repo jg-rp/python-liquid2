@@ -13,7 +13,7 @@ from .ast import BlockNode
 from .ast import ConditionalBlockNode
 from .builtin import FilteredExpression
 from .builtin import Identifier
-from .builtin import Query as QueryExpression
+from .builtin import Path
 from .builtin import StringLiteral
 from .builtin import TernaryFilteredExpression
 from .builtin.tags.case_tag import MultiExpressionBlockNode
@@ -35,7 +35,6 @@ if TYPE_CHECKING:
     from .ast import MetaNode
     from .ast import Node
     from .expression import Expression
-    from .query import Query
     from .template import Template
 
 RE_SPLIT_IDENT = re.compile(r"(\.|\[)")
@@ -95,9 +94,9 @@ class TemplateAnalysis:
         tags: All tags found during static analysis.
     """
 
-    variables: dict[Query, list[Span]]
+    variables: dict[Path, list[Span]]
     local_variables: dict[Identifier, list[Span]]
-    global_variables: dict[Query, list[Span]]
+    global_variables: dict[Path, list[Span]]
     failed_visits: dict[str, list[Span]]
     unloadable_partials: dict[str, list[Span]]
     filters: dict[str, list[Span]]
@@ -148,10 +147,10 @@ class _TemplateCounter:
         )
 
         # Names that are referenced but are not in the template local scope
-        self.template_globals: DefaultDict[Query, list[Span]] = defaultdict(list)
+        self.template_globals: DefaultDict[Path, list[Span]] = defaultdict(list)
 
         # Names that are referenced by a Liquid expression.
-        self.variables: DefaultDict[Query, list[Span]] = defaultdict(list)
+        self.variables: DefaultDict[Path, list[Span]] = defaultdict(list)
 
         # Tag and filter names.
         self.filters: dict[str, list[Span]] = defaultdict(list)
@@ -273,7 +272,7 @@ class _TemplateCounter:
         # pushing the next block scope. This should highlight names that are
         # expected to be "global".
         for query, token in refs.queries:
-            _query = query.head()
+            _query = query.root
             if (
                 _query not in self._scope
                 and Identifier(_query, token=token) not in self.template_locals
@@ -300,8 +299,8 @@ class _TemplateCounter:
         """Return a list of references used in the given expression."""
         refs: References = References()
 
-        if isinstance(expression, QueryExpression):
-            refs.append_variable(expression.path, expression.token)
+        if isinstance(expression, Path):
+            refs.append_variable(expression, expression.token)  # TODO: root
 
         elif isinstance(expression, FilteredExpression):
             refs.append_filters([(f.name, f.token) for f in expression.filters or []])
@@ -795,18 +794,18 @@ class _InheritanceChainCounter(_TemplateCounter):
 
     def _contains_super(self, expression: Expression) -> bool:
         if (
-            isinstance(expression, QueryExpression)
-            and expression.path.head() == "block"
-            and expression.path.tail() == "super"
+            isinstance(expression, Path)
+            and expression.root == "block"
+            and expression.path[-1] == "super"
         ):
             return True
 
         # XXX: TODO: TernaryFilteredExpression
 
         if isinstance(expression, FilteredExpression) and (
-            isinstance(expression.left, QueryExpression)
-            and expression.left.path.head() == "block"
-            and expression.left.path.tail() == "super"
+            isinstance(expression.left, Path)
+            and expression.left.root == "block"
+            and expression.left.path[-1] == "super"
         ):
             return True
 
@@ -866,10 +865,10 @@ class References:
     """Collect references for Template.analyze and friends."""
 
     def __init__(self) -> None:
-        self.queries: list[tuple[Query, TokenT]] = []
+        self.queries: list[tuple[Path, TokenT]] = []
         self.filters: list[tuple[str, TokenT]] = []
 
-    def append_variable(self, var: Query, token: TokenT) -> None:
+    def append_variable(self, var: Path, token: TokenT) -> None:
         """Add a variable reference."""
         self.queries.append((var, token))
 
