@@ -12,13 +12,12 @@ from typing import Optional
 from typing import Pattern
 
 from .exceptions import LiquidSyntaxError
-from .query import parse_query
 from .token import CommentToken
 from .token import ContentToken
 from .token import ErrorToken
 from .token import LinesToken
 from .token import OutputToken
-from .token import QueryToken
+from .token import PathToken
 from .token import RangeToken
 from .token import RawToken
 from .token import TagToken
@@ -42,11 +41,7 @@ RE_LINE_SPACE = re.compile(r"[ \t]+")
 RE_LINE_TERM = re.compile(r"\r?\n")
 
 RE_PROPERTY = re.compile(r"[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*")
-RE_INDEX = re.compile(r"-?[0-9]+")
-RE_INT = re.compile(r"-?[0-9]+(?:[eE]\+?[0-9]+)?")
-# RE_FLOAT includes numbers with a negative exponent and no decimal point.
-RE_FLOAT = re.compile(r"(:?-?[0-9]+\.[0-9]+(?:[eE][+-]?[0-9]+)?)|(-?[0-9]+[eE]-[0-9]+)")
-RE_FUNCTION_NAME = re.compile(r"[a-z][a-z_0-9]*")
+RE_INDEX = re.compile(r"[0-9]+")
 ESCAPES = frozenset(["b", "f", "n", "r", "t", "u", "/", "\\"])
 
 
@@ -69,8 +64,6 @@ SYMBOLS: dict[str, str] = {
     "COLON": r":",
     "COMMA": r",",
     "PIPE": r"\|",
-    "LBRACKET": r"\[",
-    "RBRACKET": r"\]",
 }
 
 NUMBERS: dict[str, str] = {
@@ -114,7 +107,6 @@ TOKEN_MAP: dict[str, TokenType] = {
     "DOUBLE_DOT": TokenType.DOUBLE_DOT,
     "DOUBLE_PIPE": TokenType.DOUBLE_PIPE,
     "ASSIGN": TokenType.ASSIGN,
-    "ROOT": TokenType.ROOT,
     "LPAREN": TokenType.LPAREN,
     "RPAREN": TokenType.RPAREN,
     "SINGLE_QUOTE_STRING": TokenType.SINGLE_QUOTE_STRING,
@@ -122,9 +114,6 @@ TOKEN_MAP: dict[str, TokenType] = {
     "COLON": TokenType.COLON,
     "COMMA": TokenType.COMMA,
     "PIPE": TokenType.PIPE,
-    "LBRACKET": TokenType.LBRACKET,
-    "RBRACKET": TokenType.RBRACKET,
-    # "NEWLINE": TokenType.NEWLINE,
 }
 
 MARKUP: dict[str, str] = {
@@ -144,8 +133,8 @@ MARKUP: dict[str, str] = {
 }
 
 WC_MAP = {
-    "": WhitespaceControl.DEFAULT,
     None: WhitespaceControl.DEFAULT,
+    "": WhitespaceControl.DEFAULT,
     "-": WhitespaceControl.MINUS,
     "+": WhitespaceControl.PLUS,
     "~": WhitespaceControl.TILDE,
@@ -171,51 +160,36 @@ class Lexer:
     """Liquid template lexical scanner."""
 
     __slots__ = (
-        "query_tokens",
-        "filter_depth",
         "in_range",
         "line_start",
         "line_statements",
         "markup",
         "markup_start",
-        "paren_stack",
         "pos",
-        "singular_query_depth",
         "source",
         "start",
         "tag_name",
-        "tokens",
+        "expression",
         "wc",
         "accept_output_token",
         "accept_tag_token",
         "accept_lines_token",
+        "path",
+        "path_stack",
     )
 
     def __init__(self, source: str) -> None:
-        self.filter_depth = 0
-        """Filter nesting level."""
-
-        self.singular_query_depth = 0
-        """Singular query selector nesting level."""
-
-        self.paren_stack: list[int] = []
-        """A running count of parentheses for each, possibly nested, function call.
-        
-        If the stack is empty, we are not in a function call. Remember that
-        function arguments can be arbitrarily nested in parentheses.
-        """
-
         self.markup: list[TokenT] = []
         """Markup resulting from scanning a Liquid template."""
 
-        self.tokens: list[TokenT] = []
+        self.expression: list[TokenT] = []
         """Tokens from the current expression."""
 
         self.line_statements: list[TagToken | CommentToken] = []
         """Markup resulting from scanning a sequence of line statements."""
 
-        self.query_tokens: list[Token] = []
-        """Tokens from the current query."""
+        self.path_stack: list[PathToken] = []
+        """Current path, possibly with nested paths."""
 
         self.start = 0
         """Pointer to the start of the current token."""
@@ -244,28 +218,19 @@ class Lexer:
         self.accept_output_token = partial(
             self.accept_token,
             next_state=lex_inside_output_statement,
-            single_quote_state=lex_single_quoted_string_inside_output_statement,
-            double_quote_state=lex_double_quoted_string_inside_output_statement,
             range_state=lex_range_inside_output_statement,
-            query_state=lex_query_inside_output_statement,
         )
 
         self.accept_tag_token = partial(
             self.accept_token,
             next_state=lex_inside_tag,
-            single_quote_state=lex_single_quoted_string_inside_tag_expression,
-            double_quote_state=lex_double_quoted_string_inside_tag_expression,
             range_state=lex_range_inside_tag_expression,
-            query_state=lex_query_inside_tag_expression,
         )
 
         self.accept_lines_token = partial(
             self.accept_token,
             next_state=lex_inside_line_statement,
-            single_quote_state=lex_single_quoted_string_inside_line_statement,
-            double_quote_state=lex_double_quoted_string_inside_line_statement,
             range_state=lex_range_inside_line_statement,
-            query_state=lex_query_inside_line_statement,
         )
 
     def run(self) -> None:
@@ -273,30 +238,6 @@ class Lexer:
         state: Optional[StateFn] = lex_markup
         while state is not None:
             state = state(self)
-
-    def emit_token(self, t: TokenType) -> None:
-        """Append a token of type _t_ to the output tokens list."""
-        self.tokens.append(
-            Token(
-                type_=t,
-                value=self.source[self.start : self.pos],
-                index=self.start,
-                source=self.source,
-            )
-        )
-        self.start = self.pos
-
-    def emit_query_token(self, t: TokenType) -> None:
-        """Append a token of type _t_ to the output tokens list."""
-        self.query_tokens.append(
-            Token(
-                type_=t,
-                value=self.source[self.start : self.pos],
-                index=self.start,
-                source=self.source,
-            )
-        )
-        self.start = self.pos
 
     def next(self) -> str:
         """Return the next character, or the empty string if no more characters."""
@@ -310,6 +251,9 @@ class Lexer:
     def ignore(self) -> None:
         """Ignore characters up to the pointer."""
         self.start = self.pos
+
+    skip = ignore
+    """Alias for `ignore()`."""
 
     def backup(self) -> None:
         """Move the current position back one."""
@@ -414,10 +358,7 @@ class Lexer:
         self,
         *,
         next_state: StateFn,
-        single_quote_state: StateFn,
-        double_quote_state: StateFn,
         range_state: StateFn,
-        query_state: StateFn,
     ) -> StateFn | None | Literal[False]:
         match = TOKEN_RULES.match(self.source, pos=self.pos)
 
@@ -431,34 +372,43 @@ class Lexer:
         self.pos += len(value)
 
         if kind == "SINGLE_QUOTE_STRING":
-            return single_quote_state
-
-        if kind == "DOUBLE_QUOTE_STRING":
-            return double_quote_state
-
-        if kind == "ROOT":
             self.ignore()
-            return query_state
+            accept_string(self, quote="'")
+            self.expression.append(
+                Token(
+                    type_=TokenType.SINGLE_QUOTE_STRING,
+                    value=self.source[self.start : self.pos],
+                    index=self.start,
+                    source=self.source,
+                )
+            )
+            self.start = self.pos
 
-        if kind == "LBRACKET":
+        elif kind == "DOUBLE_QUOTE_STRING":
+            self.ignore()
+            accept_string(self, quote='"')
+            self.expression.append(
+                Token(
+                    type_=TokenType.DOUBLE_QUOTE_STRING,
+                    value=self.source[self.start : self.pos],
+                    index=self.start,
+                    source=self.source,
+                )
+            )
+            self.start = self.pos
+
+        elif kind == "LBRACKET":
             self.backup()
-            return query_state
+            accept_path(self)
+            self.expression.append(self.path_stack.pop())
 
         if kind == "WORD":
             if self.peek() in (".", "["):
-                self.query_tokens.append(
-                    Token(
-                        type_=TokenType.PROPERTY,
-                        value=value,
-                        index=self.start,
-                        source=self.source,
-                    )
-                )
-                self.start = self.pos
-                return query_state
+                accept_path(self, carry=True)
+                self.expression.append(self.path_stack.pop())
 
-            if token_type := KEYWORD_MAP.get(value):
-                self.tokens.append(
+            elif token_type := KEYWORD_MAP.get(value):
+                self.expression.append(
                     Token(
                         type_=token_type,
                         value=value,
@@ -467,7 +417,7 @@ class Lexer:
                     )
                 )
             else:
-                self.tokens.append(
+                self.expression.append(
                     Token(
                         type_=TokenType.WORD,
                         value=value,
@@ -480,7 +430,7 @@ class Lexer:
             return next_state
 
         if token_type := TOKEN_MAP.get(kind):
-            self.tokens.append(
+            self.expression.append(
                 Token(
                     type_=token_type,
                     value=value,
@@ -505,8 +455,7 @@ class Lexer:
 
 def lex_markup(l: Lexer) -> StateFn | None:
     while True:
-        assert not l.tokens  # current expression should be empty
-        assert not l.query_tokens, str(l.query_tokens)  # current query should be empty
+        assert not l.expression  # current expression should be empty
         assert not l.tag_name  # current tag name should be empty
 
         match = MARKUP_RULES.match(l.source, pos=l.pos)
@@ -596,11 +545,11 @@ def lex_inside_output_statement(
                         start=l.markup_start,
                         stop=l.pos,
                         wc=(l.wc[0], l.wc[1]),
-                        expression=l.tokens,
+                        expression=l.expression,
                     )
                 )
                 l.wc.clear()
-                l.tokens = []
+                l.expression = []
                 l.ignore()
                 return lex_markup
 
@@ -624,12 +573,12 @@ def lex_inside_tag(l: Lexer) -> StateFn | None:
                         stop=l.pos,
                         wc=(l.wc[0], l.wc[1]),
                         name=l.tag_name,
-                        expression=l.tokens,
+                        expression=l.expression,
                     )
                 )
                 l.wc.clear()
                 l.tag_name = ""
-                l.tokens = []
+                l.expression = []
                 l.ignore()
                 return lex_markup
 
@@ -657,7 +606,7 @@ def lex_inside_liquid_tag(l: Lexer) -> StateFn | None:
         l.wc.clear()
         l.tag_name = ""
         l.line_statements = []
-        l.tokens = []
+        l.expression = []
         l.ignore()
         return lex_markup
 
@@ -699,11 +648,11 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:
                     stop=l.pos,
                     wc=WC_DEFAULT,
                     name=l.tag_name,
-                    expression=l.tokens,
+                    expression=l.expression,
                 )
             )
             l.tag_name = ""
-            l.tokens = []
+            l.expression = []
             return lex_inside_liquid_tag
 
         next_state = l.accept_lines_token()
@@ -718,7 +667,7 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:
                         stop=l.pos,
                         wc=WC_DEFAULT,
                         name=l.tag_name,
-                        expression=l.tokens,
+                        expression=l.expression,
                     )
                 )
 
@@ -736,7 +685,7 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:
                 l.wc = []
                 l.tag_name = ""
                 l.line_statements = []
-                l.tokens = []
+                l.expression = []
                 l.ignore()
                 return lex_markup
 
@@ -746,482 +695,141 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:
         return next_state
 
 
-def lex_root(l: Lexer) -> Optional[StateFn]:  # noqa: D103
-    c = l.next()
+# TODO: move to method of lexer
+def accept_path(l: Lexer, *, carry: bool = False) -> None:
+    l.path_stack.append(
+        PathToken(
+            type_=TokenType.PATH,
+            path=[],
+            start=l.start,
+            stop=-1,
+            source=l.source,
+        )
+    )
 
-    if c != "$":
-        l.error(f"expected '$', found {c!r}")
-        return None
+    if carry:
+        l.path_stack[-1].path.append(l.source[l.start : l.pos])
+        l.start = l.pos
 
-    l.emit_query_token(TokenType.ROOT)
-    return lex_segment
-
-
-def lex_segment(l: Lexer) -> Optional[StateFn]:  # noqa: D103, PLR0911
-    l.ignore_whitespace()
-    c = l.next()
-
-    if c == "":
-        # l.error("unexpected end of query")
-        return None
-
-    if c == ".":
-        if l.peek() == ".":
-            l.next()
-            l.emit_query_token(TokenType.DOUBLE_DOT)
-            return lex_descendant_segment
-        return lex_shorthand_selector
-
-    if c == "[":
-        l.emit_query_token(TokenType.LBRACKET)
-        return lex_inside_bracketed_segment
-
-    if l.filter_depth:
-        l.backup()
-        return lex_inside_filter
-
-    l.backup()
-    return None
-
-
-def lex_descendant_segment(l: Lexer) -> Optional[StateFn]:
-    c = l.next()
-
-    if c == "":
-        l.error("bald descendant segment")
-        return None
-
-    if c == "*":
-        l.emit_query_token(TokenType.WILD)
-        return lex_segment
-
-    if c == "[":
-        l.emit_query_token(TokenType.LBRACKET)
-        return lex_inside_bracketed_segment
-
-    l.backup()
-
-    if l.accept_match(RE_PROPERTY):
-        l.emit_query_token(TokenType.PROPERTY)
-        return lex_segment
-
-    l.next()
-    l.error(f"unexpected descendant selection token {c!r}")
-    return None
-
-
-def lex_shorthand_selector(l: Lexer) -> Optional[StateFn]:  # noqa: D103
-    l.ignore()  # ignore dot
-
-    if l.accept_match(RE_WHITESPACE):
-        l.error("unexpected whitespace after dot")
-        return None
-
-    c = l.next()
-
-    if c == "*":
-        l.emit_query_token(TokenType.WILD)
-        return lex_segment
-
-    l.backup()
-
-    if l.accept_match(RE_PROPERTY):
-        l.emit_query_token(TokenType.PROPERTY)
-        return lex_segment
-
-    l.error(f"unexpected shorthand selector {c!r}")
-    return None
-
-
-def lex_inside_bracketed_segment(l: Lexer) -> Optional[StateFn]:
     while True:
-        l.ignore_whitespace()
-        c = l.next()
-
-        if c == "]":
-            l.emit_query_token(TokenType.RBRACKET)
-            if l.filter_depth:
-                return lex_inside_filter
-            return lex_segment
-
-        if c == "":
-            l.error("unclosed bracketed selection")
-            return None
-
-        if c == "*":
-            l.emit_query_token(TokenType.WILD)
-            continue
-
-        if c == "?":
-            l.emit_query_token(TokenType.FILTER)
-            l.filter_depth += 1
-            return lex_inside_filter
-
-        if c == ",":
-            l.emit_query_token(TokenType.COMMA)
-            continue
-
-        if c == ":":
-            l.emit_query_token(TokenType.COLON)
-            continue
-
-        if c == "'":
-            # Quoted dict/object key/property name
-            return lex_single_quoted_string_inside_bracket_segment
-
-        if c == '"':
-            # Quoted dict/object key/property name
-            return lex_double_quoted_string_inside_bracket_segment
-
-        # default
-        l.backup()
-
-        if l.accept_match(RE_INDEX):
-            # Index selector or part of a slice selector.
-            l.emit_query_token(TokenType.INDEX)
-            continue
-
-        if c == "[":
-            return lex_inside_singular_query
-
-        if l.accept_match(RE_PROPERTY):
-            l.emit_query_token(TokenType.PROPERTY)
-            return lex_inside_singular_query
-
-        l.error(f"unexpected token {c!r} in bracketed selection")
-        return None
-
-
-def lex_inside_filter(l: Lexer) -> Optional[StateFn]:
-    while True:
-        l.ignore_whitespace()
         c = l.next()
 
         if c == "":
-            l.error("unclosed bracketed selection")
-            return None
-
-        if c == "]":
-            l.filter_depth -= 1
-            if len(l.paren_stack) == 1:
-                l.error("unbalanced parentheses")
-                return None
-
-            l.backup()
-            return lex_inside_bracketed_segment
-
-        if c == ",":
-            l.emit_query_token(TokenType.COMMA)
-            # If we have unbalanced parens, we are inside a function call and a
-            # comma separates arguments. Otherwise a comma separates selectors.
-            if l.paren_stack:
-                continue
-            l.filter_depth -= 1
-            return lex_inside_bracketed_segment
-
-        if c == "'":
-            return lex_single_quoted_string_inside_filter_expression
-
-        if c == '"':
-            return lex_double_quoted_string_inside_filter_expression
-
-        if c == "(":
-            l.emit_query_token(TokenType.LPAREN)
-            # Are we in a function call? If so, a function argument contains parens.
-            if l.paren_stack:
-                l.paren_stack[-1] += 1
-            continue
-
-        if c == ")":
-            l.emit_query_token(TokenType.RPAREN)
-            # Are we closing a function call or a parenthesized expression?
-            if l.paren_stack:
-                if l.paren_stack[-1] == 1:
-                    l.paren_stack.pop()
-                else:
-                    l.paren_stack[-1] -= 1
-            continue
-
-        if c == "$":
-            l.emit_query_token(TokenType.ROOT)
-            return lex_segment
-
-        if c == "@":
-            l.emit_query_token(TokenType.CURRENT)
-            return lex_segment
-
-        if c == ".":
-            l.backup()
-            return lex_segment
-
-        if c == "!":
-            if l.peek() == "=":
-                l.next()
-                l.emit_query_token(TokenType.NE)
-            else:
-                l.emit_query_token(TokenType.NOT)
-            continue
-
-        if c == "=":
-            if l.peek() == "=":
-                l.next()
-                l.emit_query_token(TokenType.EQ)
-                continue
-
-            l.backup()
-            l.error(f"unexpected filter selector token {c!r}")
-            return None
-
-        if c == "<":
-            if l.peek() == "=":
-                l.next()
-                l.emit_query_token(TokenType.LE)
-            else:
-                l.emit_query_token(TokenType.LT)
-            continue
-
-        if c == ">":
-            if l.peek() == "=":
-                l.next()
-                l.emit_query_token(TokenType.GE)
-            else:
-                l.emit_query_token(TokenType.GT)
-            continue
-
-        l.backup()
-
-        if l.accept("&&"):
-            l.emit_query_token(TokenType.AND)
-        elif l.accept("||"):
-            l.emit_query_token(TokenType.OR)
-        elif l.accept("true"):
-            l.emit_query_token(TokenType.TRUE)
-        elif l.accept("false"):
-            l.emit_query_token(TokenType.FALSE)
-        elif l.accept("null"):
-            l.emit_query_token(TokenType.NULL)
-        elif l.accept_match(RE_FLOAT):
-            l.emit_query_token(TokenType.FLOAT)
-        elif l.accept_match(RE_INT):
-            l.emit_query_token(TokenType.INT)
-        elif l.accept_match(RE_FUNCTION_NAME) and l.peek() == "(":
-            # Keep track of parentheses for this function call.
-            l.paren_stack.append(1)
-            l.emit_query_token(TokenType.FUNCTION)
-            l.next()
-            l.ignore()  # ignore LPAREN
-        else:
-            l.error(f"unexpected filter selector token {c!r}")
-            return None
-
-
-def lex_inside_singular_query(l: Lexer) -> StateFn | None:  # noqa: PLR0911, PLR0912
-    while True:
-        l.ignore_whitespace()
-        c = l.next()
-
-        if c == "]":
-            if l.singular_query_depth:
-                l.emit_query_token(TokenType.RBRACKET)
-                l.singular_query_depth -= 1
-                continue
-
-            l.backup()
-            return lex_inside_bracketed_segment
-
-        if c == "":
-            l.error("unclosed singular query selector")
-            return None
+            l.error("unexpected end of path")
+            return
 
         if c == ".":
             l.ignore()
-            if l.accept_match(RE_WHITESPACE):
-                l.error("unexpected whitespace after dot")
-                return None
+            l.ignore_whitespace()
+            if match := RE_PROPERTY.match(l.source, l.pos):
+                l.path_stack[-1].path.append(match.group())
+                l.pos += len(match.group())
+                l.start = l.pos
+                l.path_stack[-1].stop = l.pos
 
-            if l.accept_match(RE_PROPERTY):
-                l.emit_query_token(TokenType.PROPERTY)
-            else:
-                l.error("trailing dot in singular query selector")
-                return None
+        elif c == "]":  # TODO: handle empty brackets
+            if len(l.path_stack) == 1:
+                l.ignore()
+                l.path_stack[0].stop = l.start
+                return
+
+            path = l.path_stack.pop()
+            path.stop = l.start
+            l.ignore()
+            l.path_stack[-1].path.append(path)  # TODO: handle unbalanced brackets
+            l.path_stack[-1].stop = l.pos
 
         elif c == "[":
             l.ignore()
             l.ignore_whitespace()
 
-            if l.peek() == "'":
-                # We're relying on lex_.. to check for closing square bracket.
-                return lex_single_quoted_string_inside_singular_query
-
-            if l.peek() == '"':
-                return lex_double_quoted_string_inside_singular_query
-
-            if l.accept_match(RE_INDEX):
-                l.emit_query_token(TokenType.INDEX)
-            elif l.accept_match(RE_PROPERTY):
-                l.emit_query_token(TokenType.PROPERTY)
-                l.singular_query_depth += 1
-
-            if not l.accept("]"):
-                l.error("unclosed singular query selector")
-                return None
-
-            l.ignore()  # skip "]"
-
-
-def lex_string_factory(
-    quote: str,
-    state: StateFn,
-    *,
-    inside_query: bool = False,
-    inside_singular_query: bool = False,
-) -> StateFn:
-    """Return a state function for scanning string literals.
-
-    Arguments:
-        quote: One of `'` or `"`. The string delimiter.
-        state: The state function to return control to after scanning the string.
-        inside_query: Indicate if we're emitting from inside a query.
-        inside_singular_query: Indicate if we're scanning a string from a singular query
-            selector.
-    """
-    tt = (
-        TokenType.SINGLE_QUOTE_STRING if quote == "'" else TokenType.DOUBLE_QUOTE_STRING
-    )
-
-    def _lex_string(l: Lexer) -> Optional[StateFn]:
-        l.ignore()  # ignore opening quote
-
-        if l.peek() == "":
-            # an empty string
-            l.emit_query_token(tt) if inside_query else l.emit_token(tt)
-            l.next()
-            l.ignore()
-            return state
-
-        while True:
-            c = l.next()
-
-            if c == "\\":
-                peeked = l.peek()
-                if peeked in ESCAPES or peeked == quote:
-                    l.next()
-                else:
-                    l.error("invalid escape")
-                    return None
-
-            if not c:
-                l.error(f"unclosed string starting at index {l.start}")
-                return None
-
-            if c == quote:
-                l.backup()
-                l.emit_query_token(tt) if inside_query else l.emit_token(tt)
+            if l.peek() in ("'", '"'):
+                quote = l.next()
+                l.ignore()
+                accept_string(l, quote=quote)
+                l.path_stack[-1].path.append(l.source[l.start : l.pos])
                 l.next()
-                l.ignore()  # ignore closing quote
-                if inside_singular_query:
-                    l.ignore_whitespace()
-                    if not l.accept("]"):
-                        l.error("unclosed singular query selector")
-                        return None
-                return state
+                l.ignore()  # skip closing quote
 
-    return _lex_string
+            elif match := RE_INDEX.match(l.source, l.pos):
+                l.path_stack[-1].path.append(int(match.group()))
+                l.pos += len(match.group())
+                l.start = l.pos
 
-
-lex_single_quoted_string_inside_bracket_segment = lex_string_factory(
-    "'", lex_inside_bracketed_segment, inside_query=True
-)
-
-lex_double_quoted_string_inside_bracket_segment = lex_string_factory(
-    '"', lex_inside_bracketed_segment, inside_query=True
-)
-
-lex_single_quoted_string_inside_singular_query = lex_string_factory(
-    "'",
-    lex_inside_singular_query,
-    inside_query=True,
-    inside_singular_query=True,
-)
-
-lex_double_quoted_string_inside_singular_query = lex_string_factory(
-    '"',
-    lex_inside_singular_query,
-    inside_query=True,
-    inside_singular_query=True,
-)
-
-lex_single_quoted_string_inside_filter_expression = lex_string_factory(
-    "'", lex_inside_filter, inside_query=True
-)
-
-lex_double_quoted_string_inside_filter_expression = lex_string_factory(
-    '"', lex_inside_filter, inside_query=True
-)
-
-lex_single_quoted_string_inside_output_statement = lex_string_factory(
-    "'", lex_inside_output_statement
-)
-
-lex_double_quoted_string_inside_output_statement = lex_string_factory(
-    '"', lex_inside_output_statement
-)
-
-lex_single_quoted_string_inside_tag_expression = lex_string_factory("'", lex_inside_tag)
-
-lex_double_quoted_string_inside_tag_expression = lex_string_factory('"', lex_inside_tag)
-
-lex_single_quoted_string_inside_line_statement = lex_string_factory(
-    "'", lex_inside_line_statement
-)
-
-lex_double_quoted_string_inside_line_statement = lex_string_factory(
-    '"', lex_inside_line_statement
-)
+            elif match := RE_PROPERTY.match(l.source, l.pos):
+                # A nested path
+                l.path_stack.append(
+                    PathToken(
+                        type_=TokenType.PATH,
+                        path=[match.group()],
+                        start=l.start,
+                        stop=-1,  # TODO: fix span
+                        source=l.source,
+                    )
+                )
+                l.pos += len(match.group())
+                l.start = l.pos
+        else:
+            l.backup()
+            return
 
 
-def lex_query_factory(next_state: StateFn) -> StateFn:
-    def _lex_query(l: Lexer) -> StateFn | None:
-        state: Optional[StateFn] = lex_segment
-        while state is not None:
-            state = state(l)
+# TODO: move to method of Lexer
+def accept_string(l: Lexer, *, quote: str) -> None:
+    # Assumes the opening quote has been consumed.
+    if l.peek() == quote:
+        # an empty string
+        # leave the closing quote for the caller
+        return
 
-        if l.markup and l.markup[-1].type_ == TokenType.ERROR:
-            return None
+    while True:
+        c = l.next()
 
-        l.tokens.append(
-            QueryToken(
-                type_=TokenType.QUERY,
-                path=parse_query(l.query_tokens),
-                start=l.query_tokens[0].index,
-                stop=l.pos - 1,
-                source=l.source,
+        if c == "\\":
+            peeked = l.peek()
+            if peeked in ESCAPES or peeked == quote:
+                l.next()
+            else:
+                raise LiquidSyntaxError(
+                    "invalid escape sequence",
+                    token=ErrorToken(
+                        type_=TokenType.ERROR,
+                        index=l.pos,
+                        value=peeked,
+                        source=l.source,
+                        message="invalid escape sequence",
+                    ),
+                )
+
+        if c == quote:
+            l.backup()
+            return
+
+        if not c:
+            raise LiquidSyntaxError(
+                "unclosed string literal",
+                token=ErrorToken(
+                    type_=TokenType.ERROR,
+                    index=l.start,
+                    value=l.source[l.start],
+                    source=l.source,
+                    message="unclosed string literal",
+                ),
             )
-        )
-
-        l.query_tokens = []
-        return next_state
-
-    return _lex_query
-
-
-lex_query_inside_output_statement = lex_query_factory(lex_inside_output_statement)
-lex_query_inside_tag_expression = lex_query_factory(lex_inside_tag)
-lex_query_inside_line_statement = lex_query_factory(lex_inside_line_statement)
 
 
 def lex_range_factory(next_state: StateFn) -> StateFn:
     def _lex_range(l: Lexer) -> StateFn | None:
         # TODO: handle IndexError from pop
-        rparen = l.tokens.pop()
+        rparen = l.expression.pop()
         assert is_token_type(rparen, TokenType.RPAREN)
 
-        range_stop_token = l.tokens.pop()
+        range_stop_token = l.expression.pop()
         if range_stop_token.type_ not in (
             TokenType.INT,
             TokenType.SINGLE_QUOTE_STRING,
             TokenType.DOUBLE_QUOTE_STRING,
-            TokenType.QUERY,
+            TokenType.PATH,
         ):
             # TODO: fix error index
             l.error(
@@ -1230,18 +838,18 @@ def lex_range_factory(next_state: StateFn) -> StateFn:
             )
             return None
 
-        double_dot = l.tokens.pop()
+        double_dot = l.expression.pop()
         if not is_token_type(double_dot, TokenType.DOUBLE_DOT):
             # TODO: fix error index
             l.error("malformed range expression")
             return None
 
-        range_start_token = l.tokens.pop()
+        range_start_token = l.expression.pop()
         if range_start_token.type_ not in (
             TokenType.INT,
             TokenType.SINGLE_QUOTE_STRING,
             TokenType.DOUBLE_QUOTE_STRING,
-            TokenType.QUERY,
+            TokenType.PATH,
         ):
             # TODO: fix error index
             l.error(
@@ -1250,13 +858,13 @@ def lex_range_factory(next_state: StateFn) -> StateFn:
             )
             return None
 
-        lparen = l.tokens.pop()
+        lparen = l.expression.pop()
         if not is_token_type(lparen, TokenType.LPAREN):
             # TODO: fix error index
             l.error("range expressions must be surrounded by parentheses")
             return None
 
-        l.tokens.append(
+        l.expression.append(
             RangeToken(
                 type_=TokenType.RANGE,
                 start=range_start_token,
@@ -1288,21 +896,3 @@ def tokenize(source: str) -> list[TokenT]:
             raise LiquidSyntaxError(last_token.message, token=last_token)
 
     return lexer.markup
-
-
-def tokenize_query(query: str) -> list[Token]:
-    l = Lexer(query)
-
-    state: Optional[StateFn] = lex_root
-    while state is not None:
-        state = state(l)
-
-    if c := l.next():
-        l.error(f"expected '.', '..' or a bracketed selection, found {c!r}")
-
-    if l.markup:
-        last_token = l.markup[-1]
-        if isinstance(last_token, ErrorToken):
-            raise LiquidSyntaxError(last_token.message, token=last_token)
-
-    return l.query_tokens

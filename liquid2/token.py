@@ -6,11 +6,9 @@ from dataclasses import dataclass
 from dataclasses import field
 from enum import Enum
 from enum import auto
-from typing import TYPE_CHECKING
+from typing import TypeAlias
 from typing import TypeGuard
-
-if TYPE_CHECKING:
-    from .query import JSONPathQuery
+from typing import Union
 
 
 class WhitespaceControl(Enum):
@@ -40,17 +38,15 @@ class TokenType(Enum):
     RAW = auto()
     TAG = auto()
 
-    QUERY = auto()
+    PATH = auto()
     RANGE = auto()
 
-    AND = auto()  # &&
     AND_WORD = auto()  # and
     AS = auto()
     ASSIGN = auto()  # =
     COLON = auto()
     COMMA = auto()
     CONTAINS = auto()
-    CURRENT = auto()  # @
     DOT = auto()
     DOUBLE_DOT = auto()
     DOUBLE_PIPE = auto()
@@ -60,44 +56,33 @@ class TokenType(Enum):
     FALSE = auto()
     FLOAT = auto()
     FOR = auto()
-    FUNCTION = auto()
     GE = auto()
     GT = auto()
     IF = auto()
     IN = auto()
-    INDEX = auto()
     INT = auto()
-    LBRACKET = auto()
     LE = auto()
     LPAREN = auto()
     LT = auto()
     NE = auto()
-    NOT = auto()
     NOT_WORD = auto()
     NULL = auto()
-    OP = auto()
-    OR = auto()  # ||
     OR_WORD = auto()  # or
     PIPE = auto()
-    PROPERTY = auto()
-    FILTER = auto()  # ? (start of a JSONPath filter selector)
-    RBRACKET = auto()
     REQUIRED = auto()
-    ROOT = auto()
     RPAREN = auto()
     SINGLE_QUOTE_STRING = auto()
     TRUE = auto()
-    WILD = auto()
     WITH = auto()
     WORD = auto()
 
 
-@dataclass(frozen=True, kw_only=True, slots=True)
+@dataclass(kw_only=True, slots=True)
 class TokenT:
     type_: TokenType
 
 
-@dataclass(frozen=True, kw_only=True, slots=True)
+@dataclass(kw_only=True, slots=True)
 class ContentToken(TokenT):
     start: int
     stop: int
@@ -107,7 +92,7 @@ class ContentToken(TokenT):
         return self.text
 
 
-@dataclass(frozen=True, kw_only=True, slots=True)
+@dataclass(kw_only=True, slots=True)
 class RawToken(TokenT):
     start: int
     stop: int
@@ -127,7 +112,7 @@ class RawToken(TokenT):
         )
 
 
-@dataclass(frozen=True, kw_only=True, slots=True)
+@dataclass(kw_only=True, slots=True)
 class CommentToken(TokenT):
     start: int
     stop: int
@@ -139,7 +124,7 @@ class CommentToken(TokenT):
         return f"{{{self.hashes}{self.wc[0]}{self.text}{self.wc[1]}{self.hashes}}}"
 
 
-@dataclass(frozen=True, kw_only=True, slots=True)
+@dataclass(kw_only=True, slots=True)
 class OutputToken(TokenT):
     start: int
     stop: int
@@ -154,7 +139,7 @@ class OutputToken(TokenT):
         )
 
 
-@dataclass(frozen=True, kw_only=True, slots=True)
+@dataclass(kw_only=True, slots=True)
 class TagToken(TokenT):
     start: int
     stop: int
@@ -172,7 +157,7 @@ class TagToken(TokenT):
         return f"{{%{self.wc[0]} {self.name} {self.wc[1]}%}}"
 
 
-@dataclass(frozen=True, kw_only=True, slots=True)
+@dataclass(kw_only=True, slots=True)
 class LinesToken(TokenT):
     start: int
     stop: int
@@ -208,25 +193,28 @@ def _tag_as_line_statement(markup: TagToken | CommentToken) -> str:
     return f"# {markup.text}"
 
 
-@dataclass(frozen=True, kw_only=True, slots=True)
+@dataclass(kw_only=True, slots=True)
 class Token(TokenT):
     value: str
     index: int
     source: str = field(repr=False)
 
 
-@dataclass(frozen=True, kw_only=True, slots=True)
-class QueryToken(TokenT):
-    path: JSONPathQuery
+PathT: TypeAlias = list[Union[int, str, "PathToken"]]
+
+
+@dataclass(kw_only=True, slots=True)
+class PathToken(TokenT):
+    path: PathT
     start: int
     stop: int
     source: str = field(repr=False)
 
     def __str__(self) -> str:
-        return str(self.path)
+        return str(self.path)  # TODO:
 
 
-@dataclass(frozen=True, kw_only=True, slots=True)
+@dataclass(kw_only=True, slots=True)
 class RangeToken(TokenT):
     start: TokenT
     stop: TokenT
@@ -234,7 +222,7 @@ class RangeToken(TokenT):
     source: str = field(repr=False)
 
 
-@dataclass(frozen=True, kw_only=True, slots=True)
+@dataclass(kw_only=True, slots=True)
 class ErrorToken(TokenT):
     index: int
     value: str
@@ -275,9 +263,9 @@ def is_lines_token(token: TokenT) -> TypeGuard[LinesToken]:
     return token.type_ == TokenType.LINES
 
 
-def is_query_token(token: TokenT) -> TypeGuard[QueryToken]:
-    """A _QueryToken_ type guard."""
-    return token.type_ == TokenType.QUERY
+def is_path_token(token: TokenT) -> TypeGuard[PathToken]:
+    """A _PathToken_ type guard."""
+    return token.type_ == TokenType.PATH
 
 
 def is_range_token(token: TokenT) -> TypeGuard[RangeToken]:

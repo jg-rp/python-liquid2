@@ -29,7 +29,6 @@ if TYPE_CHECKING:
     from liquid2 import TokenT
     from liquid2.builtin.tags.for_tag import ForLoop
 
-    from .query import Query
     from .template import Template
     from .undefined import Undefined
 
@@ -101,19 +100,32 @@ class RenderContext:
         self.locals[key] = val
         # TODO: namespace limit
 
-    def get(self, path: Query, *, token: TokenT, default: object = UNDEFINED) -> object:
+    # TODO: async get
+    def get(
+        self,
+        root: str,
+        path: list[str | int],
+        *,
+        token: TokenT,
+        default: object = UNDEFINED,
+    ) -> object:
         """Resolve the variable _path_ in the current namespace."""
-        nodes = path.find(self.scope)
-
-        if not nodes:
+        try:
+            obj = self.scope[root]
+        except (KeyError, TypeError, IndexError):
             if default == UNDEFINED:
-                return self.template.env.undefined(path, token=token)
+                return self.env.undefined(root, token=token)
             return default
 
-        if len(nodes) == 1:
-            return nodes[0].value
+        for segment in path:
+            try:
+                obj = obj[segment]  # type: ignore
+            except (KeyError, TypeError, IndexError):
+                if default == UNDEFINED:
+                    return self.env.undefined(root, token=token)
+                return default
 
-        return nodes.values()
+        return obj
 
     def filter(self, name: str, *, token: TokenT) -> Callable[..., object]:
         """Return the filter callable for _name_."""
