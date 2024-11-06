@@ -82,8 +82,15 @@ class NameSelector(JSONPathSelector):
     def resolve(self, node: JSONPathNode) -> Iterable[JSONPathNode]:
         """Select a value from a dict/object by its property/key."""
         if isinstance(node.value, Mapping):
-            with suppress(KeyError):
+            try:
                 yield node.new_child(node.value[self.name], self.name)
+            except KeyError:
+                if self.name == "size":
+                    yield node.new_child(len(node.value), self.name)  # XXX:
+
+        elif self.name == "size":
+            with suppress(TypeError):
+                yield node.new_child(len(node.value), self.name)  # type: ignore
 
 
 class IndexSelector(JSONPathSelector):

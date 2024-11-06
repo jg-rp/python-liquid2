@@ -10,12 +10,13 @@ from liquid2 import TokenStream
 
 from .builtin import Content
 from .exceptions import LiquidSyntaxError
-from .token import CommentToken
-from .token import ContentToken
-from .token import LinesToken
-from .token import OutputToken
-from .token import RawToken
-from .token import TagToken
+from .token import TokenType
+from .token import is_comment_token
+from .token import is_content_token
+from .token import is_lines_token
+from .token import is_output_token
+from .token import is_raw_token
+from .token import is_tag_token
 
 if TYPE_CHECKING:
     from .ast import Node
@@ -46,43 +47,40 @@ class Parser:
         left_trim = stream.trim_carry
         stream.trim_carry = default_trim
 
-        # TODO: benchmark match vs type_ == vs isinstance
-        # TODO: benchmark positional vs keyword match args
-
         while True:
-            match stream.current():
-                case ContentToken():
-                    nodes.append(content.parse(stream, left_trim=left_trim))
-                    left_trim = default_trim
-                case CommentToken(wc=wc):
-                    left_trim = wc[-1]
-                    nodes.append(comment.parse(stream))
-                case RawToken(wc=wc):
-                    left_trim = wc[-1]
-                    nodes.append(raw.parse(stream))
-                case OutputToken(wc=wc):
-                    left_trim = wc[-1]
-                    nodes.append(output.parse(stream))
-                case TagToken(wc=wc, name=name):
-                    left_trim = wc[-1]
-                    stream.trim_carry = left_trim
-                    try:
-                        nodes.append(tags[name].parse(stream))
-                    except KeyError as err:
-                        # TODO: change error message if name is "liquid"
-                        raise LiquidSyntaxError(
-                            f"unknown tag '{name}'", token=stream.current()
-                        ) from err
-                case LinesToken(wc=wc):
-                    left_trim = wc[-1]
-                    nodes.append(lines.parse(stream))
-                case stream.eoi:
-                    break
-                case _token:
+            token = stream.current()
+            if is_content_token(token):
+                nodes.append(content.parse(stream, left_trim=left_trim))
+                left_trim = default_trim
+            elif is_comment_token(token):
+                left_trim = token.wc[-1]
+                nodes.append(comment.parse(stream))
+            elif is_raw_token(token):
+                left_trim = token.wc[-1]
+                nodes.append(raw.parse(stream))
+            elif is_output_token(token):
+                left_trim = token.wc[-1]
+                nodes.append(output.parse(stream))
+            elif is_tag_token(token):
+                left_trim = token.wc[-1]
+                stream.trim_carry = left_trim
+                try:
+                    nodes.append(tags[token.name].parse(stream))
+                except KeyError as err:
+                    # TODO: change error message if name is "liquid"
                     raise LiquidSyntaxError(
-                        "unexpected token '{_token.__class__.__name__}'",
-                        token=_token,
-                    )
+                        f"unknown tag '{token.name}'", token=stream.current()
+                    ) from err
+            elif is_lines_token(token):
+                left_trim = token.wc[-1]
+                nodes.append(lines.parse(stream))
+            elif token.type_ == TokenType.EOI:
+                break
+            else:
+                raise LiquidSyntaxError(
+                    f"unexpected token {token.type_.name}",
+                    token=token,
+                )
 
             stream.next()
 
@@ -104,38 +102,43 @@ class Parser:
         nodes: list[Node] = []
 
         while True:
-            match stream.current():
-                case ContentToken():
-                    nodes.append(content.parse(stream, left_trim=left_trim))
-                    left_trim = default_trim
-                case CommentToken(wc=wc):
-                    left_trim = wc[-1]
-                    nodes.append(comment.parse(stream))
-                case RawToken(wc=wc):
-                    left_trim = wc[-1]
-                    nodes.append(raw.parse(stream))
-                case OutputToken(wc=wc):
-                    left_trim = wc[-1]
-                    nodes.append(output.parse(stream))
-                case TagToken(wc=wc, name=name):
-                    left_trim = wc[-1]
+            token = stream.current()
+            if is_content_token(token):
+                nodes.append(content.parse(stream, left_trim=left_trim))
+                left_trim = default_trim
+            elif is_comment_token(token):
+                left_trim = token.wc[-1]
+                nodes.append(comment.parse(stream))
+            elif is_raw_token(token):
+                left_trim = token.wc[-1]
+                nodes.append(raw.parse(stream))
+            elif is_output_token(token):
+                left_trim = token.wc[-1]
+                nodes.append(output.parse(stream))
+            elif is_tag_token(token):
+                left_trim = token.wc[-1]
 
-                    if name in end:
-                        stream.trim_carry = left_trim
-                        break
-
-                    try:
-                        nodes.append(tags[name].parse(stream))
-                    except KeyError as err:
-                        # TODO: change error message if name is "liquid"
-                        raise LiquidSyntaxError(
-                            f"unknown tag {name}", token=stream.current()
-                        ) from err
-                case LinesToken(wc=wc):
-                    left_trim = wc[-1]
-                    nodes.append(lines.parse(stream))
-                case stream.eoi:
+                if token.name in end:
+                    stream.trim_carry = left_trim
                     break
+
+                try:
+                    nodes.append(tags[token.name].parse(stream))
+                except KeyError as err:
+                    # TODO: change error message if name is "liquid"
+                    raise LiquidSyntaxError(
+                        f"unknown tag '{token.name}'", token=stream.current()
+                    ) from err
+            elif is_lines_token(token):
+                left_trim = token.wc[-1]
+                nodes.append(lines.parse(stream))
+            elif token.type_ == TokenType.EOI:
+                break
+            else:
+                raise LiquidSyntaxError(
+                    f"unexpected token {token.type_.name}",
+                    token=token,
+                )
 
             stream.next()
 

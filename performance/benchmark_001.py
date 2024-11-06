@@ -55,7 +55,7 @@ def print_result(
     print(f"{name:>31}: {best:.2}s ({per_sec:.2f} ops/s, {i_per_s:.2f} i/s)")
 
 
-def benchmark(search_path: str, number: int = 100, repeat: int = 5) -> None:
+def benchmark(search_path: str, number: int = 1000, repeat: int = 5) -> None:
     templates = fixture(Path(search_path))
     n_templates = len(templates)
     n_calls = number * n_templates
