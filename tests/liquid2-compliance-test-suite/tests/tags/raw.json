@@ -25,6 +25,12 @@
       "result": "{# some comment #}"
     },
     {
+      "name": "not greedy",
+      "template": "{% raw %}{{ a }}{% endraw %}{{ b }}{% raw %}{{ c }}{% endraw %}",
+      "data": { "b": "d" },
+      "result": "{{ a }}d{{ c }}"
+    },
+    {
       "name": "delimiters",
       "template": "{% raw %} %} {% }} {{ #} {# {% endraw %}",
       "data": {},

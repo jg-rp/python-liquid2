@@ -117,7 +117,7 @@ TOKEN_MAP: dict[str, TokenType] = {
 MARKUP: dict[str, str] = {
     "RAW": (
         r"\{%(?P<RAW_WC0>[\-+~]?)\s*raw\s*(?P<RAW_WC1>[\-+~]?)%\}"
-        r"(?P<RAW_TEXT>.*)"
+        r"(?P<RAW_TEXT>.*?)"
         r"\{%(?P<RAW_WC2>[\-+~]?)\s*endraw\s*(?P<RAW_WC3>[\-+~]?)%\}"
     ),
     "OUTPUT": r"\{\{(?P<OUT_WC>[\-+~]?)\s*",

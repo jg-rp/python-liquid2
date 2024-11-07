@@ -87,6 +87,7 @@ ENV/
 dev.py
 profile_.py
 tests/test_dev.py
+migrate.py
 
 # Test fixtures
 comparison_regression_suite.yaml
