@@ -836,8 +836,8 @@ def lex_range_factory(next_state: StateFn) -> StateFn:
         l.expression.append(
             RangeToken(
                 type_=TokenType.RANGE,
-                start=range_start_token,
-                stop=range_stop_token,
+                range_start=range_start_token,
+                range_stop=range_stop_token,
                 index=lparen.index,
                 source=l.source,
             )

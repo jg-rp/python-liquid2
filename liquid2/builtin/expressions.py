@@ -323,6 +323,9 @@ class Path(Expression):
     def __hash__(self) -> int:
         return hash(str(self))
 
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, Path) and self.path == other.path
+
     def __sizeof__(self) -> int:
         return super().__sizeof__() + sys.getsizeof(self.path)
 
@@ -445,7 +448,7 @@ def parse_primitive(token: TokenT) -> Expression:  # noqa: PLR0911
 
     if is_range_token(token):
         return RangeLiteral(
-            token, parse_primitive(token.start), parse_primitive(token.stop)
+            token, parse_primitive(token.range_start), parse_primitive(token.range_stop)
         )
 
     raise LiquidSyntaxError(
@@ -835,7 +838,7 @@ def parse_boolean_primitive(  # noqa: PLR0912
         left = Path(token, token.path)
     elif is_range_token(token):
         left = RangeLiteral(
-            token, parse_primitive(token.start), parse_primitive(token.stop)
+            token, parse_primitive(token.range_start), parse_primitive(token.range_stop)
         )
     elif is_token_type(token, TokenType.NOT_WORD):
         left = LogicalNotExpression.parse(stream)

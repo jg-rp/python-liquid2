@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import re
+from abc import ABC
+from abc import abstractmethod
 from dataclasses import dataclass
 from dataclasses import field
 from enum import Enum
@@ -12,75 +14,28 @@ from typing import TypeGuard
 from typing import Union
 
 
-class WhitespaceControl(Enum):
-    PLUS = auto()
-    MINUS = auto()
-    TILDE = auto()
-    DEFAULT = auto()
-
-    def __str__(self) -> str:
-        if self == WhitespaceControl.PLUS:
-            return "+"
-        if self == WhitespaceControl.MINUS:
-            return "-"
-        if self == WhitespaceControl.TILDE:
-            return "~"
-        return ""
-
-
-class TokenType(Enum):
-    EOI = auto()
-    ERROR = auto()
-
-    COMMENT = auto()
-    CONTENT = auto()
-    LINES = auto()
-    OUTPUT = auto()
-    RAW = auto()
-    TAG = auto()
-
-    PATH = auto()
-    RANGE = auto()
-
-    AND_WORD = auto()  # and
-    AS = auto()
-    ASSIGN = auto()  # =
-    COLON = auto()
-    COMMA = auto()
-    CONTAINS = auto()
-    DOT = auto()
-    DOUBLE_DOT = auto()
-    DOUBLE_PIPE = auto()
-    DOUBLE_QUOTE_STRING = auto()
-    ELSE = auto()
-    EQ = auto()
-    FALSE = auto()
-    FLOAT = auto()
-    FOR = auto()
-    GE = auto()
-    GT = auto()
-    IF = auto()
-    IN = auto()
-    INT = auto()
-    LE = auto()
-    LPAREN = auto()
-    LT = auto()
-    NE = auto()
-    NOT_WORD = auto()
-    NULL = auto()
-    OR_WORD = auto()  # or
-    PIPE = auto()
-    REQUIRED = auto()
-    RPAREN = auto()
-    SINGLE_QUOTE_STRING = auto()
-    TRUE = auto()
-    WITH = auto()
-    WORD = auto()
-
-
 @dataclass(kw_only=True, slots=True)
-class TokenT:
+class TokenT(ABC):
     type_: TokenType
+
+    @property
+    @abstractmethod
+    def stop(self) -> int:
+        """The end position of this token."""
+
+    @property
+    @abstractmethod
+    def start(self) -> int:
+        """The start position of this token."""
+
+
+Markup: TypeAlias = Union[
+    "RawToken",
+    "CommentToken",
+    "OutputToken",
+    "TagToken",
+    "LinesToken",
+]
 
 
 @dataclass(kw_only=True, slots=True)
@@ -200,6 +155,16 @@ class Token(TokenT):
     index: int
     source: str = field(repr=False)
 
+    @property
+    def start(self) -> int:
+        """Return the start position of this token."""
+        return self.index
+
+    @property
+    def stop(self) -> int:
+        """Return the start position of this token."""
+        return self.index + len(self.value)
+
 
 PathT: TypeAlias = list[Union[int, str, "PathToken"]]
 
@@ -231,10 +196,20 @@ class PathToken(TokenT):
 
 @dataclass(kw_only=True, slots=True)
 class RangeToken(TokenT):
-    start: TokenT
-    stop: TokenT
+    range_start: TokenT
+    range_stop: TokenT
     index: int
     source: str = field(repr=False)
+
+    @property
+    def start(self) -> int:
+        """Return the start position of this token."""
+        return self.index
+
+    @property
+    def stop(self) -> int:
+        """Return the start position of this token."""
+        return -1  # XXX:
 
 
 @dataclass(kw_only=True, slots=True)
@@ -246,6 +221,16 @@ class ErrorToken(TokenT):
 
     def __str__(self) -> str:
         return self.message
+
+    @property
+    def start(self) -> int:
+        """Return the start position of this token."""
+        return self.index
+
+    @property
+    def stop(self) -> int:
+        """Return the start position of this token."""
+        return self.index + len(self.value)
 
 
 def is_content_token(token: TokenT) -> TypeGuard[ContentToken]:
@@ -291,3 +276,69 @@ def is_range_token(token: TokenT) -> TypeGuard[RangeToken]:
 def is_token_type(token: TokenT, t: TokenType) -> TypeGuard[Token]:
     """A _Token_ type guard."""
     return token.type_ == t
+
+
+class WhitespaceControl(Enum):
+    PLUS = auto()
+    MINUS = auto()
+    TILDE = auto()
+    DEFAULT = auto()
+
+    def __str__(self) -> str:
+        if self == WhitespaceControl.PLUS:
+            return "+"
+        if self == WhitespaceControl.MINUS:
+            return "-"
+        if self == WhitespaceControl.TILDE:
+            return "~"
+        return ""
+
+
+class TokenType(Enum):
+    EOI = auto()
+    ERROR = auto()
+
+    COMMENT = auto()
+    CONTENT = auto()
+    LINES = auto()
+    OUTPUT = auto()
+    RAW = auto()
+    TAG = auto()
+
+    PATH = auto()
+    RANGE = auto()
+
+    AND_WORD = auto()  # and
+    AS = auto()
+    ASSIGN = auto()  # =
+    COLON = auto()
+    COMMA = auto()
+    CONTAINS = auto()
+    DOT = auto()
+    DOUBLE_DOT = auto()
+    DOUBLE_PIPE = auto()
+    DOUBLE_QUOTE_STRING = auto()
+    ELSE = auto()
+    EQ = auto()
+    FALSE = auto()
+    FLOAT = auto()
+    FOR = auto()
+    GE = auto()
+    GT = auto()
+    IF = auto()
+    IN = auto()
+    INT = auto()
+    LE = auto()
+    LPAREN = auto()
+    LT = auto()
+    NE = auto()
+    NOT_WORD = auto()
+    NULL = auto()
+    OR_WORD = auto()  # or
+    PIPE = auto()
+    REQUIRED = auto()
+    RPAREN = auto()
+    SINGLE_QUOTE_STRING = auto()
+    TRUE = auto()
+    WITH = auto()
+    WORD = auto()

@@ -30,6 +30,7 @@ from .unescape import unescape
 from .environment import Environment
 from .lexer import tokenize
 from .template import Template
+from .builtin import DictLoader
 
 # TODO: expose undefined
 # TODO: expose some loaders
@@ -39,6 +40,7 @@ __all__ = (
     "CommentToken",
     "ConditionalBlockNode",
     "ContentToken",
+    "DictLoader",
     "Environment",
     "is_comment_token",
     "is_content_token",
