@@ -66,7 +66,7 @@ class CaptureTag(Tag):
 
     def parse(self, stream: TokenStream) -> Node:
         """Parse tokens from _stream_ into an AST node."""
-        token = next(stream)
+        token = stream.next()
         assert isinstance(token, TagToken)
 
         expr_stream = TokenStream(token.expression)

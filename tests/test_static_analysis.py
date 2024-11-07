@@ -764,11 +764,11 @@ def test_variable_parts(env: Environment) -> None:
     )
 
     analysis = env.from_string(source).analyze()
-    queries = list(analysis.variables.keys())
-    assert len(queries) == 3  # noqa: PLR2004
-    assert queries[0].as_tuple() == ("a", "b.c")
-    assert queries[1].as_tuple() == ("d", ("e", "f"))
-    assert queries[2].as_tuple() == ("e", "f")
+    paths = list(analysis.variables.keys())
+    assert len(paths) == 3  # noqa: PLR2004
+    assert paths[0].segments() == ("a", "b.c")
+    assert paths[1].segments() == ("d", ("e", "f"))
+    assert paths[2].segments() == ("e", "f")
 
 
 def test_analyze_inheritance_chain() -> None:

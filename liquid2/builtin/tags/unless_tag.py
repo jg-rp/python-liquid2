@@ -109,7 +109,7 @@ class UnlessTag(Tag):
 
     def parse(self, stream: TokenStream) -> Node:
         """Parse tokens from _stream_ into an AST node."""
-        token = next(stream)
+        token = stream.next()
         assert isinstance(token, TagToken)
 
         parse_block = self.env.parser.parse_block
@@ -128,7 +128,7 @@ class UnlessTag(Tag):
         alternative: BlockNode | None = None
 
         while stream.is_tag("elsif"):
-            alternative_token = next(stream)
+            alternative_token = stream.next()
             assert isinstance(alternative_token, TagToken)
 
             alternative_expression = parse_expression(
@@ -149,7 +149,7 @@ class UnlessTag(Tag):
             )
 
         if stream.is_tag("else"):
-            next(stream)
+            stream.next()
             alternative_token = stream.current()
             assert alternative_token is not None
             alternative = BlockNode(

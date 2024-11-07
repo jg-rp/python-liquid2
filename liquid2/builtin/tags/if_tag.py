@@ -125,7 +125,7 @@ class IfTag(Tag):
         alternative: BlockNode | None = None
 
         while stream.is_tag("elsif"):
-            alternative_token = next(stream)
+            alternative_token = stream.next()
             assert isinstance(alternative_token, TagToken)
 
             alternative_expression = parse_expression(
@@ -144,7 +144,7 @@ class IfTag(Tag):
             )
 
         if stream.is_tag("else"):
-            next(stream)
+            stream.next()
             alternative_token = stream.current()
             assert alternative_token is not None
             alternative = BlockNode(

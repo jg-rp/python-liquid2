@@ -13,7 +13,9 @@ from typing import Generic
 from typing import Iterator
 from typing import Mapping
 from typing import Sequence
+from typing import TypeAlias
 from typing import TypeVar
+from typing import Union
 from typing import cast
 
 from markupsafe import Markup
@@ -293,6 +295,7 @@ class RangeLiteral(Expression):
 
 
 RE_PROPERTY = re.compile(r"[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*")
+PathSegments: TypeAlias = tuple[Union[str, int, "PathSegments"], ...]
 
 
 class Path(Expression):
@@ -339,6 +342,20 @@ class Path(Expression):
 
     def tail(self) -> int | str | Path:
         return self.path[-1]
+
+    def segments(self) -> PathSegments:
+        """Return this path's segments as a tuple of strings and ints.
+
+        Segments can also be nested tuples of strings, ints and tuples if the path
+        contains nested paths.
+        """
+        segments: list[str | int | PathSegments] = []
+        for segment in self.path:
+            if isinstance(segment, Path):
+                segments.append(segment.segments())
+            else:
+                segments.append(segment)
+        return tuple(segments)
 
 
 Primitive = Literal[Any] | RangeLiteral | Path | Null
@@ -513,14 +530,14 @@ class TernaryFilteredExpression(Expression):
     ) -> TernaryFilteredExpression:
         """Return a new TernaryFilteredExpression parsed from tokens in _stream_."""
         stream.expect(TokenType.IF)
-        next(stream)  # move past `if`
+        stream.next()  # move past `if`
         condition = BooleanExpression.parse(stream)
         alternative: Expression | None = None
         filters: list[Filter] | None = None
         tail_filters: list[Filter] | None = None
 
         if is_token_type(stream.current(), TokenType.ELSE):
-            next(stream)  # move past `else`
+            stream.next()  # move past `else`
             alternative = parse_primitive(stream.next())
 
             if stream.current().type_ == TokenType.PIPE:
