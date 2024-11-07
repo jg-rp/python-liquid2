@@ -43,7 +43,7 @@ class Parser:
         nodes: list[Node] = []
         stream = TokenStream(tokens)
 
-        default_trim = self.env.trim
+        default_trim = self.env.default_trim
         left_trim = stream.trim_carry
         stream.trim_carry = default_trim
 
@@ -95,7 +95,7 @@ class Parser:
         raw = tags["__RAW"]
         lines = tags["__LINES"]
 
-        default_trim = self.env.trim
+        default_trim = self.env.default_trim
         left_trim = stream.trim_carry
         stream.trim_carry = default_trim
 

@@ -39,9 +39,19 @@ class RawTag(Tag):
 
     block = False
     node_class = RawNode
+    inner_whitespace_control: bool = True
 
     def parse(self, stream: TokenStream) -> Node:
         """Parse tokens from _stream_ into an AST node."""
         token = stream.current()
         assert isinstance(token, RawToken)
-        return self.node_class(token, token.text)
+        return self.node_class(
+            token,
+            self.env.trim(
+                token.text,
+                token.wc[1],
+                token.wc[2],
+            )
+            if self.inner_whitespace_control
+            else token.text,
+        )

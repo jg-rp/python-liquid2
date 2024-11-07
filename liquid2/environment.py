@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 class Environment:
     """Template parsing and rendering configuration."""
 
-    trim = WhitespaceControl.PLUS
+    default_trim = WhitespaceControl.PLUS
 
     # Maximum number of times a context can be extended or wrapped before raising
     # a ContextDepthError.
@@ -153,3 +153,35 @@ class Environment:
             # Template globals take priority over environment globals.
             return {**self.global_context_data, **globals}
         return dict(self.global_context_data)
+
+    def trim(
+        self,
+        text: str,
+        left_trim: WhitespaceControl,
+        right_trim: WhitespaceControl,
+    ) -> str:
+        """Return _text_ after applying whitespace control."""
+        if left_trim == WhitespaceControl.DEFAULT:
+            left_trim = self.default_trim
+
+        if right_trim == WhitespaceControl.DEFAULT:
+            right_trim = self.default_trim
+
+        if left_trim == right_trim:
+            if left_trim == WhitespaceControl.MINUS:
+                return text.strip()
+            if left_trim == WhitespaceControl.TILDE:
+                return text.strip("\r\n")
+            return text
+
+        if left_trim == WhitespaceControl.MINUS:
+            text = text.lstrip()
+        elif left_trim == WhitespaceControl.TILDE:
+            text = text.lstrip("\r\n")
+
+        if right_trim == WhitespaceControl.MINUS:
+            text = text.rstrip()
+        elif right_trim == WhitespaceControl.TILDE:
+            text = text.rstrip("\r\n")
+
+        return text
