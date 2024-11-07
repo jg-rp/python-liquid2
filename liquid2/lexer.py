@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-from functools import partial
 from itertools import chain
 from typing import TYPE_CHECKING
 from typing import Callable
@@ -151,7 +150,6 @@ def _compile(*rules: dict[str, str], flags: int = 0) -> Pattern[str]:
 
 
 MARKUP_RULES = _compile(MARKUP, flags=re.DOTALL)
-
 TOKEN_RULES = _compile(NUMBERS, SYMBOLS, WORD)
 
 
@@ -170,9 +168,6 @@ class Lexer:
         "tag_name",
         "expression",
         "wc",
-        "accept_output_token",
-        "accept_tag_token",
-        "accept_lines_token",
         "path_stack",
     )
 
@@ -187,7 +182,7 @@ class Lexer:
         """Markup resulting from scanning a sequence of line statements."""
 
         self.path_stack: list[PathToken] = []
-        """Current path, possibly with nested paths."""
+        """Current path/query/variable, possibly with nested paths."""
 
         self.start = 0
         """Pointer to the start of the current token."""
@@ -212,24 +207,6 @@ class Lexer:
 
         self.source = source
         """The template source text being scanned."""
-
-        self.accept_output_token = partial(
-            self.accept_token,
-            next_state=lex_inside_output_statement,
-            range_state=lex_range_inside_output_statement,
-        )
-
-        self.accept_tag_token = partial(
-            self.accept_token,
-            next_state=lex_inside_tag,
-            range_state=lex_range_inside_tag_expression,
-        )
-
-        self.accept_lines_token = partial(
-            self.accept_token,
-            next_state=lex_inside_line_statement,
-            range_state=lex_range_inside_line_statement,
-        )
 
     def run(self) -> None:
         """Populate _self.tokens_."""
@@ -276,40 +253,133 @@ class Lexer:
         except IndexError:
             return ""
 
-    def accept_match(self, pattern: Pattern[str]) -> bool:
-        """Match _pattern_ starting from the pointer."""
+    def accept(self, pattern: Pattern[str]) -> bool:
+        """Match _pattern_ starting from the current position."""
         match = pattern.match(self.source, self.pos)
         if match:
             self.pos += len(match.group())
             return True
         return False
 
-    def accept_end_output_statement(self) -> bool:
-        """Accepts the output end sequence, possibly preceded by whitespace control."""
-        if match := RE_OUTPUT_END.match(self.source, self.pos):
-            wc_group = match.group(1)
-            if wc_group:
-                self.wc.append(WC_MAP[wc_group])
+    def accept_path(self, *, carry: bool = False) -> None:
+        self.path_stack.append(
+            PathToken(
+                type_=TokenType.PATH,
+                path=[],
+                start=self.start,
+                stop=-1,
+                source=self.source,
+            )
+        )
+
+        if carry:
+            self.path_stack[-1].path.append(self.source[self.start : self.pos])
+            self.start = self.pos
+
+        while True:
+            c = self.next()
+
+            if c == "":
+                self.error("unexpected end of path")
+                return
+
+            if c == ".":
+                self.ignore()
+                self.ignore_whitespace()
+                if match := RE_PROPERTY.match(self.source, self.pos):
+                    self.path_stack[-1].path.append(match.group())
+                    self.pos += len(match.group())
+                    self.start = self.pos
+                    self.path_stack[-1].stop = self.pos
+
+            elif c == "]":  # TODO: handle empty brackets
+                if len(self.path_stack) == 1:
+                    self.ignore()
+                    self.path_stack[0].stop = self.start
+                else:
+                    path = self.path_stack.pop()
+                    path.stop = self.start
+                    self.ignore()
+                    self.path_stack[-1].path.append(
+                        path
+                    )  # TODO: handle unbalanced brackets
+                    self.path_stack[-1].stop = self.pos
+
+            elif c == "[":
+                self.ignore()
+                self.ignore_whitespace()
+
+                if self.peek() in ("'", '"'):
+                    quote = self.next()
+                    self.ignore()
+                    self.accept_string(quote=quote)
+                    self.path_stack[-1].path.append(self.source[self.start : self.pos])
+                    self.next()
+                    self.ignore()  # skip closing quote
+
+                elif match := RE_INDEX.match(self.source, self.pos):
+                    self.path_stack[-1].path.append(int(match.group()))
+                    self.pos += len(match.group())
+                    self.start = self.pos
+
+                elif match := RE_PROPERTY.match(self.source, self.pos):
+                    # A nested path
+                    self.path_stack.append(
+                        PathToken(
+                            type_=TokenType.PATH,
+                            path=[match.group()],
+                            start=self.start,
+                            stop=-1,
+                            source=self.source,
+                        )
+                    )
+                    self.pos += len(match.group())
+                    self.start = self.pos
             else:
-                self.wc.append(WhitespaceControl.DEFAULT)
+                self.backup()
+                return
 
-            self.pos += len(match.group())
-            return True
-        return False
+    def accept_string(self, *, quote: str) -> None:
+        # Assumes the opening quote has been consumed.
+        if self.peek() == quote:
+            # an empty string
+            # leave the closing quote for the caller
+            return
 
-    def accept_end_tag(self) -> bool:
-        """Accepts the tag end sequence, possibly preceded by whitespace control."""
-        if match := RE_TAG_END.match(self.source, self.pos):
-            wc_group = match.group(1)
-            if wc_group:
-                self.pos += 1
-                self.wc.append(WC_MAP[wc_group])
-            else:
-                self.wc.append(WhitespaceControl.DEFAULT)
+        while True:
+            c = self.next()
 
-            self.pos += 2
-            return True
-        return False
+            if c == "\\":
+                peeked = self.peek()
+                if peeked in ESCAPES or peeked == quote:
+                    self.next()
+                else:
+                    raise LiquidSyntaxError(
+                        "invalid escape sequence",
+                        token=ErrorToken(
+                            type_=TokenType.ERROR,
+                            index=self.pos,
+                            value=peeked,
+                            source=self.source,
+                            message="invalid escape sequence",
+                        ),
+                    )
+
+            if c == quote:
+                self.backup()
+                return
+
+            if not c:
+                raise LiquidSyntaxError(
+                    "unclosed string literal",
+                    token=ErrorToken(
+                        type_=TokenType.ERROR,
+                        index=self.start,
+                        value=self.source[self.start],
+                        source=self.source,
+                        message="unclosed string literal",
+                    ),
+                )
 
     def ignore_whitespace(self) -> bool:
         """Move the pointer past any whitespace."""
@@ -320,14 +390,21 @@ class Lexer:
             )
             raise Exception(msg)
 
-        if self.accept_match(RE_WHITESPACE):
+        if self.accept(RE_WHITESPACE):
             self.ignore()
             return True
         return False
 
     def ignore_line_space(self) -> bool:
         """Move the pointer past any allowed whitespace inside line statements."""
-        if self.accept_match(RE_LINE_SPACE):
+        if self.pos != self.start:
+            msg = (
+                "must emit or ignore before consuming whitespace "
+                f"({self.source[self.start: self.pos]!r}:{self.pos})"
+            )
+            raise Exception(msg)
+
+        if self.accept(RE_LINE_SPACE):
             self.ignore()
             return True
         return False
@@ -364,7 +441,7 @@ class Lexer:
 
         if kind == "SINGLE_QUOTE_STRING":
             self.ignore()
-            accept_string(self, quote="'")
+            self.accept_string(quote="'")
             self.expression.append(
                 Token(
                     type_=TokenType.SINGLE_QUOTE_STRING,
@@ -379,7 +456,7 @@ class Lexer:
 
         elif kind == "DOUBLE_QUOTE_STRING":
             self.ignore()
-            accept_string(self, quote='"')
+            self.accept_string(quote='"')
             self.expression.append(
                 Token(
                     type_=TokenType.DOUBLE_QUOTE_STRING,
@@ -394,12 +471,12 @@ class Lexer:
 
         elif kind == "LBRACKET":
             self.backup()
-            accept_path(self)
+            self.accept_path()
             self.expression.append(self.path_stack.pop())
 
         elif kind == "WORD":
             if self.peek() in (".", "["):
-                accept_path(self, carry=True)
+                self.accept_path(carry=True)
                 self.expression.append(self.path_stack.pop())
 
             elif token_type := KEYWORD_MAP.get(value):
@@ -451,9 +528,6 @@ class Lexer:
 
 def lex_markup(l: Lexer) -> StateFn | None:
     while True:
-        assert not l.expression  # current expression should be empty
-        assert not l.tag_name  # current tag name should be empty
-
         match = MARKUP_RULES.match(l.source, pos=l.pos)
 
         if not match:
@@ -533,10 +607,16 @@ def lex_inside_output_statement(
 ) -> StateFn | None:  # noqa: PLR0911, PLR0912, PLR0915
     while True:
         l.ignore_whitespace()
-        next_state = l.accept_output_token()
+        next_state = l.accept_token(
+            next_state=lex_inside_output_statement,
+            range_state=lex_range_inside_output_statement,
+        )
 
         if next_state is False:
-            if l.accept_end_output_statement():
+            if match := RE_OUTPUT_END.match(l.source, l.pos):
+                l.wc.append(WC_MAP[match.group(1)])
+                l.pos += len(match.group())
+
                 l.markup.append(
                     OutputToken(
                         type_=TokenType.OUTPUT,
@@ -546,6 +626,7 @@ def lex_inside_output_statement(
                         expression=l.expression,
                     )
                 )
+
                 l.wc.clear()
                 l.expression = []
                 l.ignore()
@@ -560,10 +641,14 @@ def lex_inside_output_statement(
 def lex_inside_tag(l: Lexer) -> StateFn | None:
     while True:
         l.ignore_whitespace()
-        next_state = l.accept_tag_token()
+        next_state = l.accept_token(
+            next_state=lex_inside_tag, range_state=lex_range_inside_tag_expression
+        )
 
         if next_state is False:
-            if l.accept_end_tag():
+            if match := RE_TAG_END.match(l.source, l.pos):
+                l.wc.append(WC_MAP[match.group(1)])
+                l.pos += len(match.group())
                 l.markup.append(
                     TagToken(
                         type_=TokenType.TAG,
@@ -589,7 +674,9 @@ def lex_inside_tag(l: Lexer) -> StateFn | None:
 def lex_inside_liquid_tag(l: Lexer) -> StateFn | None:
     l.ignore_whitespace()
 
-    if l.accept_end_tag():
+    if match := RE_TAG_END.match(l.source, l.pos):
+        l.wc.append(WC_MAP[match.group(1)])
+        l.pos += len(match.group())
         l.markup.append(
             LinesToken(
                 type_=TokenType.LINES,
@@ -608,13 +695,13 @@ def lex_inside_liquid_tag(l: Lexer) -> StateFn | None:
         l.ignore()
         return lex_markup
 
-    if l.accept_match(RE_TAG_NAME):
+    if l.accept(RE_TAG_NAME):
         l.tag_name = l.source[l.start : l.pos]
         l.line_start = l.start
         l.ignore()
         return lex_inside_line_statement
 
-    if l.accept_match(RE_LINE_COMMENT):
+    if l.accept(RE_LINE_COMMENT):
         l.line_statements.append(
             CommentToken(
                 type_=TokenType.COMMENT,
@@ -637,7 +724,7 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:
     while True:
         l.ignore_line_space()
 
-        if l.accept_match(RE_LINE_TERM):
+        if l.accept(RE_LINE_TERM):
             l.line_statements.append(
                 TagToken(
                     type_=TokenType.TAG,
@@ -653,10 +740,15 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:
             l.expression = []
             return lex_inside_liquid_tag
 
-        next_state = l.accept_lines_token()
+        next_state = l.accept_token(
+            next_state=lex_inside_line_statement,
+            range_state=lex_range_inside_line_statement,
+        )
 
         if next_state is False:
-            if l.accept_end_tag():
+            if match := RE_TAG_END.match(l.source, l.pos):
+                l.wc.append(WC_MAP[match.group(1)])
+                l.pos += len(match.group())
                 l.ignore()
                 l.line_statements.append(
                     TagToken(
@@ -693,128 +785,7 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:
         return next_state
 
 
-# TODO: move to method of lexer
-def accept_path(l: Lexer, *, carry: bool = False) -> None:
-    l.path_stack.append(
-        PathToken(
-            type_=TokenType.PATH,
-            path=[],
-            start=l.start,
-            stop=-1,
-            source=l.source,
-        )
-    )
-
-    if carry:
-        l.path_stack[-1].path.append(l.source[l.start : l.pos])
-        l.start = l.pos
-
-    while True:
-        c = l.next()
-
-        if c == "":
-            l.error("unexpected end of path")
-            return
-
-        if c == ".":
-            l.ignore()
-            l.ignore_whitespace()
-            if match := RE_PROPERTY.match(l.source, l.pos):
-                l.path_stack[-1].path.append(match.group())
-                l.pos += len(match.group())
-                l.start = l.pos
-                l.path_stack[-1].stop = l.pos
-
-        elif c == "]":  # TODO: handle empty brackets
-            if len(l.path_stack) == 1:
-                l.ignore()
-                l.path_stack[0].stop = l.start
-            else:
-                path = l.path_stack.pop()
-                path.stop = l.start
-                l.ignore()
-                l.path_stack[-1].path.append(path)  # TODO: handle unbalanced brackets
-                l.path_stack[-1].stop = l.pos
-
-        elif c == "[":
-            l.ignore()
-            l.ignore_whitespace()
-
-            if l.peek() in ("'", '"'):
-                quote = l.next()
-                l.ignore()
-                accept_string(l, quote=quote)
-                l.path_stack[-1].path.append(l.source[l.start : l.pos])
-                l.next()
-                l.ignore()  # skip closing quote
-
-            elif match := RE_INDEX.match(l.source, l.pos):
-                l.path_stack[-1].path.append(int(match.group()))
-                l.pos += len(match.group())
-                l.start = l.pos
-
-            elif match := RE_PROPERTY.match(l.source, l.pos):
-                # A nested path
-                l.path_stack.append(
-                    PathToken(
-                        type_=TokenType.PATH,
-                        path=[match.group()],
-                        start=l.start,
-                        stop=-1,  # TODO: fix span
-                        source=l.source,
-                    )
-                )
-                l.pos += len(match.group())
-                l.start = l.pos
-        else:
-            l.backup()
-            return
-
-
-# TODO: move to method of Lexer
-def accept_string(l: Lexer, *, quote: str) -> None:
-    # Assumes the opening quote has been consumed.
-    if l.peek() == quote:
-        # an empty string
-        # leave the closing quote for the caller
-        return
-
-    while True:
-        c = l.next()
-
-        if c == "\\":
-            peeked = l.peek()
-            if peeked in ESCAPES or peeked == quote:
-                l.next()
-            else:
-                raise LiquidSyntaxError(
-                    "invalid escape sequence",
-                    token=ErrorToken(
-                        type_=TokenType.ERROR,
-                        index=l.pos,
-                        value=peeked,
-                        source=l.source,
-                        message="invalid escape sequence",
-                    ),
-                )
-
-        if c == quote:
-            l.backup()
-            return
-
-        if not c:
-            raise LiquidSyntaxError(
-                "unclosed string literal",
-                token=ErrorToken(
-                    type_=TokenType.ERROR,
-                    index=l.start,
-                    value=l.source[l.start],
-                    source=l.source,
-                    message="unclosed string literal",
-                ),
-            )
-
-
+# TODO: refactor into Lexer.accept_range()
 def lex_range_factory(next_state: StateFn) -> StateFn:
     def _lex_range(l: Lexer) -> StateFn | None:
         # TODO: handle IndexError from pop
