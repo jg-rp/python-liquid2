@@ -25,7 +25,7 @@ from .expressions import LogicalOrExpression
 from .expressions import LoopExpression
 from .expressions import Null
 from .expressions import PositionalArgument
-from .expressions import Query
+from .expressions import Path
 from .expressions import RangeLiteral
 from .expressions import StringLiteral
 from .expressions import SymbolArgument
@@ -164,7 +164,7 @@ __all__ = (
     "Null",
     "Output",
     "PositionalArgument",
-    "Query",
+    "Path",
     "RangeLiteral",
     "RawTag",
     "RenderTag",

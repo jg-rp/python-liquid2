@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import sys
 from decimal import Decimal
 from itertools import islice
@@ -12,29 +13,31 @@ from typing import Generic
 from typing import Iterator
 from typing import Mapping
 from typing import Sequence
+from typing import TypeAlias
 from typing import TypeVar
+from typing import Union
 from typing import cast
 
 from markupsafe import Markup
 
+from liquid2 import PathToken
 from liquid2 import RenderContext
 from liquid2 import Token
 from liquid2 import TokenType
-from liquid2 import is_query_token
+from liquid2 import is_path_token
 from liquid2 import is_range_token
 from liquid2 import is_token_type
-from liquid2 import unescape
 from liquid2.exceptions import LiquidSyntaxError
 from liquid2.exceptions import LiquidTypeError
 from liquid2.expression import Expression
 from liquid2.limits import to_int
-from liquid2.query import word_to_query
+from liquid2.unescape import unescape
 
 if TYPE_CHECKING:
+    from liquid2 import PathT
     from liquid2 import RenderContext
     from liquid2 import TokenStream
     from liquid2 import TokenT
-    from liquid2.query import JSONPathQuery
 
 
 class Null(Expression):
@@ -291,31 +294,74 @@ class RangeLiteral(Expression):
         return [self.start, self.stop]
 
 
-class Query(Expression):
+RE_PROPERTY = re.compile(r"[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*")
+PathSegments: TypeAlias = tuple[Union[str, int, "PathSegments"], ...]
+
+
+class Path(Expression):
     __slots__ = ("path",)
 
-    def __init__(self, token: TokenT, path: JSONPathQuery) -> None:
+    def __init__(self, token: TokenT, path: PathT) -> None:
         super().__init__(token=token)
-        self.path = path
+        self.path = [Path(p, p.path) if isinstance(p, PathToken) else p for p in path]
 
     def __str__(self) -> str:
-        return str(self.path)
+        it = iter(self.path)
+        buf = [str(next(it))]
+        for segment in it:
+            if isinstance(segment, Path):
+                buf.append(f"[{segment}]")
+            elif isinstance(segment, str):
+                if RE_PROPERTY.fullmatch(segment):
+                    buf.append(f".{segment}")
+                else:
+                    buf.append(f"[{segment!r}]")
+            else:
+                buf.append(f"[{segment}]")
+        return "".join(buf)
 
     def __hash__(self) -> int:
-        return hash(self.path)
+        return hash(str(self))
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, Path) and self.path == other.path
 
     def __sizeof__(self) -> int:
         return super().__sizeof__() + sys.getsizeof(self.path)
 
     def evaluate(self, context: RenderContext) -> object:
-        assert self.token
-        return context.get(self.path, token=self.token)
+        return context.get(
+            (p.evaluate(context) if isinstance(p, Path) else p for p in self.path),
+            token=self.token,
+        )
+
+    # TODO: async
 
     def children(self) -> list[Expression]:
-        return [Query(token=q.token, path=q) for q in self.path.children()]
+        return [p for p in self.path if isinstance(p, Path)]
+
+    def head(self) -> int | str | Path:
+        return self.path[0]
+
+    def tail(self) -> int | str | Path:
+        return self.path[-1]
+
+    def segments(self) -> PathSegments:
+        """Return this path's segments as a tuple of strings and ints.
+
+        Segments can also be nested tuples of strings, ints and tuples if the path
+        contains nested paths.
+        """
+        segments: list[str | int | PathSegments] = []
+        for segment in self.path:
+            if isinstance(segment, Path):
+                segments.append(segment.segments())
+            else:
+                segments.append(segment)
+        return tuple(segments)
 
 
-Primitive = Literal[Any] | RangeLiteral | Query | Null
+Primitive = Literal[Any] | RangeLiteral | Path | Null
 
 
 class FilteredExpression(Expression):
@@ -381,7 +427,7 @@ def parse_primitive(token: TokenT) -> Expression:  # noqa: PLR0911
             return Empty(token=token)
         if token.value == "blank":
             return Blank(token=token)
-        return Query(token, word_to_query(token))
+        return Path(token, [token.value])
 
     if is_token_type(token, TokenType.INT):
         return IntegerLiteral(token, to_int(float(token.value)))
@@ -397,12 +443,12 @@ def parse_primitive(token: TokenT) -> Expression:  # noqa: PLR0911
             token, unescape(token.value.replace("\\'", "'"), token=token)
         )
 
-    if is_query_token(token):
-        return Query(token, token.path)
+    if is_path_token(token):
+        return Path(token, token.path)
 
     if is_range_token(token):
         return RangeLiteral(
-            token, parse_primitive(token.start), parse_primitive(token.stop)
+            token, parse_primitive(token.range_start), parse_primitive(token.range_stop)
         )
 
     raise LiquidSyntaxError(
@@ -487,14 +533,14 @@ class TernaryFilteredExpression(Expression):
     ) -> TernaryFilteredExpression:
         """Return a new TernaryFilteredExpression parsed from tokens in _stream_."""
         stream.expect(TokenType.IF)
-        next(stream)  # move past `if`
+        stream.next()  # move past `if`
         condition = BooleanExpression.parse(stream)
         alternative: Expression | None = None
         filters: list[Filter] | None = None
         tail_filters: list[Filter] | None = None
 
         if is_token_type(stream.current(), TokenType.ELSE):
-            next(stream)  # move past `else`
+            stream.next()  # move past `else`
             alternative = parse_primitive(stream.next())
 
             if stream.current().type_ == TokenType.PIPE:
@@ -622,16 +668,11 @@ class Filter:
                         else:
                             # A positional query that is a single word
                             filter_arguments.append(
-                                PositionalArgument(
-                                    Query(
-                                        token,
-                                        word_to_query(token),
-                                    )
-                                )
+                                PositionalArgument(Path(token, [token.value]))
                             )
-                    elif is_query_token(token):
+                    elif is_path_token(token):
                         filter_arguments.append(
-                            PositionalArgument(Query(token, token.path))
+                            PositionalArgument(Path(token, token.path))
                         )
                     elif token.type_ in (
                         TokenType.INT,
@@ -782,7 +823,7 @@ def parse_boolean_primitive(  # noqa: PLR0912
         elif token.value == "blank":
             left = Blank(token=token)
         else:
-            left = Query(token, word_to_query(token))
+            left = Path(token, [token.value])
     elif is_token_type(token, TokenType.INT):
         left = IntegerLiteral(token, to_int(float(token.value)))
     elif is_token_type(token, TokenType.FLOAT):
@@ -793,11 +834,11 @@ def parse_boolean_primitive(  # noqa: PLR0912
         left = StringLiteral(
             token, unescape(token.value.replace("\\'", "'"), token=token)
         )
-    elif is_query_token(token):
-        left = Query(token, token.path)
+    elif is_path_token(token):
+        left = Path(token, token.path)
     elif is_range_token(token):
         left = RangeLiteral(
-            token, parse_primitive(token.start), parse_primitive(token.stop)
+            token, parse_primitive(token.range_start), parse_primitive(token.range_stop)
         )
     elif is_token_type(token, TokenType.NOT_WORD):
         left = LogicalNotExpression.parse(stream)
@@ -1421,13 +1462,6 @@ def parse_identifier(token: TokenT) -> Identifier:
     if is_token_type(token, TokenType.WORD):
         return Identifier(token.value, token=token)
 
-    # TODO: this should be unreachable
-    # if is_query_token(token):
-    #     word = token.path.as_word()
-    #     if word is None:
-    #         raise LiquidSyntaxError("expected an identifier, found a path", token=token)
-    #     return Identifier(word, token=token)
-
     raise LiquidSyntaxError(
         f"expected an identifier, found {token.type_.name}",
         token=token,
@@ -1443,13 +1477,6 @@ def parse_string_or_identifier(token: TokenT) -> Identifier:
     ):
         # TODO: unescape
         return Identifier(token.value, token=token)
-
-    # TODO: this should be unreachable
-    # if is_query_token(token):
-    #     word = token.path.as_word()
-    #     if word is None:
-    #         raise LiquidSyntaxError("expected an identifier, found a path", token=token)
-    #     return Identifier(word, token=token)
 
     raise LiquidSyntaxError(
         f"expected an identifier, found {token.type_.name}",

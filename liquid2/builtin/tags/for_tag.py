@@ -151,7 +151,7 @@ class ForTag(Tag):
 
     def parse(self, stream: TokenStream) -> Node:
         """Parse tokens from _stream_ into an AST node."""
-        token = next(stream)
+        token = stream.next()
         assert isinstance(token, TagToken)
         expression = LoopExpression.parse(TokenStream(token.expression))
 
@@ -164,7 +164,7 @@ class ForTag(Tag):
         default: BlockNode | None = None
 
         if stream.is_tag("else"):
-            next(stream)
+            stream.next()
             default_token = stream.current()
             assert default_token is not None
             default_block = parse_block(stream, self.end_block)

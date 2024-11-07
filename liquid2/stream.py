@@ -4,9 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 from typing import Container
-from typing import Iterable
-
-from more_itertools import peekable
+from typing import Sequence
 
 from .exceptions import LiquidSyntaxError
 from .token import TagToken
@@ -19,59 +17,38 @@ from .token import is_token_type
 if TYPE_CHECKING:
     from .token import TokenT
 
-# TODO: benchmark without peelable and iterable
 
+class TokenStream:
+    """Step through a stream of tokens."""
 
-class TokenStream(peekable):  # type: ignore
-    """Step through or iterate a stream of tokens."""
-
-    def __init__(self, iterable: Iterable[TokenT]) -> None:
-        super().__init__(iterable)
+    def __init__(self, tokens: Sequence[TokenT]) -> None:
+        self.tokens = tokens
+        self.pos = 0
         self.trim_carry = WhitespaceControl.DEFAULT
         self.eoi = Token(type_=TokenType.EOI, value="", index=-1, source="")
-
-    def __str__(self) -> str:  # pragma: no cover
-        token = self.current()
-        peeked = self.peek()
-
-        try:
-            return (
-                f"current: '{token}' at {self._index(token)}, "
-                f"next: '{peeked}' at {self._index(peeked)}"
-            )
-        except StopIteration:
-            return "EOI"
-
-    def _index(self, token: TokenT) -> int:
-        if hasattr(token, "index"):
-            return token.index  # type: ignore
-        if hasattr(token, "start"):
-            return token.start  # type: ignore
-        return -1
-
-    # TODO: always EOI token, never None
 
     def current(self) -> TokenT:
         """Return the item at self[0] without advancing the iterator."""
         try:
-            return self[0]  # type: ignore
+            return self.tokens[self.pos]
         except IndexError:
             return self.eoi
 
     def next(self) -> TokenT:
         """Return the next token and advance the iterator."""
-        return next(self, self.eoi)
-
-    def peek(self) -> TokenT:  # type: ignore
-        """Return the item at self[1] without advancing the iterator."""
         try:
-            return self[1]  # type: ignore
+            token = self.tokens[self.pos]
+            self.pos += 1
+            return token
         except IndexError:
             return self.eoi
 
-    def push(self, token: TokenT) -> None:
-        """Push a token back on to the stream."""
-        self.prepend(token)
+    def peek(self) -> TokenT:
+        """Return the item at self[1] without advancing the iterator."""
+        try:
+            return self.tokens[self.pos + 1]
+        except IndexError:
+            return self.eoi
 
     def expect(self, typ: TokenType) -> None:
         """Raise a _LiquidSyntaxError_ if the current token type doesn't match _typ_."""
@@ -130,7 +107,7 @@ class TokenStream(peekable):  # type: ignore
     def is_tag(self, tag_name: str) -> bool:
         """Return _True_ if the current token is a tag named _tag_name_."""
         token = self.current()
-        if is_tag_token(token):  # TODO: try without isinstance
+        if is_tag_token(token):
             return token.name == tag_name
         return False
 

@@ -13,7 +13,7 @@ from .ast import BlockNode
 from .ast import ConditionalBlockNode
 from .builtin import FilteredExpression
 from .builtin import Identifier
-from .builtin import Query as QueryExpression
+from .builtin import Path
 from .builtin import StringLiteral
 from .builtin import TernaryFilteredExpression
 from .builtin.tags.case_tag import MultiExpressionBlockNode
@@ -25,7 +25,6 @@ from .exceptions import StopRender
 from .exceptions import TemplateInheritanceError
 from .exceptions import TemplateNotFound
 from .exceptions import TemplateTraversalError
-from .token import Token
 from .token import is_lines_token
 from .token import is_tag_token
 from .utils import ReadOnlyChainMap
@@ -35,40 +34,18 @@ if TYPE_CHECKING:
     from .ast import MetaNode
     from .ast import Node
     from .expression import Expression
-    from .query import Query
     from .template import Template
 
 RE_SPLIT_IDENT = re.compile(r"(\.|\[)")
 
 
+@dataclass(slots=True)
 class Span:
     """The location of a variable, tag or filter in a template."""
 
-    __slots__ = ("template_name", "start", "end")
-
-    def __init__(self, template_name: str, start: int, end: int) -> None:
-        self.template_name = template_name
-        self.start = start
-        self.end = end
-
-    @staticmethod
-    def from_token(template_name: str, token: TokenT) -> Span:
-        """Return a new span taking start and end positions from _token_."""
-        if isinstance(token, Token):
-            return Span(template_name, token.index, token.index + len(token.value))
-        # TODO:
-        return Span(template_name, token.start, token.stop)  # type: ignore
-
-    def __eq__(self, other: object) -> bool:
-        return (
-            isinstance(other, Span)
-            and self.template_name == other.template_name
-            and self.start == other.start
-            and self.end == other.end
-        )
-
-    def __hash__(self) -> int:
-        return hash((self.template_name, self.start, self.end))
+    template_name: str
+    start: int
+    end: int
 
     def __str__(self) -> str:
         return f"{self.template_name}[{self.start}:{self.end}]"
@@ -95,9 +72,9 @@ class TemplateAnalysis:
         tags: All tags found during static analysis.
     """
 
-    variables: dict[Query, list[Span]]
+    variables: dict[Path, list[Span]]
     local_variables: dict[Identifier, list[Span]]
-    global_variables: dict[Query, list[Span]]
+    global_variables: dict[Path, list[Span]]
     failed_visits: dict[str, list[Span]]
     unloadable_partials: dict[str, list[Span]]
     filters: dict[str, list[Span]]
@@ -148,10 +125,10 @@ class _TemplateCounter:
         )
 
         # Names that are referenced but are not in the template local scope
-        self.template_globals: DefaultDict[Query, list[Span]] = defaultdict(list)
+        self.template_globals: DefaultDict[Path, list[Span]] = defaultdict(list)
 
         # Names that are referenced by a Liquid expression.
-        self.variables: DefaultDict[Query, list[Span]] = defaultdict(list)
+        self.variables: DefaultDict[Path, list[Span]] = defaultdict(list)
 
         # Tag and filter names.
         self.filters: dict[str, list[Span]] = defaultdict(list)
@@ -267,7 +244,9 @@ class _TemplateCounter:
 
         refs = self._update_expression_refs(child.expression)
         for query, token in refs.queries:
-            self.variables[query].append(Span.from_token(self._template_name, token))
+            self.variables[query].append(
+                Span(self._template_name, token.start, token.stop)
+            )
 
         # Check refs that are not in scope or in the local namespace before
         # pushing the next block scope. This should highlight names that are
@@ -279,12 +258,12 @@ class _TemplateCounter:
                 and Identifier(_query, token=token) not in self.template_locals
             ):
                 self.template_globals[query].append(
-                    Span.from_token(self._template_name, token)
+                    Span(self._template_name, token.start, token.stop)
                 )
 
         for filter_name, token in refs.filters:
             self.filters[filter_name].append(
-                Span.from_token(self._template_name, token)
+                Span(self._template_name, token.start, token.stop)
             )
 
     def _update_template_scope(self, child: MetaNode) -> None:
@@ -293,15 +272,15 @@ class _TemplateCounter:
 
         for name in child.template_scope:
             self.template_locals[name].append(
-                Span.from_token(self._template_name, name.token)
+                Span(self._template_name, name.token.start, name.token.stop)
             )
 
     def _update_expression_refs(self, expression: Expression) -> References:
         """Return a list of references used in the given expression."""
         refs: References = References()
 
-        if isinstance(expression, QueryExpression):
-            refs.append_variable(expression.path, expression.token)
+        if isinstance(expression, Path):
+            refs.append_variable(expression, expression.token)
 
         elif isinstance(expression, FilteredExpression):
             refs.append_filters([(f.name, f.token) for f in expression.filters or []])
@@ -563,7 +542,7 @@ class _TemplateCounter:
         # literal string (or possibly an integer, but unlikely).
         if load_mode == "include" and not isinstance(child.expression, StringLiteral):
             self.unloadable_partials[str(child.expression)].append(
-                Span.from_token(self._template_name, child.token)
+                Span(self._template_name, child.token.start, child.token.stop)
             )
             return None, None
 
@@ -598,7 +577,7 @@ class _TemplateCounter:
             )
         except TemplateNotFound:
             self.unloadable_partials[name].append(
-                Span.from_token(parent_name, token=parent_node.token)
+                Span(parent_name, parent_node.token.start, parent_node.token.stop)
             )
             raise
 
@@ -618,7 +597,7 @@ class _TemplateCounter:
             )
         except TemplateNotFound:
             self.unloadable_partials[name].append(
-                Span.from_token(parent_name, token=parent_node.token)
+                Span(parent_name, parent_node.token.start, parent_node.token.stop)
             )
             raise
 
@@ -635,12 +614,16 @@ class _TemplateCounter:
         # Count `extends` and `block` tags here, as we don't get the chance later.
         if count_tags and ast_extends_node:
             self.tags[ast_extends_node.tag].append(
-                Span.from_token(template_name, token=ast_extends_node.token)
+                Span(
+                    template_name,
+                    ast_extends_node.token.start,
+                    ast_extends_node.token.stop,
+                )
             )
 
         for ast_node in ast_block_nodes:
             self.tags[ast_node.tag].append(
-                Span.from_token(template_name, token=ast_node.token)
+                Span(template_name, ast_node.token.start, ast_node.token.stop)
             )
 
         if ast_extends_node:
@@ -653,7 +636,7 @@ class _TemplateCounter:
             node, (BlockNode, ConditionalBlockNode, MultiExpressionBlockNode)
         ) and (is_tag_token(token) or is_lines_token(token)):
             self.tags[token.name].append(
-                Span.from_token(self._template_name, token=token)
+                Span(self._template_name, token.start, token.stop)
             )
 
     def _update_reference_counters(
@@ -795,18 +778,18 @@ class _InheritanceChainCounter(_TemplateCounter):
 
     def _contains_super(self, expression: Expression) -> bool:
         if (
-            isinstance(expression, QueryExpression)
-            and expression.path.head() == "block"
-            and expression.path.tail() == "super"
+            isinstance(expression, Path)
+            and expression.head() == "block"
+            and expression.tail() == "super"
         ):
             return True
 
         # XXX: TODO: TernaryFilteredExpression
 
         if isinstance(expression, FilteredExpression) and (
-            isinstance(expression.left, QueryExpression)
-            and expression.left.path.head() == "block"
-            and expression.left.path.tail() == "super"
+            isinstance(expression.left, Path)
+            and expression.left.head() == "block"
+            and expression.left.tail() == "super"
         ):
             return True
 
@@ -866,10 +849,10 @@ class References:
     """Collect references for Template.analyze and friends."""
 
     def __init__(self) -> None:
-        self.queries: list[tuple[Query, TokenT]] = []
+        self.queries: list[tuple[Path, TokenT]] = []
         self.filters: list[tuple[str, TokenT]] = []
 
-    def append_variable(self, var: Query, token: TokenT) -> None:
+    def append_variable(self, var: Path, token: TokenT) -> None:
         """Add a variable reference."""
         self.queries.append((var, token))
 
