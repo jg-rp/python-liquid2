@@ -571,7 +571,7 @@ class _TemplateCounter:
         try:
             return self._empty_context.env.get_template(
                 name,
-                global_context_data=None,
+                globals=None,
                 context=None,
                 **load_context,
             )
@@ -591,7 +591,7 @@ class _TemplateCounter:
         try:
             return await self._empty_context.env.get_template_async(
                 name,
-                global_context_data=None,
+                globals=None,
                 context=None,
                 **load_context,
             )

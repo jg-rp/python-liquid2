@@ -1,3 +1,5 @@
+from typing import Mapping
+
 from .token import CommentToken
 from .token import ContentToken
 from .token import LinesToken
@@ -32,6 +34,23 @@ from .lexer import tokenize
 from .template import Template
 from .builtin import DictLoader
 
+
+DEFAULT_ENVIRONMENT = Environment()
+
+
+def parse(source: str, globals: Mapping[str, object] | None = None) -> Template:
+    """Parse _source_ as a Liquid template using the default environment.
+
+    Args:
+        source: Liquid template source code.
+        globals: Variables that will be available to the resulting template.
+
+    Return:
+        A new template bound to the default environment.
+    """
+    return DEFAULT_ENVIRONMENT.from_string(source, globals=globals)
+
+
 # TODO: expose undefined
 # TODO: expose some loaders
 
@@ -40,6 +59,7 @@ __all__ = (
     "CommentToken",
     "ConditionalBlockNode",
     "ContentToken",
+    "DEFAULT_ENVIRONMENT",
     "DictLoader",
     "Environment",
     "is_comment_token",
@@ -55,6 +75,7 @@ __all__ = (
     "MetaNode",
     "Node",
     "OutputToken",
+    "parse",
     "PathT",
     "PathToken",
     "RawToken",
