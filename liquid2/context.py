@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime
+import itertools
 import sys
 from collections import defaultdict
 from contextlib import contextmanager
@@ -16,6 +17,8 @@ from typing import Any
 from typing import Callable
 from typing import Iterator
 from typing import Mapping
+from typing import Sequence
+from typing import Sized
 from typing import TextIO
 
 from markupsafe import Markup
@@ -121,13 +124,47 @@ class RenderContext:
 
         for segment in path:
             try:
-                obj = obj[segment]  # type: ignore
+                obj = self.get_item(obj, segment)
             except (KeyError, TypeError, IndexError):
                 if default == UNDEFINED:
                     return self.env.undefined(root, token=token)
                 return default
 
         return obj
+
+    def get_item(self, obj: Any, key: Any) -> Any:
+        """An item getter used when resolving a Liquid path.
+
+        Override this to change the behavior of `.first`, `.last` and `.size`.
+        """
+        if hasattr(key, "__liquid__"):
+            key = key.__liquid__()
+
+        if key == "size":
+            try:
+                return obj["size"]
+            except (KeyError, IndexError, TypeError):
+                if isinstance(obj, Sized):
+                    return len(obj)
+                raise
+        if key == "first":
+            try:
+                return obj["first"]
+            except (KeyError, IndexError, TypeError):
+                if isinstance(obj, Mapping) and obj:
+                    return next(itertools.islice(obj.items(), 1))
+                if isinstance(obj, Sequence):
+                    return obj[0]
+                raise
+        if key == "last":
+            try:
+                return obj["last"]
+            except (KeyError, IndexError, TypeError):
+                if isinstance(obj, Sequence):
+                    return obj[-1]
+                raise
+
+        return obj[key]
 
     def filter(self, name: str, *, token: TokenT) -> Callable[..., object]:
         """Return the filter callable for _name_."""

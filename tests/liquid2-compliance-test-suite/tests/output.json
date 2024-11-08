@@ -61,43 +61,43 @@
       "result": "123"
     },
     {
-      "name": "query, global",
+      "name": "path, global",
       "template": "{{ a }}",
       "data": { "a": "b" },
       "result": "b"
     },
     {
-      "name": "query, local",
+      "name": "path, local",
       "template": "{% assign a = 'b' %}{{ a }}",
       "data": {},
       "result": "b"
     },
     {
-      "name": "query, dotted",
+      "name": "path, dotted",
       "template": "{{ a.b }}",
       "data": { "a": { "b": "c" } },
       "result": "c"
     },
     {
-      "name": "query, array index",
+      "name": "path, array index",
       "template": "{{ a.b[0] }}",
       "data": { "a": { "b": [1, 2, 3] } },
       "result": "1"
     },
     {
-      "name": "query, negative array index",
+      "name": "path, negative array index",
       "template": "{{ a.b[-1] }}",
       "data": { "a": { "b": [1, 2, 3] } },
       "result": "3"
     },
     {
-      "name": "query, array index from variable",
+      "name": "path, array index from variable",
       "template": "{% assign x = 1 %}{{ a.b[x] }}",
       "data": { "a": { "b": [1, 2, 3] } },
       "result": "2"
     },
     {
-      "name": "query, names from variables",
+      "name": "path, names from variables",
       "template": "{{ site.data.menu[include.menu][include.locale] }}",
       "data": {
         "site": { "data": { "menu": { "foo": { "bar": "it works!" } } } },
@@ -160,19 +160,19 @@
       "result": "\""
     },
     {
-      "name": "query, bracket notation",
+      "name": "path, bracket notation",
       "template": "{{ a['b c'] }}",
       "data": { "a": { "b c": "d" } },
       "result": "d"
     },
     {
-      "name": "query, bracket notation, root",
+      "name": "path, bracket notation, root",
       "template": "{{ ['a b c'] }}",
       "data": { "a b c": "d" },
       "result": "d"
     },
     {
-      "name": "query, singular query selector",
+      "name": "path, singular query selector",
       "template": "{{ a[a.b.c] }}",
       "data": { "a": { "b": { "c": "d" }, "d": "x" } },
       "result": "x"

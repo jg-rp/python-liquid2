@@ -2,236 +2,6 @@
   "description": "Liquid2 compliance test suite",
   "tests": [
     {
-      "name": "paths, ascii lowercase",
-      "template": "{% assign foo = 'hello' %}{{ foo }} {{ bar }}",
-      "data": {
-        "bar": "goodbye"
-      },
-      "result": "hello goodbye"
-    },
-    {
-      "name": "paths, ascii uppercase",
-      "template": "{% assign FOO = 'hello' %}{{ FOO }} {{ BAR }}",
-      "data": {
-        "BAR": "goodbye"
-      },
-      "result": "hello goodbye"
-    },
-    {
-      "name": "paths, digits",
-      "template": "{% assign foo1 = 'hello' %}{{ foo1 }} {{ bar2 }}",
-      "data": {
-        "bar2": "goodbye"
-      },
-      "result": "hello goodbye"
-    },
-    {
-      "name": "paths, only digits",
-      "template": "{% assign 123 = 'hello' %}{{ 123 }} {{ 456 }}",
-      "data": {
-        "456": "goodbye"
-      },
-      "invalid": true
-    },
-    {
-      "name": "paths, hyphens",
-      "template": "{% assign foo-a = 'hello' %}{{ foo-a }} {{ bar-b }}",
-      "data": {
-        "bar-b": "goodbye"
-      },
-      "result": "hello goodbye"
-    },
-    {
-      "name": "paths, leading hyphen",
-      "template": "{% assign -foo = 'hello' %}{{ -foo }} {{ -bar }}",
-      "data": {
-        "-bar": "goodbye"
-      },
-      "invalid": true
-    },
-    {
-      "name": "paths, underscore",
-      "template": "{% assign foo_a = 'hello' %}{{ foo_a }} {{ bar_b }}",
-      "data": {
-        "bar_b": "goodbye"
-      },
-      "result": "hello goodbye"
-    },
-    {
-      "name": "paths, only underscore",
-      "template": "{% assign _ = 'hello' %}{{ _ }} {{ __ }}",
-      "data": {
-        "__": "goodbye"
-      },
-      "result": "hello goodbye"
-    },
-    {
-      "name": "paths, leading underscore",
-      "template": "{% assign _foo = 'hello' %}{{ _foo }} {{ _bar }}",
-      "data": {
-        "_bar": "goodbye"
-      },
-      "result": "hello goodbye"
-    },
-    {
-      "name": "paths, trailing question mark assign",
-      "template": "{% assign foo? = 'hello' %}{{ foo? }}",
-      "data": {},
-      "invalid": true
-    },
-    {
-      "name": "paths, trailing question mark output",
-      "template": "{{ bar? }}",
-      "data": {
-        "bar?": "goodbye"
-      },
-      "invalid": true
-    },
-    {
-      "name": "paths, hyphen in for loop target",
-      "template": "{% for x in f-oo %}{{ x }}{% endfor %}",
-      "data": {
-        "f-oo": [
-          1,
-          2,
-          3
-        ]
-      },
-      "result": "123"
-    },
-    {
-      "name": "paths, leading hyphen in for loop target",
-      "template": "{% for x in -foo %}{{ x }}{% endfor %}",
-      "data": {
-        "-foo": [
-          1,
-          2,
-          3
-        ]
-      },
-      "invalid": true
-    },
-    {
-      "name": "paths, hyphen in for loop variable",
-      "template": "{% for x-y in foo %}{{ x-y }}{% endfor %}",
-      "data": {
-        "foo": [
-          1,
-          2,
-          3
-        ]
-      },
-      "result": "123"
-    },
-    {
-      "name": "paths, trailing question mark in for loop target",
-      "template": "{% for x in foo? %}{{ x }}{% endfor %}",
-      "data": {
-        "foo?": [
-          1,
-          2,
-          3
-        ]
-      },
-      "invalid": true
-    },
-    {
-      "name": "paths, trailing question mark in for loop variable",
-      "template": "{% for x? in foo %}{{ x? }}{% endfor %}",
-      "data": {
-        "foo": [
-          1,
-          2,
-          3
-        ]
-      },
-      "invalid": true
-    },
-    {
-      "name": "paths, increment with a hyphen",
-      "template": "{% increment f-oo %}{% increment f-oo %}",
-      "data": {},
-      "result": "01"
-    },
-    {
-      "name": "paths, decrement with a hyphen",
-      "template": "{% decrement f-oo %}{% decrement f-oo %}",
-      "data": {},
-      "result": "-1-2"
-    },
-    {
-      "name": "paths, capture ascii lowercase",
-      "template": "{% capture foo %}hello{% endcapture %}{{ foo }}",
-      "data": {},
-      "result": "hello"
-    },
-    {
-      "name": "paths, capture ascii uppercase",
-      "template": "{% capture FOO %}hello{% endcapture %}{{ FOO }}",
-      "data": {},
-      "result": "hello"
-    },
-    {
-      "name": "paths, capture digits",
-      "template": "{% capture foo1 %}hello{% endcapture %}{{ foo1 }}",
-      "data": {},
-      "result": "hello"
-    },
-    {
-      "name": "paths, capture only digits",
-      "template": "{% capture 123 %}hello{% endcapture %}{{ 123 }}",
-      "data": {},
-      "invalid": true
-    },
-    {
-      "name": "paths, capture hyphens",
-      "template": "{% capture foo-a %}hello {{ bar-b }}{% endcapture %}{{ foo-a }}",
-      "data": {
-        "bar-b": "goodbye"
-      },
-      "result": "hello goodbye"
-    },
-    {
-      "name": "paths, capture leading hyphen",
-      "template": "{% capture -foo %}hello {{ -bar }}{% endcapture %}{{ -foo }}",
-      "data": {
-        "-bar": "goodbye"
-      },
-      "invalid": true
-    },
-    {
-      "name": "paths, capture underscore",
-      "template": "{% capture foo_a %}hello {{ bar_b }}{% endcapture %}{{ foo_a }}",
-      "data": {
-        "bar_b": "goodbye"
-      },
-      "result": "hello goodbye"
-    },
-    {
-      "name": "paths, capture only underscore",
-      "template": "{% capture _ %}hello {{ __ }}{% endcapture %}{{ _ }}",
-      "data": {
-        "__": "goodbye"
-      },
-      "result": "hello goodbye"
-    },
-    {
-      "name": "paths, capture leading underscore",
-      "template": "{% capture _foo %}hello {{ _bar }}{% endcapture %}{{ _foo }}",
-      "data": {
-        "_bar": "goodbye"
-      },
-      "result": "hello goodbye"
-    },
-    {
-      "name": "paths, at sign",
-      "template": "{{ @foo }}",
-      "data": {
-        "@foo": "hello"
-      },
-      "invalid": true
-    },
-    {
       "name": "whitespace control, white space control with newlines and spaces",
       "template": "\n{% if customer -%}\nWelcome back,  {{ customer.first_name -}} !\n {%- endif -%}",
       "data": {
@@ -270,6 +40,236 @@
         }
       },
       "result": "\n\tWelcome back,  Holly!"
+    },
+    {
+      "name": "identifiers, ascii lowercase",
+      "template": "{% assign foo = 'hello' %}{{ foo }} {{ bar }}",
+      "data": {
+        "bar": "goodbye"
+      },
+      "result": "hello goodbye"
+    },
+    {
+      "name": "identifiers, ascii uppercase",
+      "template": "{% assign FOO = 'hello' %}{{ FOO }} {{ BAR }}",
+      "data": {
+        "BAR": "goodbye"
+      },
+      "result": "hello goodbye"
+    },
+    {
+      "name": "identifiers, digits",
+      "template": "{% assign foo1 = 'hello' %}{{ foo1 }} {{ bar2 }}",
+      "data": {
+        "bar2": "goodbye"
+      },
+      "result": "hello goodbye"
+    },
+    {
+      "name": "identifiers, only digits",
+      "template": "{% assign 123 = 'hello' %}{{ 123 }} {{ 456 }}",
+      "data": {
+        "456": "goodbye"
+      },
+      "invalid": true
+    },
+    {
+      "name": "identifiers, hyphens",
+      "template": "{% assign foo-a = 'hello' %}{{ foo-a }} {{ bar-b }}",
+      "data": {
+        "bar-b": "goodbye"
+      },
+      "result": "hello goodbye"
+    },
+    {
+      "name": "identifiers, leading hyphen",
+      "template": "{% assign -foo = 'hello' %}{{ -foo }} {{ -bar }}",
+      "data": {
+        "-bar": "goodbye"
+      },
+      "invalid": true
+    },
+    {
+      "name": "identifiers, underscore",
+      "template": "{% assign foo_a = 'hello' %}{{ foo_a }} {{ bar_b }}",
+      "data": {
+        "bar_b": "goodbye"
+      },
+      "result": "hello goodbye"
+    },
+    {
+      "name": "identifiers, only underscore",
+      "template": "{% assign _ = 'hello' %}{{ _ }} {{ __ }}",
+      "data": {
+        "__": "goodbye"
+      },
+      "result": "hello goodbye"
+    },
+    {
+      "name": "identifiers, leading underscore",
+      "template": "{% assign _foo = 'hello' %}{{ _foo }} {{ _bar }}",
+      "data": {
+        "_bar": "goodbye"
+      },
+      "result": "hello goodbye"
+    },
+    {
+      "name": "identifiers, trailing question mark assign",
+      "template": "{% assign foo? = 'hello' %}{{ foo? }}",
+      "data": {},
+      "invalid": true
+    },
+    {
+      "name": "identifiers, trailing question mark output",
+      "template": "{{ bar? }}",
+      "data": {
+        "bar?": "goodbye"
+      },
+      "invalid": true
+    },
+    {
+      "name": "identifiers, hyphen in for loop target",
+      "template": "{% for x in f-oo %}{{ x }}{% endfor %}",
+      "data": {
+        "f-oo": [
+          1,
+          2,
+          3
+        ]
+      },
+      "result": "123"
+    },
+    {
+      "name": "identifiers, leading hyphen in for loop target",
+      "template": "{% for x in -foo %}{{ x }}{% endfor %}",
+      "data": {
+        "-foo": [
+          1,
+          2,
+          3
+        ]
+      },
+      "invalid": true
+    },
+    {
+      "name": "identifiers, hyphen in for loop variable",
+      "template": "{% for x-y in foo %}{{ x-y }}{% endfor %}",
+      "data": {
+        "foo": [
+          1,
+          2,
+          3
+        ]
+      },
+      "result": "123"
+    },
+    {
+      "name": "identifiers, trailing question mark in for loop target",
+      "template": "{% for x in foo? %}{{ x }}{% endfor %}",
+      "data": {
+        "foo?": [
+          1,
+          2,
+          3
+        ]
+      },
+      "invalid": true
+    },
+    {
+      "name": "identifiers, trailing question mark in for loop variable",
+      "template": "{% for x? in foo %}{{ x? }}{% endfor %}",
+      "data": {
+        "foo": [
+          1,
+          2,
+          3
+        ]
+      },
+      "invalid": true
+    },
+    {
+      "name": "identifiers, increment with a hyphen",
+      "template": "{% increment f-oo %}{% increment f-oo %}",
+      "data": {},
+      "result": "01"
+    },
+    {
+      "name": "identifiers, decrement with a hyphen",
+      "template": "{% decrement f-oo %}{% decrement f-oo %}",
+      "data": {},
+      "result": "-1-2"
+    },
+    {
+      "name": "identifiers, capture ascii lowercase",
+      "template": "{% capture foo %}hello{% endcapture %}{{ foo }}",
+      "data": {},
+      "result": "hello"
+    },
+    {
+      "name": "identifiers, capture ascii uppercase",
+      "template": "{% capture FOO %}hello{% endcapture %}{{ FOO }}",
+      "data": {},
+      "result": "hello"
+    },
+    {
+      "name": "identifiers, capture digits",
+      "template": "{% capture foo1 %}hello{% endcapture %}{{ foo1 }}",
+      "data": {},
+      "result": "hello"
+    },
+    {
+      "name": "identifiers, capture only digits",
+      "template": "{% capture 123 %}hello{% endcapture %}{{ 123 }}",
+      "data": {},
+      "invalid": true
+    },
+    {
+      "name": "identifiers, capture hyphens",
+      "template": "{% capture foo-a %}hello {{ bar-b }}{% endcapture %}{{ foo-a }}",
+      "data": {
+        "bar-b": "goodbye"
+      },
+      "result": "hello goodbye"
+    },
+    {
+      "name": "identifiers, capture leading hyphen",
+      "template": "{% capture -foo %}hello {{ -bar }}{% endcapture %}{{ -foo }}",
+      "data": {
+        "-bar": "goodbye"
+      },
+      "invalid": true
+    },
+    {
+      "name": "identifiers, capture underscore",
+      "template": "{% capture foo_a %}hello {{ bar_b }}{% endcapture %}{{ foo_a }}",
+      "data": {
+        "bar_b": "goodbye"
+      },
+      "result": "hello goodbye"
+    },
+    {
+      "name": "identifiers, capture only underscore",
+      "template": "{% capture _ %}hello {{ __ }}{% endcapture %}{{ _ }}",
+      "data": {
+        "__": "goodbye"
+      },
+      "result": "hello goodbye"
+    },
+    {
+      "name": "identifiers, capture leading underscore",
+      "template": "{% capture _foo %}hello {{ _bar }}{% endcapture %}{{ _foo }}",
+      "data": {
+        "_bar": "goodbye"
+      },
+      "result": "hello goodbye"
+    },
+    {
+      "name": "identifiers, at sign",
+      "template": "{{ @foo }}",
+      "data": {
+        "@foo": "hello"
+      },
+      "invalid": true
     },
     {
       "name": "output, string literal",
@@ -332,7 +332,7 @@
       "result": "123"
     },
     {
-      "name": "output, query, global",
+      "name": "output, path, global",
       "template": "{{ a }}",
       "data": {
         "a": "b"
@@ -340,13 +340,13 @@
       "result": "b"
     },
     {
-      "name": "output, query, local",
+      "name": "output, path, local",
       "template": "{% assign a = 'b' %}{{ a }}",
       "data": {},
       "result": "b"
     },
     {
-      "name": "output, query, dotted",
+      "name": "output, path, dotted",
       "template": "{{ a.b }}",
       "data": {
         "a": {
@@ -356,7 +356,7 @@
       "result": "c"
     },
     {
-      "name": "output, query, array index",
+      "name": "output, path, array index",
       "template": "{{ a.b[0] }}",
       "data": {
         "a": {
@@ -370,7 +370,7 @@
       "result": "1"
     },
     {
-      "name": "output, query, negative array index",
+      "name": "output, path, negative array index",
       "template": "{{ a.b[-1] }}",
       "data": {
         "a": {
@@ -384,7 +384,7 @@
       "result": "3"
     },
     {
-      "name": "output, query, array index from variable",
+      "name": "output, path, array index from variable",
       "template": "{% assign x = 1 %}{{ a.b[x] }}",
       "data": {
         "a": {
@@ -398,7 +398,7 @@
       "result": "2"
     },
     {
-      "name": "output, query, names from variables",
+      "name": "output, path, names from variables",
       "template": "{{ site.data.menu[include.menu][include.locale] }}",
       "data": {
         "site": {
@@ -472,7 +472,7 @@
       "result": "\""
     },
     {
-      "name": "output, query, bracket notation",
+      "name": "output, path, bracket notation",
       "template": "{{ a['b c'] }}",
       "data": {
         "a": {
@@ -482,7 +482,7 @@
       "result": "d"
     },
     {
-      "name": "output, query, bracket notation, root",
+      "name": "output, path, bracket notation, root",
       "template": "{{ ['a b c'] }}",
       "data": {
         "a b c": "d"
@@ -490,7 +490,7 @@
       "result": "d"
     },
     {
-      "name": "output, query, singular query selector",
+      "name": "output, path, singular query selector",
       "template": "{{ a[a.b.c] }}",
       "data": {
         "a": {
@@ -543,6 +543,143 @@
       "template": "{{ 'b' if true else 'c' || upcase }}",
       "data": {},
       "result": "B"
+    },
+    {
+      "name": "special, first of an array",
+      "template": "{{ a.first }}",
+      "data": {
+        "a": [
+          3,
+          2,
+          1
+        ]
+      },
+      "result": "3"
+    },
+    {
+      "name": "special, last of an array",
+      "template": "{{ a.last }}",
+      "data": {
+        "a": [
+          3,
+          2,
+          1
+        ]
+      },
+      "result": "1"
+    },
+    {
+      "name": "special, size of an array",
+      "template": "{{ a.size }}",
+      "data": {
+        "a": [
+          3,
+          2,
+          1
+        ]
+      },
+      "result": "3"
+    },
+    {
+      "name": "special, size of a string",
+      "template": "{{ s.size }}",
+      "data": {
+        "s": "hello"
+      },
+      "result": "5"
+    },
+    {
+      "name": "special, first of a string",
+      "template": "{{ s.first }}",
+      "data": {
+        "s": "hello"
+      },
+      "result": "h"
+    },
+    {
+      "name": "special, first of an object",
+      "template": "{{ obj.first | join: '#' }}",
+      "data": {
+        "obj": {
+          "a": 1,
+          "b": 2
+        }
+      },
+      "result": "a#1"
+    },
+    {
+      "name": "special, first of an empty object",
+      "template": "{{ obj.first | join: '#' }}",
+      "data": {
+        "obj": {}
+      },
+      "result": ""
+    },
+    {
+      "name": "special, last of a string",
+      "template": "{{ s.last }}",
+      "data": {
+        "s": "hello"
+      },
+      "result": "o"
+    },
+    {
+      "name": "special, last of a object",
+      "template": "{{ obj.last }}",
+      "data": {
+        "obj": {
+          "a": 1,
+          "b": 2
+        }
+      },
+      "result": ""
+    },
+    {
+      "name": "special, size of an object with a size property",
+      "template": "{{ obj.size }}",
+      "data": {
+        "obj": {
+          "size": 99
+        }
+      },
+      "result": "99"
+    },
+    {
+      "name": "special, first of an object with a first property",
+      "template": "{{ obj.first }}",
+      "data": {
+        "obj": {
+          "a": 1,
+          "first": 99
+        }
+      },
+      "result": "99"
+    },
+    {
+      "name": "special, last of an object with a last property",
+      "template": "{{ obj.last }}",
+      "data": {
+        "obj": {
+          "a": 1,
+          "last": 99,
+          "b": 42
+        }
+      },
+      "result": "99"
+    },
+    {
+      "name": "special, size of undefined",
+      "template": "{{ nosuchthing.last }}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "special, size of an int",
+      "template": "{{ x.size }}",
+      "data": {
+        "x": 1
+      },
+      "result": ""
     },
     {
       "name": "tags, echo, string literal",
