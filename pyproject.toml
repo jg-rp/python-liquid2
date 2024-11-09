@@ -52,6 +52,8 @@ dependencies = [
   "jsonschema",
   "types-jsonschema",
   "types-python-dateutil",
+  "sphinx",
+  "pydata-sphinx-theme",
 ]
 python = "3.12"
 

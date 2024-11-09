@@ -33,6 +33,8 @@ from .environment import Environment
 from .lexer import tokenize
 from .template import Template
 from .builtin import DictLoader
+from .undefined import StrictUndefined
+from .undefined import Undefined
 
 
 DEFAULT_ENVIRONMENT = Environment()
@@ -90,4 +92,6 @@ __all__ = (
     "TokenType",
     "unescape",
     "WhitespaceControl",
+    "StrictUndefined",
+    "Undefined",
 )
