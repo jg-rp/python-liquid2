@@ -54,6 +54,7 @@ dependencies = [
   "types-python-dateutil",
   "sphinx",
   "pydata-sphinx-theme",
+  "myst-parser",
 ]
 python = "3.12"
 

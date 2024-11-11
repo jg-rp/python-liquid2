@@ -36,6 +36,7 @@ from .builtin import DictLoader
 from .undefined import StrictUndefined
 from .undefined import Undefined
 
+from .__about__ import __version__
 
 DEFAULT_ENVIRONMENT = Environment()
 
@@ -57,6 +58,7 @@ def parse(source: str, globals: Mapping[str, object] | None = None) -> Template:
 # TODO: expose some loaders
 
 __all__ = (
+    "__version__",
     "BlockNode",
     "CommentToken",
     "ConditionalBlockNode",
