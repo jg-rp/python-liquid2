@@ -60,7 +60,7 @@ class BaseLoader(ABC):
         env: Environment,
         name: str,
         *,
-        global_context_data: Mapping[str, object] | None = None,
+        globals: Mapping[str, object] | None = None,
         context: RenderContext | None = None,
         **kwargs: object,
     ) -> Template:
@@ -69,7 +69,7 @@ class BaseLoader(ABC):
         Args:
             env: The `Environment` attempting to load the template source text.
             name: A name or identifier for a template's source text.
-            global_context_data: A mapping of render context variables attached to the
+            globals: A mapping of render context variables attached to the
                 resulting template.
             context: An optional render context that can be used to narrow the template
                 source search space.
@@ -84,8 +84,8 @@ class BaseLoader(ABC):
             source,
             name=name,
             path=Path(full_name),
-            global_context_data=global_context_data,
-            overlay_context_data=matter,
+            globals=globals,
+            overlay_data=matter,
         )
 
         template.uptodate = uptodate
@@ -96,7 +96,7 @@ class BaseLoader(ABC):
         env: Environment,
         name: str,
         *,
-        global_context_data: Mapping[str, object] | None = None,
+        globals: Mapping[str, object] | None = None,
         context: RenderContext | None = None,
         **kwargs: object,
     ) -> Template:
@@ -109,8 +109,8 @@ class BaseLoader(ABC):
             source,
             name=name,
             path=Path(full_name),
-            global_context_data=global_context_data,
-            overlay_context_data=matter,
+            globals=globals,
+            overlay_data=matter,
         )
 
         template.uptodate = uptodate

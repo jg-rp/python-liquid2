@@ -34,7 +34,7 @@ class Undefined(Mapping[Any, object]):
         self,
         path: Path | str,
         *,
-        token: TokenT,
+        token: TokenT | None,
         obj: object = UNDEFINED,
         hint: str | None = None,
     ):
@@ -102,10 +102,15 @@ class StrictUndefined(Undefined):
 
     __slots__ = ("msg",)
 
+    # Force the `default` filter to return its default value
+    # without inspecting this class type.
+    force_liquid_default = True
+
     # Properties that don't raise an UndefinedError.
     allowed_properties = frozenset(
         [
             "__repr__",
+            "force_liquid_default",
             "name",
             "hint",
             "obj",
@@ -119,7 +124,7 @@ class StrictUndefined(Undefined):
         self,
         path: Path | str,
         *,
-        token: TokenT,
+        token: TokenT | None,
         obj: object = UNDEFINED,
         hint: str | None = None,
     ):
@@ -163,26 +168,6 @@ class StrictUndefined(Undefined):
 
     def __reversed__(self) -> Iterable[Any]:
         raise UndefinedError(self.msg, token=self.token)
-
-
-class StrictDefaultUndefined(StrictUndefined):
-    """An undefined that plays nicely with the `default` filter."""
-
-    # Force the `default` filter to return its default value
-    # without inspecting this class type.
-    force_liquid_default = True
-
-    # Properties that don't raise an UndefinedError.
-    allowed_properties = frozenset(
-        [
-            "__repr__",
-            "force_liquid_default",
-            "name",
-            "hint",
-            "obj",
-            "msg",
-        ]
-    )
 
 
 def is_undefined(obj: object) -> TypeGuard[Undefined]:

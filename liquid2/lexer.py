@@ -1,4 +1,4 @@
-"""JSONPath expression lexical scanner."""
+"""Liquid template lexical scanner."""
 
 from __future__ import annotations
 

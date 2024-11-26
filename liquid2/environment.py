@@ -28,50 +28,72 @@ if TYPE_CHECKING:
 class Environment:
     """Template parsing and rendering configuration."""
 
-    default_trim = WhitespaceControl.PLUS
-
-    # Maximum number of times a context can be extended or wrapped before raising
-    # a ContextDepthError.
     context_depth_limit: ClassVar[int] = 30
+    """Maximum number of times a render context can be extended or wrapped before
+    raising a `ContextDepthError`."""
 
-    # Maximum number of loop iterations allowed before a LoopIterationLimitError is
-    # raised.
     loop_iteration_limit: ClassVar[int | None] = None
+    """Maximum number of loop iterations allowed before a `LoopIterationLimitError` is
+    raised."""
 
-    # Maximum number of bytes (according to sys.getsizeof) allowed in a template's
-    # local namespace before a LocalNamespaceLimitError is raised. We only count the
-    # size of the namespaces values, not the size of keys/names.
     local_namespace_limit: ClassVar[int | None] = None
+    """Maximum number of bytes (according to sys.getsizeof) allowed in a template's
+    local namespace before a `LocalNamespaceLimitError` is raised. We only count the
+    size of the namespaces values, not the size of keys/names."""
 
-    # Maximum number of bytes that can be written to a template's output stream before
-    # raising an OutputStreamLimitError.
     output_stream_limit: ClassVar[int | None] = None
+    """Maximum number of bytes that can be written to a template's output stream before
+    raising an `OutputStreamLimitError`."""
 
     template_class = Template
+
+    __slots__ = (
+        "loader",
+        "globals",
+        "auto_escape",
+        "undefined",
+        "default_trim",
+        "filters",
+        "tags",
+        "parser",
+    )
 
     def __init__(
         self,
         *,
         loader: BaseLoader | None = None,
-        global_context_data: Mapping[str, object] | None = None,
+        globals: Mapping[str, object] | None = None,
         auto_escape: bool = False,
         undefined: Type[Undefined] = Undefined,
+        default_trim: WhitespaceControl = WhitespaceControl.PLUS,
     ) -> None:
         self.loader = loader or DictLoader({})
-        self.global_context_data = global_context_data or {}
+        self.globals = globals or {}
         self.auto_escape = auto_escape
         self.undefined = undefined
 
+        self.default_trim: WhitespaceControl = (
+            WhitespaceControl.PLUS
+            if default_trim == WhitespaceControl.DEFAULT
+            else default_trim
+        )
+
         self.filters: dict[str, Callable[..., object]] = {}
         self.tags: dict[str, Tag] = {}
-        register_standard_tags_and_filters(self)
+        self.setup_tags_and_filters()
 
         self.parser = Parser(self)
 
-        # TODO: raise if trim is set to "Default"
         # TODO: limits
-        # TODO: template_class
-        # TODO: setup tags and filters
+        # TODO: test environment and template API
+
+    def setup_tags_and_filters(self) -> None:
+        """Add tags and filters to this environment.
+
+        This is called once when initializing an environment. Override this method
+        in your custom environments.
+        """
+        register_standard_tags_and_filters(self)
 
     def parse(self, source: str) -> list[Node]:
         """Compile template source text and return an abstract syntax tree."""
@@ -83,8 +105,8 @@ class Environment:
         *,
         name: str = "<string>",
         path: str | Path | None = None,
-        global_context_data: Mapping[str, object] | None = None,
-        overlay_context_data: Mapping[str, object] | None = None,
+        globals: Mapping[str, object] | None = None,
+        overlay_data: Mapping[str, object] | None = None,
     ) -> Template:
         """Create a template from a string."""
         return self.template_class(
@@ -92,15 +114,15 @@ class Environment:
             self.parse(source),
             name=name,
             path=path,
-            global_data=global_context_data,
-            overlay_data=overlay_context_data,
+            global_data=self.make_globals(globals),
+            overlay_data=overlay_data,
         )
 
     def get_template(
         self,
         name: str,
         *,
-        global_context_data: Mapping[str, object] | None = None,
+        globals: Mapping[str, object] | None = None,
         context: RenderContext | None = None,
         **kwargs: object,
     ) -> Template:
@@ -109,7 +131,7 @@ class Environment:
         Args:
             name: The template's name. The loader is responsible for interpreting
                 the name. It could be the name of a file or some other identifier.
-            global_context_data: A mapping of render context variables attached to the
+            globals: A mapping of render context variables attached to the
                 resulting template.
             context: An optional render context that can be used to narrow the template
                 source search space.
@@ -122,7 +144,7 @@ class Environment:
         return self.loader.load(
             env=self,
             name=name,
-            global_context_data=self.make_globals(global_context_data),
+            globals=self.make_globals(globals),
             context=context,
             **kwargs,  # type: ignore
         )
@@ -131,7 +153,7 @@ class Environment:
         self,
         name: str,
         *,
-        global_context_data: Mapping[str, object] | None = None,
+        globals: Mapping[str, object] | None = None,
         context: RenderContext | None = None,
         **kwargs: object,
     ) -> Template:
@@ -139,7 +161,7 @@ class Environment:
         return await self.loader.load_async(
             env=self,
             name=name,
-            global_context_data=self.make_globals(global_context_data),
+            globals=self.make_globals(globals),
             context=context,
             **kwargs,  # type: ignore
         )
@@ -151,8 +173,8 @@ class Environment:
         """Combine environment globals with template globals."""
         if globals:
             # Template globals take priority over environment globals.
-            return {**self.global_context_data, **globals}
-        return dict(self.global_context_data)
+            return {**self.globals, **globals}
+        return dict(self.globals)
 
     def trim(
         self,

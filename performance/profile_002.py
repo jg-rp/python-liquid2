@@ -37,7 +37,7 @@ def benchmark(search_path: str, number: int = 1000, repeat: int = 5) -> None:
     templates = fixture(Path(search_path))
     env = Environment(
         loader=DictLoader(templates),
-        global_context_data=data,
+        globals=data,
         undefined=StrictUndefined,
     )
     source = templates["main.html"]

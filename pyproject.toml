@@ -52,6 +52,10 @@ dependencies = [
   "jsonschema",
   "types-jsonschema",
   "types-python-dateutil",
+  "sphinx",
+  "pydata-sphinx-theme",
+  "myst-parser",
+  "sphinx-design",
 ]
 python = "3.12"
 
@@ -154,6 +158,7 @@ select = [
 ]
 
 ignore = [
+  "A002",
   "S105",
   "S101",
   "D107",

@@ -33,7 +33,7 @@ def print_result(
 def benchmark(search_path: str, number: int = 1000, repeat: int = 5) -> None:
     data = json.load((Path(search_path).parent / "data.json").open())
     templates = fixture(Path(search_path))
-    env = Environment(loader=DictLoader(templates), global_context_data=data)
+    env = Environment(loader=DictLoader(templates), globals=data)
     source = templates["main.html"]
     # NOTE: included templates get parsed, main.html does not
     template = env.get_template("main.html")
