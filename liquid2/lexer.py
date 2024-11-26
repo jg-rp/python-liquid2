@@ -231,17 +231,18 @@ class Lexer:
     """Alias for `ignore()`."""
 
     def backup(self) -> None:
-        """Move the current position back one."""
+        """Move the pointer back one character."""
         if self.pos <= self.start:
             # Cant backup beyond start.
             msg = "unexpected end of expression"
             raise LiquidSyntaxError(
                 msg,
-                token=Token(
+                token=ErrorToken(
                     type_=TokenType.ERROR,
                     value=msg,
                     index=self.pos,
                     source=self.source,
+                    message=msg,
                 ),
             )
         self.pos -= 1
@@ -426,7 +427,8 @@ class Lexer:
                 type_=TokenType.RANGE,
                 range_start=range_start_token,
                 range_stop=range_stop_token,
-                index=lparen.index,
+                start=lparen.index,
+                stop=rparen.index + 1,
                 source=self.source,
             )
         )

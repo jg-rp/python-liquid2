@@ -1,4 +1,4 @@
-"""Top-level markup and expression tokens produced by the lexer."""
+"""Markup and expression tokens produced by the lexer."""
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ class TokenT(ABC):
     @property
     @abstractmethod
     def start(self) -> int:
-        """The start position of this token."""
+        """The end position of this token."""
 
 
 Markup: TypeAlias = Union[
@@ -162,7 +162,7 @@ class Token(TokenT):
 
     @property
     def stop(self) -> int:
-        """Return the start position of this token."""
+        """Return the end position of this token."""
         return self.index + len(self.value)
 
 
@@ -198,18 +198,9 @@ class PathToken(TokenT):
 class RangeToken(TokenT):
     range_start: TokenT
     range_stop: TokenT
-    index: int
+    start: int
+    stop: int
     source: str = field(repr=False)
-
-    @property
-    def start(self) -> int:
-        """Return the start position of this token."""
-        return self.index
-
-    @property
-    def stop(self) -> int:
-        """Return the start position of this token."""
-        return -1  # XXX:
 
 
 @dataclass(kw_only=True, slots=True)
@@ -229,7 +220,7 @@ class ErrorToken(TokenT):
 
     @property
     def stop(self) -> int:
-        """Return the start position of this token."""
+        """Return the end position of this token."""
         return self.index + len(self.value)
 
 
