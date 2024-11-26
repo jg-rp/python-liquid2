@@ -55,6 +55,7 @@ dependencies = [
   "sphinx",
   "pydata-sphinx-theme",
   "myst-parser",
+  "sphinx-design",
 ]
 python = "3.12"
 

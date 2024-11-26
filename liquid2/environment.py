@@ -72,7 +72,7 @@ class Environment:
         self.auto_escape = auto_escape
         self.undefined = undefined
 
-        self.default_trim = (
+        self.default_trim: WhitespaceControl = (
             WhitespaceControl.PLUS
             if default_trim == WhitespaceControl.DEFAULT
             else default_trim
