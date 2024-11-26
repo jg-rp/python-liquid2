@@ -6,9 +6,10 @@ import re
 from itertools import chain
 from typing import TYPE_CHECKING
 from typing import Callable
-from typing import Literal
 from typing import Optional
 from typing import Pattern
+
+from typing_extensions import Never
 
 from .exceptions import LiquidSyntaxError
 from .token import CommentToken
@@ -42,7 +43,6 @@ RE_LINE_TERM = re.compile(r"\r?\n")
 RE_PROPERTY = re.compile(r"[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*")
 RE_INDEX = re.compile(r"-?[0-9]+")
 ESCAPES = frozenset(["b", "f", "n", "r", "t", "u", "/", "\\"])
-
 
 SYMBOLS: dict[str, str] = {
     "GE": r">=",
@@ -281,7 +281,6 @@ class Lexer:
 
             if c == "":
                 self.error("unexpected end of path")
-                return
 
             if c == ".":
                 self.ignore()
@@ -381,53 +380,58 @@ class Lexer:
                     ),
                 )
 
-    def ignore_whitespace(self) -> bool:
-        """Move the pointer past any whitespace."""
-        if self.pos != self.start:
-            msg = (
-                "must emit or ignore before consuming whitespace "
-                f"({self.source[self.start: self.pos]!r}:{self.pos})"
+    def accept_range(self) -> None:
+        rparen = self.expression.pop()
+        assert is_token_type(rparen, TokenType.RPAREN)
+
+        range_stop_token = self.expression.pop()
+        if range_stop_token.type_ not in (
+            TokenType.INT,
+            TokenType.SINGLE_QUOTE_STRING,
+            TokenType.DOUBLE_QUOTE_STRING,
+            TokenType.PATH,
+            TokenType.WORD,
+        ):
+            self.raise_for_token(
+                "expected an integer or variable to stop a range expression, "
+                f"found {range_stop_token.type_.name}",
+                range_stop_token,
             )
-            raise Exception(msg)
 
-        if self.accept(RE_WHITESPACE):
-            self.ignore()
-            return True
-        return False
+        double_dot = self.expression.pop()
+        if not is_token_type(double_dot, TokenType.DOUBLE_DOT):
+            self.raise_for_token("malformed range expression", double_dot)
 
-    def ignore_line_space(self) -> bool:
-        """Move the pointer past any allowed whitespace inside line statements."""
-        if self.pos != self.start:
-            msg = (
-                "must emit or ignore before consuming whitespace "
-                f"({self.source[self.start: self.pos]!r}:{self.pos})"
+        range_start_token = self.expression.pop()
+        if range_start_token.type_ not in (
+            TokenType.INT,
+            TokenType.SINGLE_QUOTE_STRING,
+            TokenType.DOUBLE_QUOTE_STRING,
+            TokenType.PATH,
+        ):
+            self.raise_for_token(
+                "expected an integer or variable to start a range expression, "
+                f"found {range_start_token.type_.name}",
+                range_start_token,
             )
-            raise Exception(msg)
 
-        if self.accept(RE_LINE_SPACE):
-            self.ignore()
-            return True
-        return False
+        lparen = self.expression.pop()
+        if not is_token_type(lparen, TokenType.LPAREN):
+            self.raise_for_token(
+                "range expressions must be surrounded by parentheses", lparen
+            )
 
-    def error(self, msg: str) -> None:
-        """Emit an error token."""
-        # better error messages.
-        self.markup.append(
-            ErrorToken(
-                type_=TokenType.ERROR,
-                index=self.pos,
-                value=self.source[self.start : self.pos],
+        self.expression.append(
+            RangeToken(
+                type_=TokenType.RANGE,
+                range_start=range_start_token,
+                range_stop=range_stop_token,
+                index=lparen.index,
                 source=self.source,
-                message=msg,
             )
         )
 
-    def accept_token(  # noqa: PLR0911
-        self,
-        *,
-        next_state: StateFn,
-        range_state: StateFn,
-    ) -> StateFn | None | Literal[False]:
+    def accept_token(self) -> bool:
         match = TOKEN_RULES.match(self.source, pos=self.pos)
 
         if not match:
@@ -499,7 +503,6 @@ class Lexer:
                 )
 
             self.start = self.pos
-            return next_state
 
         elif token_type := TOKEN_MAP.get(kind):
             self.expression.append(
@@ -517,13 +520,76 @@ class Lexer:
                 self.in_range = True
 
             if kind == "RPAREN" and self.in_range:
-                return range_state
-
-            return next_state
+                self.accept_range()
+                self.in_range = False
         else:
-            self.error(f"unknown token {self.source[self.start:self.pos]!r}")
-            return None
-        return next_state
+            msg = f"unknown token {self.source[self.start:self.pos]!r}"
+            raise LiquidSyntaxError(
+                msg,
+                token=ErrorToken(
+                    type_=TokenType.ERROR,
+                    index=self.start,
+                    value=self.source[self.start : self.pos],
+                    source=self.source,
+                    message=msg,
+                ),
+            )
+
+        return True
+
+    def ignore_whitespace(self) -> bool:
+        """Move the pointer past any whitespace."""
+        if self.pos != self.start:
+            msg = (
+                "must emit or ignore before consuming whitespace "
+                f"({self.source[self.start: self.pos]!r}:{self.pos})"
+            )
+            raise Exception(msg)
+
+        if self.accept(RE_WHITESPACE):
+            self.ignore()
+            return True
+        return False
+
+    def ignore_line_space(self) -> bool:
+        """Move the pointer past any allowed whitespace inside line statements."""
+        if self.pos != self.start:
+            msg = (
+                "must emit or ignore before consuming whitespace "
+                f"({self.source[self.start: self.pos]!r}:{self.pos})"
+            )
+            raise Exception(msg)
+
+        if self.accept(RE_LINE_SPACE):
+            self.ignore()
+            return True
+        return False
+
+    def error(self, msg: str) -> Never:
+        """Emit an error token."""
+        # better error messages.
+        raise LiquidSyntaxError(
+            msg,
+            token=ErrorToken(
+                type_=TokenType.ERROR,
+                index=self.pos,
+                value=self.source[self.start : self.pos],
+                source=self.source,
+                message=msg,
+            ),
+        )
+
+    def raise_for_token(self, msg: str, token: TokenT) -> Never:
+        raise LiquidSyntaxError(
+            msg,
+            token=ErrorToken(
+                type_=TokenType.ERROR,
+                index=token.start,
+                value=self.source[token.start : token.stop],
+                source=self.source,
+                message=msg,
+            ),
+        )
 
 
 def lex_markup(l: Lexer) -> StateFn | None:
@@ -599,7 +665,6 @@ def lex_markup(l: Lexer) -> StateFn | None:
             continue
 
         l.error("unreachable")
-        return None
 
 
 def lex_inside_output_statement(
@@ -607,12 +672,7 @@ def lex_inside_output_statement(
 ) -> StateFn | None:  # noqa: PLR0911, PLR0912, PLR0915
     while True:
         l.ignore_whitespace()
-        next_state = l.accept_token(
-            next_state=lex_inside_output_statement,
-            range_state=lex_range_inside_output_statement,
-        )
-
-        if next_state is False:
+        if not l.accept_token():
             if match := RE_OUTPUT_END.match(l.source, l.pos):
                 l.wc.append(WC_MAP[match.group(1)])
                 l.pos += len(match.group())
@@ -633,19 +693,12 @@ def lex_inside_output_statement(
                 return lex_markup
 
             l.error(f"unknown symbol '{l.next()}'")
-            return None
-
-        return next_state
 
 
 def lex_inside_tag(l: Lexer) -> StateFn | None:
     while True:
         l.ignore_whitespace()
-        next_state = l.accept_token(
-            next_state=lex_inside_tag, range_state=lex_range_inside_tag_expression
-        )
-
-        if next_state is False:
+        if not l.accept_token():
             if match := RE_TAG_END.match(l.source, l.pos):
                 l.wc.append(WC_MAP[match.group(1)])
                 l.pos += len(match.group())
@@ -666,9 +719,6 @@ def lex_inside_tag(l: Lexer) -> StateFn | None:
                 return lex_markup
 
             l.error(f"unknown symbol '{l.next()}'")
-            return None
-
-        return next_state
 
 
 def lex_inside_liquid_tag(l: Lexer) -> StateFn | None:
@@ -716,8 +766,7 @@ def lex_inside_liquid_tag(l: Lexer) -> StateFn | None:
         return lex_inside_liquid_tag
 
     l.next()
-    l.error("expected a tag name")
-    return None
+    return l.error("expected a tag name")
 
 
 def lex_inside_line_statement(l: Lexer) -> StateFn | None:
@@ -740,12 +789,7 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:
             l.expression = []
             return lex_inside_liquid_tag
 
-        next_state = l.accept_token(
-            next_state=lex_inside_line_statement,
-            range_state=lex_range_inside_line_statement,
-        )
-
-        if next_state is False:
+        if not l.accept_token():
             if match := RE_TAG_END.match(l.source, l.pos):
                 l.wc.append(WC_MAP[match.group(1)])
                 l.pos += len(match.group())
@@ -780,88 +824,10 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:
                 return lex_markup
 
             l.error(f"unknown symbol '{l.next()}'")
-            return None
-
-        return next_state
-
-
-# TODO: refactor into Lexer.accept_range()
-def lex_range_factory(next_state: StateFn) -> StateFn:
-    def _lex_range(l: Lexer) -> StateFn | None:
-        # TODO: handle IndexError from pop
-        rparen = l.expression.pop()
-        assert is_token_type(rparen, TokenType.RPAREN)
-
-        range_stop_token = l.expression.pop()
-        if range_stop_token.type_ not in (
-            TokenType.INT,
-            TokenType.SINGLE_QUOTE_STRING,
-            TokenType.DOUBLE_QUOTE_STRING,
-            TokenType.PATH,
-            TokenType.WORD,
-        ):
-            # TODO: fix error index
-            l.error(
-                "expected an integer or variable to stop a range expression, "
-                f"found {range_stop_token.type_.name}"
-            )
-            return None
-
-        double_dot = l.expression.pop()
-        if not is_token_type(double_dot, TokenType.DOUBLE_DOT):
-            # TODO: fix error index
-            l.error("malformed range expression")
-            return None
-
-        range_start_token = l.expression.pop()
-        if range_start_token.type_ not in (
-            TokenType.INT,
-            TokenType.SINGLE_QUOTE_STRING,
-            TokenType.DOUBLE_QUOTE_STRING,
-            TokenType.PATH,
-        ):
-            # TODO: fix error index
-            l.error(
-                "expected an integer or variable to start a range expression, "
-                f"found {range_start_token.type_.name}"
-            )
-            return None
-
-        lparen = l.expression.pop()
-        if not is_token_type(lparen, TokenType.LPAREN):
-            # TODO: fix error index
-            l.error("range expressions must be surrounded by parentheses")
-            return None
-
-        l.expression.append(
-            RangeToken(
-                type_=TokenType.RANGE,
-                range_start=range_start_token,
-                range_stop=range_stop_token,
-                index=lparen.index,
-                source=l.source,
-            )
-        )
-
-        l.in_range = False
-        return next_state
-
-    return _lex_range
-
-
-lex_range_inside_output_statement = lex_range_factory(lex_inside_output_statement)
-lex_range_inside_tag_expression = lex_range_factory(lex_inside_tag)
-lex_range_inside_line_statement = lex_range_factory(lex_inside_line_statement)
 
 
 def tokenize(source: str) -> list[TokenT]:
     """Scan Liquid template _source_ and return a list of Markup objects."""
     lexer = Lexer(source)
     lexer.run()
-
-    if lexer.markup:
-        last_token = lexer.markup[-1]
-        if isinstance(last_token, ErrorToken):
-            raise LiquidSyntaxError(last_token.message, token=last_token)
-
     return lexer.markup
