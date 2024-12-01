@@ -79,13 +79,10 @@ class ExtendsNode(Node):
     ) -> Iterable[Node]:
         """Return this node's children."""
         if _include_partials:
-            template = build_block_stacks(
-                static_context,
-                static_context.template,
-                self.name.value,
-                "extends",
+            parent = static_context.env.get_template(
+                self.name.value, context=static_context, tag=self.tag
             )
-            yield from template.nodes
+            yield from parent.nodes
 
     def expressions(self) -> Iterable[Expression]:
         """Return this node's expressions."""
@@ -514,7 +511,7 @@ def _visit_node(
     if isinstance(node, ExtendsNode):
         extends_nodes.append(node)
 
-    for child in node.children(context):
+    for child in node.children(context, _include_partials=False):
         _visit_node(
             child,
             extends_nodes=extends_nodes,

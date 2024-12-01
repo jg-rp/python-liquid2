@@ -176,6 +176,10 @@ def _analyze(template: Template, *, include_partials: bool) -> TemplateAnalysis:
         if partial := node.partial_scope():
             # TODO: something with dynamic partials
             partial_name = str(partial.name.evaluate(static_context))
+
+            if partial_name in seen:
+                return
+
             partial_scope = (
                 _StaticScope(set(partial.in_scope))
                 if partial.scope == PartialScope.ISOLATED

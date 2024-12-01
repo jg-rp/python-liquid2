@@ -232,282 +232,282 @@ def test_analyze_decrement(env: Environment) -> None:
     )
 
 
-# def test_analyze_echo(env: Environment) -> None:
-#     source = r"{% echo x | default: y, allow_false: z %}"
+def test_analyze_echo(env: Environment) -> None:
+    source = r"{% echo x | default: y, allow_false: z %}"
 
-#     _assert(
-#         env.from_string(source),
-#         locals={},
-#         globals={
-#             "x": Span("", 8, 9),
-#             "y": Span("", 21, 22),
-#             "z": Span("", 37, 38),
-#         },
-#         filters={
-#             "default": Span("", 12, 19),
-#         },
-#         tags={"echo": Span("", 0, 41)},
-#     )
-
-
-# def test_analyze_for(env: Environment) -> None:
-#     source = "\n".join(
-#         [
-#             r"{% for x in (1..y) %}",
-#             r"  {{ x }}",
-#             r"{% break %}",
-#             r"{% else %}",
-#             r"  {{ z }}",
-#             r"{% continue %}",
-#             r"{% endfor %}",
-#         ]
-#     )
-
-#     _assert(
-#         env.from_string(source),
-#         locals={},
-#         globals={
-#             "y": Span("", 16, 17),
-#             "z": Span("", 60, 61),
-#         },
-#         variables={
-#             "y": Span("", 16, 17),
-#             "x": Span("", 27, 28),
-#             "z": Span("", 60, 61),
-#         },
-#         filters={},
-#         tags={
-#             "for": Span("", 0, 21),
-#             "break": Span("", 32, 43),
-#             "continue": Span("", 65, 79),
-#         },
-#     )
+    _assert(
+        env.from_string(source),
+        locals={},
+        globals={
+            "x": [Variable(["x"], Span("", 8, 9))],
+            "y": [Variable(["y"], Span("", 21, 22))],
+            "z": [Variable(["z"], Span("", 37, 38))],
+        },
+        filters={
+            "default": [Span("", 12, 19)],
+        },
+        tags={"echo": [Span("", 0, 41)]},
+    )
 
 
-# def test_analyze_if(env: Environment) -> None:
-#     source = "\n".join(
-#         [
-#             r"{% if x %}",
-#             r"  {{ a }}",
-#             r"{% elsif y %}",
-#             r"  {{ b }}",
-#             r"{% else %}",
-#             r"  {{ c }}",
-#             r"{% endif %}",
-#         ]
-#     )
+def test_analyze_for(env: Environment) -> None:
+    source = "\n".join(
+        [
+            r"{% for x in (1..y) %}",
+            r"  {{ x }}",
+            r"{% break %}",
+            r"{% else %}",
+            r"  {{ z }}",
+            r"{% continue %}",
+            r"{% endfor %}",
+        ]
+    )
 
-#     _assert(
-#         env.from_string(source),
-#         locals={},
-#         globals={
-#             "x": Span("", 6, 7),
-#             "a": Span("", 16, 17),
-#             "y": Span("", 30, 31),
-#             "b": Span("", 40, 41),
-#             "c": Span("", 61, 62),
-#         },
-#         filters={},
-#         tags={
-#             "if": Span("", 0, 10),
-#         },
-#     )
-
-
-# def test_analyze_increment(env: Environment) -> None:
-#     source = r"{% increment x %}"
-
-#     _assert(
-#         env.from_string(source),
-#         locals={"x": Span("", 13, 14)},
-#         globals={},
-#         tags={"increment": Span("", 0, 17)},
-#     )
+    _assert(
+        env.from_string(source),
+        locals={},
+        globals={
+            "y": [Variable(["y"], Span("", 16, 17))],
+            "z": [Variable(["z"], Span("", 60, 61))],
+        },
+        variables={
+            "y": [Variable(["y"], Span("", 16, 17))],
+            "x": [Variable(["x"], Span("", 27, 28))],
+            "z": [Variable(["z"], Span("", 60, 61))],
+        },
+        filters={},
+        tags={
+            "for": [Span("", 0, 21)],
+            "break": [Span("", 32, 43)],
+            "continue": [Span("", 65, 79)],
+        },
+    )
 
 
-# def test_analyze_liquid(env: Environment) -> None:
-#     source = """\
-# {% liquid
-# if product.title
-#     echo foo | upcase
-# else
-#     echo 'product-1' | upcase
-# endif
+def test_analyze_if(env: Environment) -> None:
+    source = "\n".join(
+        [
+            r"{% if x %}",
+            r"  {{ a }}",
+            r"{% elsif y %}",
+            r"  {{ b }}",
+            r"{% else %}",
+            r"  {{ c }}",
+            r"{% endif %}",
+        ]
+    )
 
-# for i in (0..5)
-#     echo i
-# endfor %}"""
-
-#     _assert(
-#         env.from_string(source),
-#         locals={},
-#         globals={
-#             "product.title": Span("", 13, 26),
-#             "foo": Span("", 36, 39),
-#         },
-#         variables={
-#             "product.title": Span("", 13, 26),
-#             "foo": Span("", 36, 39),
-#             "i": Span("", 116, 117),
-#         },
-#         filters={"upcase": [Span("", 42, 48), Span("", 77, 83)]},
-#         tags={
-#             "liquid": Span("", 0, 127),
-#             "echo": [Span("", 31, 48), Span("", 58, 83), Span("", 111, 117)],
-#             "for": Span("", 91, 106),
-#             "if": Span("", 10, 26),
-#         },
-#     )
+    _assert(
+        env.from_string(source),
+        locals={},
+        globals={
+            "x": [Variable(["x"], Span("", 6, 7))],
+            "a": [Variable(["a"], Span("", 16, 17))],
+            "y": [Variable(["y"], Span("", 30, 31))],
+            "b": [Variable(["b"], Span("", 40, 41))],
+            "c": [Variable(["c"], Span("", 61, 62))],
+        },
+        filters={},
+        tags={
+            "if": [Span("", 0, 10)],
+        },
+    )
 
 
-# def test_analyze_unless(env: Environment) -> None:
-#     source = """\
-# {% unless x %}
-#   {{ a }}
-# {% elsif y %}
-#   {{ b }}
-# {% else %}
-#   {{ c }}
-# {% endunless %}"""
+def test_analyze_increment(env: Environment) -> None:
+    source = r"{% increment x %}"
 
-#     _assert(
-#         env.from_string(source),
-#         locals={},
-#         globals={
-#             "x": Span("", 10, 11),
-#             "a": Span("", 20, 21),
-#             "y": Span("", 34, 35),
-#             "b": Span("", 44, 45),
-#             "c": Span("", 65, 66),
-#         },
-#         tags={
-#             "unless": Span("", 0, 14),
-#         },
-#     )
+    _assert(
+        env.from_string(source),
+        locals={"x": [Variable(["x"], Span("", 13, 14))]},
+        globals={},
+        tags={"increment": [Span("", 0, 17)]},
+    )
 
 
-# def test_analyze_include() -> None:
-#     loader = DictLoader({"a": "{{ x }}"})
-#     env = Environment(loader=loader)
-#     source = "{% include 'a' %}"
+def test_analyze_liquid(env: Environment) -> None:
+    source = """\
+{% liquid
+if product.title
+    echo foo | upcase
+else
+    echo 'product-1' | upcase
+endif
 
-#     _assert(
-#         env.from_string(source),
-#         locals={},
-#         globals={
-#             "x": Span("", 3, 4, template_name="a"),
-#         },
-#         tags={
-#             "include": Span("", 0, 17),
-#         },
-#     )
+for i in (0..5)
+    echo i
+endfor %}"""
 
-
-# def test_analyze_included_assign() -> None:
-#     loader = DictLoader({"a": "{{ x }}{% assign y = 42 %}"})
-#     env = Environment(loader=loader)
-#     source = "{% include 'a' %}{{ y }}"
-
-#     _assert(
-#         env.from_string(source),
-#         locals={
-#             "y": Span("", 17, 18, template_name="a"),
-#         },
-#         globals={
-#             "x": Span("", 3, 4, template_name="a"),
-#         },
-#         variables={
-#             "x": Span("", 3, 4, template_name="a"),
-#             "y": Span("", 20, 21),
-#         },
-#         tags={
-#             "include": Span("", 0, 17),
-#             "assign": Span("", 7, 26, template_name="a"),
-#         },
-#     )
+    _assert(
+        env.from_string(source),
+        locals={},
+        globals={
+            "product": [Variable(["product", "title"], Span("", 13, 26))],
+            "foo": [Variable(["foo"], Span("", 36, 39))],
+        },
+        variables={
+            "product": [Variable(["product", "title"], Span("", 13, 26))],
+            "foo": [Variable(["foo"], Span("", 36, 39))],
+            "i": [Variable(["i"], Span("", 116, 117))],
+        },
+        filters={"upcase": [Span("", 42, 48), Span("", 77, 83)]},
+        tags={
+            "liquid": [Span("", 0, 127)],
+            "echo": [Span("", 31, 48), Span("", 58, 83), Span("", 111, 117)],
+            "for": [Span("", 91, 106)],
+            "if": [Span("", 10, 26)],
+        },
+    )
 
 
-# def test_analyze_include_once() -> None:
-#     loader = DictLoader({"a": "{{ x }}"})
-#     env = Environment(loader=loader)
-#     source = "{% include 'a' %}{% include 'a' %}"
+def test_analyze_unless(env: Environment) -> None:
+    source = """\
+{% unless x %}
+  {{ a }}
+{% elsif y %}
+  {{ b }}
+{% else %}
+  {{ c }}
+{% endunless %}"""
 
-#     _assert(
-#         env.from_string(source),
-#         locals={},
-#         globals={
-#             "x": Span("", 3, 4, template_name="a"),
-#         },
-#         tags={
-#             "include": [Span("", 0, 17), Span("", 17, 34)],
-#         },
-#     )
-
-
-# def test_analyze_include_recursive() -> None:
-#     loader = DictLoader({"a": "{{ x }}{% include 'a' %}"})
-#     env = Environment(loader=loader)
-#     source = "{% include 'a' %}"
-
-#     _assert(
-#         env.from_string(source),
-#         locals={},
-#         globals={
-#             "x": Span("", 3, 4, template_name="a"),
-#         },
-#         tags={
-#             "include": [
-#                 Span("", 0, 17),
-#                 Span("", 7, 24, template_name="a"),
-#             ],
-#         },
-#     )
+    _assert(
+        env.from_string(source),
+        locals={},
+        globals={
+            "x": [Variable(["x"], Span("", 10, 11))],
+            "a": [Variable(["a"], Span("", 20, 21))],
+            "y": [Variable(["y"], Span("", 34, 35))],
+            "b": [Variable(["b"], Span("", 44, 45))],
+            "c": [Variable(["c"], Span("", 65, 66))],
+        },
+        tags={
+            "unless": [Span("", 0, 14)],
+        },
+    )
 
 
-# def test_analyze_include_with_bound_variable() -> None:
-#     loader = DictLoader({"a": "{{ x | append: y }}{{ a }}"})
-#     env = Environment(loader=loader)
-#     source = "{% include 'a' with z %}"
+def test_analyze_include() -> None:
+    loader = DictLoader({"a": "{{ x }}"})
+    env = Environment(loader=loader)
+    source = "{% include 'a' %}"
 
-#     _assert(
-#         env.from_string(source),
-#         locals={},
-#         globals={
-#             "z": Span("", 20, 21),
-#             "x": Span("", 3, 4, template_name="a"),
-#             "y": Span("", 15, 16, template_name="a"),
-#         },
-#         variables={
-#             "z": Span("", 20, 21),
-#             "x": Span("", 3, 4, template_name="a"),
-#             "y": Span("", 15, 16, template_name="a"),
-#             "a": Span("", 22, 23, template_name="a"),
-#         },
-#         tags={"include": [Span("", 0, 24)]},
-#         filters={"append": Span("", 7, 13, template_name="a")},
-#     )
+    _assert(
+        env.from_string(source),
+        locals={},
+        globals={
+            "x": [Variable(["x"], Span("a", 3, 4))],
+        },
+        tags={
+            "include": [Span("", 0, 17)],
+        },
+    )
 
 
-# def test_analyze_include_with_bound_alias() -> None:
-#     loader = DictLoader({"a": "{{ x | append: y }}"})
-#     env = Environment(loader=loader)
-#     source = "{% include 'a' with z as y %}"
+def test_analyze_included_assign() -> None:
+    loader = DictLoader({"a": "{{ x }}{% assign y = 42 %}"})
+    env = Environment(loader=loader)
+    source = "{% include 'a' %}{{ y }}"
 
-#     _assert(
-#         env.from_string(source),
-#         locals={},
-#         globals={
-#             "z": Span("", 20, 21),
-#             "x": Span("", 3, 4, template_name="a"),
-#         },
-#         variables={
-#             "z": Span("", 20, 21),
-#             "x": Span("", 3, 4, template_name="a"),
-#             "y": Span("", 15, 16, template_name="a"),
-#         },
-#         tags={"include": [Span("", 0, 29)]},
-#         filters={"append": Span("", 7, 13, template_name="a")},
-#     )
+    _assert(
+        env.from_string(source),
+        locals={
+            "y": [Variable(["y"], Span("a", 17, 18))],
+        },
+        globals={
+            "x": [Variable(["x"], Span("a", 3, 4))],
+        },
+        variables={
+            "x": [Variable(["x"], Span("a", 3, 4))],
+            "y": [Variable(["y"], Span("", 20, 21))],
+        },
+        tags={
+            "include": [Span("", 0, 17)],
+            "assign": [Span("a", 7, 26)],
+        },
+    )
+
+
+def test_analyze_include_once() -> None:
+    loader = DictLoader({"a": "{{ x }}"})
+    env = Environment(loader=loader)
+    source = "{% include 'a' %}{% include 'a' %}"
+
+    _assert(
+        env.from_string(source),
+        locals={},
+        globals={
+            "x": [Variable(["x"], Span("a", 3, 4))],
+        },
+        tags={
+            "include": [Span("", 0, 17), Span("", 17, 34)],
+        },
+    )
+
+
+def test_analyze_include_recursive() -> None:
+    loader = DictLoader({"a": "{{ x }}{% include 'a' %}"})
+    env = Environment(loader=loader)
+    source = "{% include 'a' %}"
+
+    _assert(
+        env.from_string(source),
+        locals={},
+        globals={
+            "x": [Variable(["x"], Span("a", 3, 4))],
+        },
+        tags={
+            "include": [
+                Span("", 0, 17),
+                Span("a", 7, 24),
+            ],
+        },
+    )
+
+
+def test_analyze_include_with_bound_variable() -> None:
+    loader = DictLoader({"a": "{{ x | append: y }}{{ a }}"})
+    env = Environment(loader=loader)
+    source = "{% include 'a' with z %}"
+
+    _assert(
+        env.from_string(source),
+        locals={},
+        globals={
+            "z": [Variable(["z"], Span("", 20, 21))],
+            "x": [Variable(["x"], Span("a", 3, 4))],
+            "y": [Variable(["y"], Span("a", 15, 16))],
+        },
+        variables={
+            "z": [Variable(["z"], Span("", 20, 21))],
+            "x": [Variable(["x"], Span("a", 3, 4))],
+            "y": [Variable(["y"], Span("a", 15, 16))],
+            "a": [Variable(["a"], Span("a", 22, 23))],
+        },
+        tags={"include": [Span("", 0, 24)]},
+        filters={"append": [Span("a", 7, 13)]},
+    )
+
+
+def test_analyze_include_with_bound_alias() -> None:
+    loader = DictLoader({"a": "{{ x | append: y }}"})
+    env = Environment(loader=loader)
+    source = "{% include 'a' with z as y %}"
+
+    _assert(
+        env.from_string(source),
+        locals={},
+        globals={
+            "z": [Variable(["z"], Span("", 20, 21))],
+            "x": [Variable(["x"], Span("a", 3, 4))],
+        },
+        variables={
+            "z": [Variable(["z"], Span("", 20, 21))],
+            "x": [Variable(["x"], Span("a", 3, 4))],
+            "y": [Variable(["y"], Span("a", 15, 16))],
+        },
+        tags={"include": [Span("", 0, 29)]},
+        filters={"append": [Span("a", 7, 13)]},
+    )
 
 
 # def test_analyze_include_with_arguments() -> None:
