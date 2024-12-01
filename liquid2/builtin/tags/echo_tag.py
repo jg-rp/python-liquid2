@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+from typing import Iterable
 from typing import TextIO
 
-from liquid2 import MetaNode
 from liquid2 import Node
 from liquid2 import Tag
 from liquid2 import TagToken
@@ -48,9 +48,9 @@ class EchoNode(Node):
             )
         )
 
-    def children(self) -> list[MetaNode]:
-        """Return a list of child nodes and/or expressions associated with this node."""
-        return [MetaNode(token=self.expression.token, expression=self.expression)]
+    def expressions(self) -> Iterable[Expression]:
+        """Return this node's children."""
+        yield self.expression
 
 
 class EchoTag(Tag):

@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+from typing import Iterable
 from typing import TextIO
 
 from liquid2 import BlockNode
 from liquid2 import LinesToken
-from liquid2 import MetaNode
 from liquid2 import Node
 from liquid2 import Tag
 from liquid2 import TokenStream
@@ -40,9 +40,11 @@ class LiquidNode(Node):
         """Render the node to the output buffer."""
         return await self.block.render_async(context, buffer)
 
-    def children(self) -> list[MetaNode]:
-        """Return a list of child nodes and/or expressions associated with this node."""
-        return self.block.children()
+    def children(
+        self, _static_context: RenderContext, *, _include_partials: bool = True
+    ) -> Iterable[Node]:
+        """Return this node's children."""
+        yield self.block
 
 
 class LiquidTag(Tag):

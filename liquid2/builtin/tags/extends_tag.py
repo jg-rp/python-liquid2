@@ -6,6 +6,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from typing import DefaultDict
+from typing import Iterable
 from typing import Iterator
 from typing import Mapping
 from typing import Sequence
@@ -14,12 +15,13 @@ from typing import TextIO
 from markupsafe import Markup as Markupsafe
 
 from liquid2 import BlockNode as TemplateBlock
-from liquid2 import MetaNode
 from liquid2 import Node
 from liquid2 import Tag
 from liquid2 import TagToken
 from liquid2 import TokenStream
 from liquid2 import TokenType
+from liquid2.ast import Partial
+from liquid2.ast import PartialScope
 from liquid2.builtin import Identifier
 from liquid2.builtin import StringLiteral
 from liquid2.builtin import parse_string_or_identifier
@@ -31,6 +33,7 @@ if TYPE_CHECKING:
     from liquid2 import RenderContext
     from liquid2 import Template
     from liquid2 import TokenT
+    from liquid2.expression import Expression
 
 
 class ExtendsNode(Node):
@@ -71,16 +74,26 @@ class ExtendsNode(Node):
         context.tag_namespace["extends"].clear()
         raise StopRender
 
-    def children(self) -> list[MetaNode]:
-        """Return a list of child nodes and/or expressions associated with this node."""
-        return [
-            MetaNode(
-                token=self.name.token,
-                expression=self.name,
-                load_mode="extends",
-                load_context={"tag": self.tag},
+    def children(
+        self, static_context: RenderContext, *, _include_partials: bool = True
+    ) -> Iterable[Node]:
+        """Return this node's children."""
+        if _include_partials:
+            template = build_block_stacks(
+                static_context,
+                static_context.template,
+                self.name.value,
+                "extends",
             )
-        ]
+            yield from template.nodes
+
+    def expressions(self) -> Iterable[Expression]:
+        """Return this node's expressions."""
+        yield self.name
+
+    def partial_scope(self) -> Partial | None:
+        """Return information about a partial template loaded by this node."""
+        return Partial(name=self.name, scope=PartialScope.INHERITED, in_scope=[])
 
 
 class ExtendsTag(Tag):
@@ -224,15 +237,15 @@ class BlockNode(Node):
         )
         return await stack_item.block.block.render_async(ctx, buffer)
 
-    def children(self) -> list[MetaNode]:
-        """Return a list of child nodes and/or expressions associated with this node."""
-        return [
-            MetaNode(
-                token=self.token,
-                node=self.block,
-                block_scope=[Identifier("block", token=self.token)],
-            )
-        ]
+    def children(
+        self, _static_context: RenderContext, *, _include_partials: bool = True
+    ) -> Iterable[Node]:
+        """Return this node's expressions."""
+        yield self.block
+
+    def block_scope(self) -> Iterable[Identifier]:
+        """Return variables this node adds to the node's block scope."""
+        yield Identifier("block", token=self.token)
 
 
 class BlockTag(Tag):
@@ -472,7 +485,7 @@ async def build_block_stacks_async(
 
 
 def find_inheritance_nodes(
-    template: Template,
+    template: Template, context: RenderContext
 ) -> tuple[list["ExtendsNode"], list[BlockNode]]:
     """Return lists of `extends` and `block` nodes from the given template."""
     extends_nodes: list["ExtendsNode"] = []
@@ -483,6 +496,7 @@ def find_inheritance_nodes(
             node,
             extends_nodes=extends_nodes,
             block_nodes=block_nodes,
+            context=context,
         )
 
     return extends_nodes, block_nodes
@@ -492,6 +506,7 @@ def _visit_node(
     node: Node,
     extends_nodes: list["ExtendsNode"],
     block_nodes: list[BlockNode],
+    context: RenderContext,
 ) -> None:
     if isinstance(node, BlockNode):
         block_nodes.append(node)
@@ -499,13 +514,13 @@ def _visit_node(
     if isinstance(node, ExtendsNode):
         extends_nodes.append(node)
 
-    for child in node.children():
-        if child.node:
-            _visit_node(
-                child.node,
-                extends_nodes=extends_nodes,
-                block_nodes=block_nodes,
-            )
+    for child in node.children(context):
+        _visit_node(
+            child,
+            extends_nodes=extends_nodes,
+            block_nodes=block_nodes,
+            context=context,
+        )
 
 
 def stack_blocks(
@@ -515,7 +530,7 @@ def stack_blocks(
 
     Each node found is pushed on to the appropriate block stack.
     """
-    extends, blocks = find_inheritance_nodes(template)
+    extends, blocks = find_inheritance_nodes(template, context)
     template_name = str(template.path or template.name)
 
     if len(extends) > 1:

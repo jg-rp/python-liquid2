@@ -25,7 +25,6 @@ from .stream import TokenStream
 from .tag import Tag
 from .ast import BlockNode
 from .ast import ConditionalBlockNode
-from .ast import MetaNode
 from .ast import Node
 from .context import RenderContext
 from .unescape import unescape
@@ -76,7 +75,6 @@ __all__ = (
     "is_tag_token",
     "is_token_type",
     "LinesToken",
-    "MetaNode",
     "Node",
     "OutputToken",
     "parse",

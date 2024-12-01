@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+from typing import Iterable
 from typing import TextIO
 
-from liquid2 import MetaNode
 from liquid2 import Node
 from liquid2 import Tag
 from liquid2 import TagToken
@@ -32,9 +32,9 @@ class DecrementNode(Node):
         """Render the node to the output buffer."""
         return buffer.write(str(context.decrement(self.name)))
 
-    def children(self) -> list[MetaNode]:
-        """Return a list of child nodes and/or expressions associated with this node."""
-        return [MetaNode(token=self.token, template_scope=[self.name])]
+    def template_scope(self) -> Iterable[Identifier]:
+        """Return variables this node adds to the template local scope."""
+        yield self.name
 
 
 class DecrementTag(Tag):

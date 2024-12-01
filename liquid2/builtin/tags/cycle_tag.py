@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+from typing import Iterable
 from typing import TextIO
 
-from liquid2 import MetaNode
 from liquid2 import Node
 from liquid2 import Tag
 from liquid2 import TagToken
@@ -56,10 +56,9 @@ class CycleNode(Node):
             )
         )
 
-    def children(self) -> list[MetaNode]:
-        """Return a list of child nodes and/or expressions associated with this node."""
-        # TODO: use arg.token
-        return [MetaNode(token=self.token, expression=arg) for arg in self.items]
+    def expressions(self) -> Iterable[Expression]:
+        """Return this node's expressions."""
+        yield from self.items
 
 
 class CycleTag(Tag):

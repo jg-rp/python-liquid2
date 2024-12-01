@@ -3,17 +3,20 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+from typing import Iterable
 from typing import Sequence
 from typing import TextIO
 
-from liquid2 import MetaNode
 from liquid2 import Node
 from liquid2 import Tag
 from liquid2 import TagToken
 from liquid2 import TokenStream
 from liquid2 import TokenType
 from liquid2 import is_token_type
+from liquid2.ast import Partial
+from liquid2.ast import PartialScope
 from liquid2.builtin import Identifier
+from liquid2.builtin import Literal
 from liquid2.builtin import StringLiteral
 from liquid2.builtin import parse_keyword_arguments
 from liquid2.builtin import parse_primitive
@@ -163,41 +166,41 @@ class RenderNode(Node):
 
         return character_count
 
-    def children(self) -> list[MetaNode]:
-        """Return a list of child nodes and/or expressions associated with this node."""
-        block_scope: list[Identifier] = [
-            Identifier(arg.name, token=arg.token) for arg in self.args
-        ]
-
-        children = [
-            MetaNode(
-                token=self.name.token,
-                expression=self.name,
-                block_scope=block_scope,
-                load_mode="render",
-                load_context={"tag": "render"},
+    def children(
+        self, static_context: RenderContext, *, _include_partials: bool = True
+    ) -> Iterable[Node]:
+        """Return this node's children."""
+        if _include_partials:
+            name = self.name.evaluate(static_context)
+            template = static_context.env.get_template(
+                str(name), context=static_context, tag=self.tag
             )
+            yield from template.nodes
+
+    def expressions(self) -> Iterable[Expression]:
+        """Return this node's expressions."""
+        yield self.name
+        if self.var:
+            yield self.var
+        yield from (arg.value for arg in self.args)
+
+    def partial_scope(self) -> Partial | None:
+        """Return information about a partial template loaded by this node."""
+        scope: list[Identifier] = [
+            Identifier(arg.name, token=arg.token) for arg in self.args
         ]
 
         if self.var:
             if self.alias:
-                block_scope.append(self.alias)
-            else:
-                block_scope.append(
+                scope.append(self.alias)
+            elif isinstance(self.name, Literal):
+                scope.append(
                     Identifier(
                         str(self.name.value).split(".", 1)[0], token=self.name.token
                     )
                 )
-            children.append(
-                MetaNode(
-                    token=self.token,
-                    expression=self.var,
-                )
-            )
 
-        for arg in self.args:
-            children.append(MetaNode(token=arg.token, expression=arg.value))
-        return children
+        return Partial(name=self.name, scope=PartialScope.ISOLATED, in_scope=scope)
 
 
 class RenderTag(Tag):
