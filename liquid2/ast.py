@@ -78,7 +78,14 @@ class Node(ABC):
         """Return this node's children."""
         return []
 
-    # TODO: children_async
+    async def children_async(
+        self,
+        _static_context: RenderContext,
+        *,
+        _include_partials: bool = True,
+    ) -> Iterable[Node]:
+        """An async version of `children()`."""
+        return self.children(_static_context, _include_partials=_include_partials)
 
     def expressions(self) -> Iterable[Expression]:
         """Return this node's expressions."""

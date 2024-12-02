@@ -13,6 +13,7 @@ from .exceptions import LiquidInterrupt
 from .exceptions import LiquidSyntaxError
 from .exceptions import StopRender
 from .static_analysis import _analyze
+from .static_analysis import _analyze_async
 from .utils import ReadOnlyChainMap
 
 if TYPE_CHECKING:
@@ -139,32 +140,15 @@ class Template:
             self.overlay_data,
         )
 
-    def analyze(
-        self,
-        *,
-        include_partials: bool = True,
-        raise_for_failures: bool = True,
-    ) -> TemplateAnalysis:
+    def analyze(self, *, include_partials: bool = True) -> TemplateAnalysis:
         """Statically analyze this template and any included/rendered templates.
 
         Args:
             include_partials: If `True`, we will try to load partial templates and
                 analyze those templates too.
-            raise_for_failures: If `True`, will raise an exception if an
-                `ast.Node` or `expression.Expression` does not define a `children()`
-                method, or if a partial template can not be loaded. When `False`, no
-                exception is raised and a mapping of failed nodes and expressions is
-                available as the `failed_visits` property. A mapping of unloadable
-                partial templates is stored in the `unloadable_partials` property.
         """
         return _analyze(self, include_partials=include_partials)
 
-    async def analyze_async(
-        self,
-        *,
-        include_partials: bool = True,
-        raise_for_failures: bool = True,
-    ) -> TemplateAnalysis:
+    async def analyze_async(self, *, include_partials: bool = True) -> TemplateAnalysis:
         """An async version of `analyze`."""
-        # TODO: async
-        return _analyze(self, include_partials=include_partials)
+        return await _analyze_async(self, include_partials=include_partials)

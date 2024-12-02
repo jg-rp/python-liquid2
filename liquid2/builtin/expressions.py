@@ -305,6 +305,10 @@ class Path(Expression):
         super().__init__(token=token)
         self.path = [Path(p, p.path) if isinstance(p, PathToken) else p for p in path]
 
+        if isinstance(self.path[0], Path):
+            # Flatten root segment
+            self.path = self.path[0].path + self.path[1:]
+
     def __str__(self) -> str:
         it = iter(self.path)
         buf = [str(next(it))]

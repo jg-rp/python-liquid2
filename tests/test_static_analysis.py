@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import asyncio
+import itertools
 from typing import TYPE_CHECKING
 
 import pytest
 
 from liquid2 import Environment
 from liquid2.builtin import DictLoader
-from liquid2.exceptions import TemplateInheritanceError
+from liquid2.exceptions import TemplateNotFound
 from liquid2.static_analysis import Span
 from liquid2.static_analysis import Variable
 
@@ -29,25 +30,18 @@ def _assert(
     locals: dict[str, list[Variable]],
     globals: dict[str, list[Variable]],
     variables: dict[str, list[Variable]] | None = None,
-    unloadable: dict[str, list[Span]] | None = None,
-    raise_for_failures: bool = True,
     filters: dict[str, list[Span]] | None = None,
     tags: dict[str, list[Span]] | None = None,
 ) -> None:
     variables = {**globals} if variables is None else variables
 
     async def coro() -> TemplateAnalysis:
-        return await template.analyze_async(raise_for_failures=raise_for_failures)
+        return await template.analyze_async()
 
     def _assert_refs(got: TemplateAnalysis) -> None:
         assert got.locals == locals
         assert got.globals == globals
         assert got.variables == variables
-
-        if unloadable:
-            assert got.unloadable == unloadable
-        else:
-            assert len(got.unloadable) == 0
 
         if filters:
             assert got.filters == filters
@@ -59,10 +53,8 @@ def _assert(
         else:
             assert len(got.tags) == 0
 
-    _assert_refs(template.analyze(raise_for_failures=raise_for_failures))
-
-    # XXX:
-    # _assert_refs(asyncio.run(coro()))
+    _assert_refs(template.analyze())
+    _assert_refs(asyncio.run(coro()))
 
 
 def test_analyze_output(env: Environment) -> None:
@@ -105,12 +97,25 @@ def test_quoted_name_notation(env: Environment) -> None:
 def test_nested_queries(env: Environment) -> None:
     source = r"{{ x[y.z].title }}"
 
-    y = Variable(["y", "z"], Span("", 5, 8))
+    _assert(
+        env.from_string(source),
+        locals={},
+        globals={
+            "x": [Variable(["x", ["y", "z"], "title"], Span("", 3, 15))],
+            "y": [Variable(["y", "z"], Span("", 5, 8))],
+        },
+    )
+
+
+def test_nested_root_query(env: Environment) -> None:
+    source = r"{{ [a.b] }}"
 
     _assert(
         env.from_string(source),
         locals={},
-        globals={"x": [Variable(["x", y, "title"], Span("", 3, 15))], "y": [y]},
+        globals={
+            "a": [Variable(["a", "b"], Span("", 3, 8))],
+        },
     )
 
 
@@ -510,322 +515,338 @@ def test_analyze_include_with_bound_alias() -> None:
     )
 
 
-# def test_analyze_include_with_arguments() -> None:
-#     loader = DictLoader({"a": "{{ x | append: y }}"})
-#     env = Environment(loader=loader)
-#     source = "{% include 'a', x:y, z:42 %}{{ x }}"
+def test_analyze_include_with_arguments() -> None:
+    loader = DictLoader({"a": "{{ x | append: y }}"})
+    env = Environment(loader=loader)
+    source = "{% include 'a', x:y, z:42 %}{{ x }}"
 
-#     _assert(
-#         env.from_string(source),
-#         locals={},
-#         globals={
-#             "y": [Span("", 15, 16, template_name="a"), Span("", 18, 19)],
-#             "x": Span("", 31, 32),
-#         },
-#         variables={
-#             "y": [Span("", 18, 19), Span("", 15, 16, template_name="a")],
-#             "x": [Span("", 31, 32), Span("", 3, 4, template_name="a")],
-#         },
-#         tags={"include": [Span("", 0, 28)]},
-#         filters={"append": Span("", 7, 13, template_name="a")},
-#     )
-
-
-# def test_analyze_include_with_variable_name(env: Environment) -> None:
-#     source = "{% include b %}{{ x }}"
-
-#     _assert(
-#         env.from_string(source),
-#         locals={},
-#         globals={
-#             "b": Span("", 11, 12),
-#             "x": Span("", 18, 19),
-#         },
-#         tags={"include": [Span("", 0, 15)]},
-#         unloadable={"b": Span("", 11, 12)},
-#         raise_for_failures=False,
-#     )
+    _assert(
+        env.from_string(source),
+        locals={},
+        globals={
+            "y": [
+                Variable(["y"], Span("", 18, 19)),
+                Variable(["y"], Span("a", 15, 16)),
+            ],
+            "x": [Variable(["x"], Span("", 31, 32))],
+        },
+        variables={
+            "y": [
+                Variable(["y"], Span("", 18, 19)),
+                Variable(["y"], Span("a", 15, 16)),
+            ],
+            "x": [
+                Variable(["x"], Span("a", 3, 4)),
+                Variable(["x"], Span("", 31, 32)),
+            ],
+        },
+        tags={"include": [Span("", 0, 28)]},
+        filters={"append": [Span("a", 7, 13)]},
+    )
 
 
-# def test_analyze_include_string_template_not_found(env: Environment) -> None:
-#     source = "{% include 'nosuchthing' %}{{ x }}"
+def test_analyze_include_with_variable_name(env: Environment) -> None:
+    source = "{% include b %}{{ x }}"
+    template = env.from_string(source)
 
-#     _assert(
-#         env.from_string(source),
-#         locals={},
-#         globals={"x": Span("", 30, 31)},
-#         tags={"include": [Span("", 0, 27)]},
-#         unloadable={"nosuchthing": Span("", 12, 23)},
-#         raise_for_failures=False,
-#     )
+    with pytest.raises(TemplateNotFound):
+        template.analyze()
 
 
-# def test_analyze_render_assign() -> None:
-#     loader = DictLoader({"a": "{{ x }}{% assign y = 42 %}"})
-#     env = Environment(loader=loader)
-#     source = "{% render 'a' %}{{ y }}"
+def test_analyze_include_string_template_not_found(env: Environment) -> None:
+    source = "{% include 'nosuchthing' %}{{ x }}"
+    template = env.from_string(source)
 
-#     _assert(
-#         env.from_string(source),
-#         locals={
-#             "y": Span("", 17, 18, template_name="a"),
-#         },
-#         globals={
-#             "x": Span("", 3, 4, template_name="a"),
-#             "y": Span("", 19, 20),
-#         },
-#         tags={
-#             "render": Span("", 0, 16),
-#             "assign": Span("", 7, 26, template_name="a"),
-#         },
-#     )
+    with pytest.raises(TemplateNotFound):
+        template.analyze()
 
 
-# def test_analyze_render_once() -> None:
-#     loader = DictLoader({"a": "{{ x }}"})
-#     env = Environment(loader=loader)
-#     source = "{% render 'a' %}{% render 'a' %}"
+def test_analyze_render_assign() -> None:
+    loader = DictLoader({"a": "{{ x }}{% assign y = 42 %}"})
+    env = Environment(loader=loader)
+    source = "{% render 'a' %}{{ y }}"
 
-#     _assert(
-#         env.from_string(source),
-#         locals={},
-#         globals={
-#             "x": Span("", 3, 4, template_name="a"),
-#         },
-#         tags={
-#             "render": [Span("", 0, 16), Span("", 16, 32)],
-#         },
-#     )
-
-
-# def test_analyze_render_recursive() -> None:
-#     loader = DictLoader({"a": "{{ x }}{% render 'a' %}"})
-#     env = Environment(loader=loader)
-#     source = "{% render 'a' %}"
-
-#     _assert(
-#         env.from_string(source),
-#         locals={},
-#         globals={
-#             "x": Span("", 3, 4, template_name="a"),
-#         },
-#         tags={
-#             "render": [
-#                 Span("", 0, 16),
-#                 Span("", 7, 23, template_name="a"),
-#             ],
-#         },
-#     )
+    _assert(
+        env.from_string(source),
+        locals={
+            "y": [Variable(["y"], Span("a", 17, 18))],
+        },
+        globals={
+            "x": [Variable(["x"], Span("a", 3, 4))],
+            "y": [Variable(["y"], Span("", 19, 20))],
+        },
+        tags={
+            "render": [Span("", 0, 16)],
+            "assign": [Span("a", 7, 26)],
+        },
+    )
 
 
-# def test_analyze_render_with_bound_variable() -> None:
-#     loader = DictLoader({"a": "{{ x | append: y }}{{ a }}"})
-#     env = Environment(loader=loader)
-#     source = "{% render 'a' with z %}"
+def test_analyze_render_once() -> None:
+    loader = DictLoader({"a": "{{ x }}"})
+    env = Environment(loader=loader)
+    source = "{% render 'a' %}{% render 'a' %}"
 
-#     # Defaults to binding the value at `z` to the rendered template's name.
-
-#     _assert(
-#         env.from_string(source),
-#         locals={},
-#         globals={
-#             "z": Span("", 19, 20),
-#             "x": Span("", 3, 4, template_name="a"),
-#             "y": Span("", 15, 16, template_name="a"),
-#         },
-#         variables={
-#             "z": Span("", 19, 20),
-#             "x": Span("", 3, 4, template_name="a"),
-#             "y": Span("", 15, 16, template_name="a"),
-#             "a": Span("", 22, 23, template_name="a"),
-#         },
-#         tags={"render": [Span("", 0, 23)]},
-#         filters={"append": Span("", 7, 13, template_name="a")},
-#     )
+    _assert(
+        env.from_string(source),
+        locals={},
+        globals={
+            "x": [Variable(["x"], Span("a", 3, 4))],
+        },
+        tags={
+            "render": [Span("", 0, 16), Span("", 16, 32)],
+        },
+    )
 
 
-# def test_analyze_render_with_bound_alias() -> None:
-#     loader = DictLoader({"a": "{{ x | append: y }}"})
-#     env = Environment(loader=loader)
-#     source = "{% render 'a' with z as y %}"
+def test_analyze_render_recursive() -> None:
+    loader = DictLoader({"a": "{{ x }}{% render 'a' %}"})
+    env = Environment(loader=loader)
+    source = "{% render 'a' %}"
 
-#     _assert(
-#         env.from_string(source),
-#         locals={},
-#         globals={
-#             "z": Span("", 19, 20),
-#             "x": Span("", 3, 4, template_name="a"),
-#         },
-#         variables={
-#             "z": Span("", 19, 20),
-#             "x": Span("", 3, 4, template_name="a"),
-#             "y": Span("", 15, 16, template_name="a"),
-#         },
-#         tags={"render": [Span("", 0, 28)]},
-#         filters={"append": Span("", 7, 13, template_name="a")},
-#     )
+    _assert(
+        env.from_string(source),
+        locals={},
+        globals={
+            "x": [Variable(["x"], Span("a", 3, 4))],
+        },
+        tags={
+            "render": [
+                Span("", 0, 16),
+                Span("a", 7, 23),
+            ],
+        },
+    )
 
 
-# def test_analyze_render_with_arguments() -> None:
-#     loader = DictLoader({"a": "{{ x | append: y }}"})
-#     env = Environment(loader=loader)
-#     source = "{% render 'a', x:y, z:42 %}{{ x }}"
+def test_analyze_render_with_bound_variable() -> None:
+    loader = DictLoader({"a": "{{ x | append: y }}{{ a }}"})
+    env = Environment(loader=loader)
+    source = "{% render 'a' with z %}"
 
-#     _assert(
-#         env.from_string(source),
-#         locals={},
-#         globals={
-#             "y": [Span("", 15, 16, template_name="a"), Span("", 17, 18)],
-#             "x": Span("", 30, 31),
-#         },
-#         variables={
-#             "y": [Span("", 17, 18), Span("", 15, 16, template_name="a")],
-#             "x": [Span("", 30, 31), Span("", 3, 4, template_name="a")],
-#         },
-#         tags={"render": [Span("", 0, 27)]},
-#         filters={"append": Span("", 7, 13, template_name="a")},
-#     )
+    # Defaults to binding the value at `z` to the rendered template's name.
 
-
-# def test_analyze_render_template_not_found(env: Environment) -> None:
-#     source = "{% render 'nosuchthing' %}{{ x }}"
-
-#     _assert(
-#         env.from_string(source),
-#         locals={},
-#         globals={"x": Span("", 29, 30)},
-#         tags={"render": [Span("", 0, 26)]},
-#         unloadable={"nosuchthing": Span("", 11, 22)},
-#         raise_for_failures=False,
-#     )
+    _assert(
+        env.from_string(source),
+        locals={},
+        globals={
+            "z": [Variable(["z"], Span("", 19, 20))],
+            "x": [Variable(["x"], Span("a", 3, 4))],
+            "y": [Variable(["y"], Span("a", 15, 16))],
+        },
+        variables={
+            "z": [Variable(["z"], Span("", 19, 20))],
+            "x": [Variable(["x"], Span("a", 3, 4))],
+            "y": [Variable(["y"], Span("a", 15, 16))],
+            "a": [Variable(["a"], Span("a", 22, 23))],
+        },
+        tags={"render": [Span("", 0, 23)]},
+        filters={"append": [Span("a", 7, 13)]},
+    )
 
 
-# def test_variable_parts(env: Environment) -> None:
-#     source = "{{ a['b.c'] }}{{ d[e.f] }}"
+def test_analyze_render_with_bound_alias() -> None:
+    loader = DictLoader({"a": "{{ x | append: y }}"})
+    env = Environment(loader=loader)
+    source = "{% render 'a' with z as y %}"
 
-#     _assert(
-#         env.from_string(source),
-#         locals={},
-#         globals={
-#             "a['b.c']": Span("", 3, 11),
-#             "d[e.f]": Span("", 17, 23),
-#             "e.f": Span("", 19, 22),
-#         },
-#     )
-
-#     analysis = env.from_string(source).analyze()
-#     paths = list(analysis.variables.values())
-#     assert len(paths) == 3  # noqa: PLR2004
-#     assert paths[0].segments == ("a", "b.c")
-#     assert paths[1].segments == ("d", ("e", "f"))
-#     assert paths[2].segments == ("e", "f")
-
-
-# def test_analyze_inheritance_chain() -> None:
-#     loader = DictLoader(
-#         {
-#             "base": (
-#                 "Hello, "
-#                 "{% assign x = 'foo' %}"
-#                 "{% block content %}{{ x | upcase }}{% endblock %}!"
-#                 "{% block foo %}{% endblock %}!"
-#             ),
-#             "other": (
-#                 "{% extends 'base' %}"
-#                 "{% block content %}{{ x | downcase }}{% endblock %}"
-#                 "{% block foo %}{% assign z = 7 %}{% endblock %}"
-#             ),
-#             "some": (
-#                 "{% extends 'other' %}{{ y | append: x }}"
-#                 "{% block foo %}{% endblock %}"
-#             ),
-#         }
-#     )
-
-#     env = Environment(loader=loader)
-
-#     _assert(
-#         env.get_template("some"),
-#         locals={
-#             "x": Span("", 17, 18, template_name="base"),
-#         },
-#         globals={},
-#         variables={
-#             "x": Span("", 42, 43, template_name="other"),
-#         },
-#         tags={
-#             "assign": Span("", 7, 29, template_name="base"),
-#             "extends": [
-#                 Span("", 0, 21, template_name="some"),
-#                 Span("", 0, 20, template_name="other"),
-#             ],
-#             "block": [
-#                 Span("", 29, 48, template_name="base"),
-#                 Span("", 79, 94, template_name="base"),
-#                 Span("", 20, 39, template_name="other"),
-#                 Span("", 71, 86, template_name="other"),
-#                 Span("", 40, 55, template_name="some"),
-#             ],
-#         },
-#         filters={
-#             "downcase": Span("", 46, 54, template_name="other"),
-#         },
-#     )
+    _assert(
+        env.from_string(source),
+        locals={},
+        globals={
+            "z": [Variable(["z"], Span("", 19, 20))],
+            "x": [Variable(["x"], Span("a", 3, 4))],
+        },
+        variables={
+            "z": [Variable(["z"], Span("", 19, 20))],
+            "x": [Variable(["x"], Span("a", 3, 4))],
+            "y": [Variable(["y"], Span("a", 15, 16))],
+        },
+        tags={"render": [Span("", 0, 28)]},
+        filters={"append": [Span("a", 7, 13)]},
+    )
 
 
-# def test_analyze_recursive_extends() -> None:
-#     loader = DictLoader(
-#         {
-#             "some": "{% extends 'other' %}",
-#             "other": "{% extends 'some' %}",
-#         }
-#     )
-#     env = Environment(loader=loader)
-#     template = env.get_template("some")
+def test_analyze_render_with_arguments() -> None:
+    loader = DictLoader({"a": "{{ x | append: y }}"})
+    env = Environment(loader=loader)
+    source = "{% render 'a', x:y, z:42 %}{{ x }}"
 
-#     with pytest.raises(TemplateInheritanceError):
-#         template.analyze()
+    _assert(
+        env.from_string(source),
+        locals={},
+        globals={
+            "x": [Variable(["x"], Span("", 30, 31))],
+            "y": [
+                Variable(["y"], Span("", 17, 18)),
+                Variable(["y"], Span("a", 15, 16)),
+            ],
+        },
+        variables={
+            "x": [
+                Variable(["x"], Span("a", 3, 4)),
+                Variable(["x"], Span("", 30, 31)),
+            ],
+            "y": [
+                Variable(["y"], Span("", 17, 18)),
+                Variable(["y"], Span("a", 15, 16)),
+            ],
+        },
+        tags={"render": [Span("", 0, 27)]},
+        filters={"append": [Span("a", 7, 13)]},
+    )
 
-#     async def coro(template: Template) -> TemplateAnalysis:
-#         return await template.analyze_async()
 
-#     with pytest.raises(TemplateInheritanceError):
-#         asyncio.run(coro(template))
+def test_analyze_render_template_not_found(env: Environment) -> None:
+    source = "{% render 'nosuchthing' %}{{ x }}"
+    template = env.from_string(source)
+
+    with pytest.raises(TemplateNotFound):
+        template.analyze()
 
 
-# def test_analyze_super() -> None:
-#     loader = DictLoader(
-#         {
-#             "base": "Hello, {% block content %}{{ foo | upcase }}{% endblock %}!",
-#             "some": (
-#                 "{% extends 'base' %}"
-#                 "{% block content %}{{ block.super }}!{% endblock %}"
-#             ),
-#         }
-#     )
+def test_variable_segments(env: Environment) -> None:
+    source = "{{ a['b.c'] }}{{ d[e.f] }}"
 
-#     env = Environment(loader=loader)
+    _assert(
+        env.from_string(source),
+        locals={},
+        globals={
+            "a": [Variable(["a", "b.c"], Span("", 3, 11))],
+            "d": [Variable(["d", ["e", "f"]], Span("", 17, 23))],
+            "e": [Variable(["e", "f"], Span("", 19, 22))],
+        },
+    )
 
-#     _assert(
-#         env.get_template("some"),
-#         locals={},
-#         globals={
-#             "foo": Span("", 29, 32, template_name="base"),
-#         },
-#         variables={
-#             "foo": Span("", 29, 32, template_name="base"),
-#             "block.super": Span("", 42, 53, template_name="some"),
-#         },
-#         tags={
-#             "extends": [
-#                 Span("", 0, 20, template_name="some"),
-#             ],
-#             "block": [
-#                 Span("", 20, 39, template_name="some"),
-#                 Span("", 7, 26, template_name="base"),
-#             ],
-#         },
-#         filters={
-#             "upcase": Span("", 35, 41, template_name="base"),
-#         },
-#     )
+    analysis = env.from_string(source).analyze()
+    variables = list(itertools.chain.from_iterable(analysis.variables.values()))
+    assert len(variables) == 3  # noqa: PLR2004
+    assert variables[0].segments == ["a", "b.c"]
+    assert variables[1].segments == ["d", ["e", "f"]]
+    assert variables[2].segments == ["e", "f"]
+
+
+def test_analyze_inheritance_chain() -> None:
+    loader = DictLoader(
+        {
+            "base": (
+                "Hello, "
+                "{% assign x = 'foo' %}"
+                "{% block content %}{{ x | upcase }}{% endblock %}!"
+                "{% block foo %}{% endblock %}!"
+            ),
+            "other": (
+                "{% extends 'base' %}"
+                "{% block content %}{{ x | downcase }}{% endblock %}"
+                "{% block foo %}{% assign z = 7 %}{% endblock %}"
+            ),
+            "some": (
+                "{% extends 'other' %}{{ y | append: x }}"
+                "{% block foo %}{% endblock %}"
+            ),
+        }
+    )
+
+    env = Environment(loader=loader)
+
+    _assert(
+        env.get_template("some"),
+        locals={
+            "x": [Variable(["x"], Span("base", 17, 18))],
+            "z": [Variable(["z"], Span("other", 96, 97))],
+        },
+        globals={
+            "y": [Variable(["y"], Span("some", 24, 25))],
+        },
+        variables={
+            "x": [
+                Variable(["x"], Span("base", 51, 52)),
+                Variable(["x"], Span("other", 42, 43)),
+                Variable(["x"], Span("some", 36, 37)),
+            ],
+            "y": [Variable(["y"], Span("some", 24, 25))],
+        },
+        tags={
+            "assign": [
+                Span("base", 7, 29),
+                Span("other", 86, 104),
+            ],
+            "extends": [
+                Span("some", 0, 21),
+                Span("other", 0, 20),
+            ],
+            "block": [
+                Span("base", 29, 48),
+                Span("base", 79, 94),
+                Span("other", 20, 39),
+                Span("other", 71, 86),
+                Span("some", 40, 55),
+            ],
+        },
+        filters={
+            "append": [Span("some", 28, 34)],
+            "downcase": [Span("other", 46, 54)],
+            "upcase": [Span("base", 55, 61)],
+        },
+    )
+
+
+def test_analyze_recursive_extends() -> None:
+    loader = DictLoader(
+        {
+            "some": "{% extends 'other' %}",
+            "other": "{% extends 'some' %}",
+        }
+    )
+    env = Environment(loader=loader)
+    template = env.get_template("some")
+
+    _assert(
+        template,
+        locals={},
+        globals={},
+        tags={
+            "extends": [
+                Span("some", 0, 21),
+                Span("other", 0, 20),
+            ],
+        },
+    )
+
+
+def test_analyze_super() -> None:
+    loader = DictLoader(
+        {
+            "base": "Hello, {% block content %}{{ foo | upcase }}{% endblock %}!",
+            "some": (
+                "{% extends 'base' %}"
+                "{% block content %}{{ block.super }}!{% endblock %}"
+            ),
+        }
+    )
+
+    env = Environment(loader=loader)
+
+    _assert(
+        env.get_template("some"),
+        locals={},
+        globals={
+            "foo": [Variable(["foo"], Span("base", 29, 32))],
+        },
+        variables={
+            "foo": [Variable(["foo"], Span("base", 29, 32))],
+            "block": [Variable(["block", "super"], Span("some", 42, 53))],
+        },
+        tags={
+            "extends": [
+                Span("some", 0, 20),
+            ],
+            "block": [
+                Span("base", 7, 26),
+                Span("some", 20, 39),
+            ],
+        },
+        filters={
+            "upcase": [Span("base", 35, 41)],
+        },
+    )

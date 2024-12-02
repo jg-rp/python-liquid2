@@ -157,9 +157,5 @@ class ContinueLoop(LiquidInterrupt):
     """Exception raised when a ContinueNode is rendered."""
 
 
-class TemplateTraversalError(LiquidError):
-    """Exception raised when an AST node or expression can not be visited."""
-
-
 class CacheCapacityValueError(ValueError):
     """An exception raised when the LRU cache is given a zero or negative capacity."""

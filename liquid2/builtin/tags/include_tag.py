@@ -128,6 +128,7 @@ class IncludeNode(Node):
         """Return this node's children."""
         if _include_partials:
             name = self.name.evaluate(static_context)
+            print(f"!! {name!r}")
             template = static_context.env.get_template(
                 str(name), context=static_context, tag=self.tag
             )
