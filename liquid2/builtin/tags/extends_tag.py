@@ -84,6 +84,17 @@ class ExtendsNode(Node):
             )
             yield from parent.nodes
 
+    async def children_async(
+        self, static_context: RenderContext, *, _include_partials: bool = True
+    ) -> Iterable[Node]:
+        """Return this node's children."""
+        if _include_partials:
+            parent = await static_context.env.get_template_async(
+                self.name.value, context=static_context, tag=self.tag
+            )
+            return parent.nodes
+        return []
+
     def expressions(self) -> Iterable[Expression]:
         """Return this node's expressions."""
         yield self.name

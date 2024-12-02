@@ -128,11 +128,22 @@ class IncludeNode(Node):
         """Return this node's children."""
         if _include_partials:
             name = self.name.evaluate(static_context)
-            print(f"!! {name!r}")
             template = static_context.env.get_template(
                 str(name), context=static_context, tag=self.tag
             )
             yield from template.nodes
+
+    async def children_async(
+        self, static_context: RenderContext, *, _include_partials: bool = True
+    ) -> Iterable[Node]:
+        """Return this node's children."""
+        if _include_partials:
+            name = await self.name.evaluate_async(static_context)
+            template = await static_context.env.get_template_async(
+                str(name), context=static_context, tag=self.tag
+            )
+            return template.nodes
+        return []
 
     def expressions(self) -> Iterable[Expression]:
         """Return this node's expressions."""

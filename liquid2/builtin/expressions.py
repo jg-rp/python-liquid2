@@ -339,7 +339,14 @@ class Path(Expression):
             token=self.token,
         )
 
-    # TODO: async
+    async def evaluate_async(self, context: RenderContext) -> object:
+        return await context.get_async(
+            (
+                await p.evaluate_async(context) if isinstance(p, Path) else p
+                for p in self.path
+            ),
+            token=self.token,
+        )
 
     def children(self) -> list[Expression]:
         return [p for p in self.path if isinstance(p, Path)]
@@ -1114,7 +1121,8 @@ class LtExpression(Expression):
         )
 
     async def evaluate_async(self, context: RenderContext) -> object:
-        return not _eq(
+        return _lt(
+            self.token,
             await self.left.evaluate_async(context),
             await self.right.evaluate_async(context),
         )

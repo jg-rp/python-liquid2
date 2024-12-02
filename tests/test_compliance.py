@@ -56,7 +56,7 @@ def test_compliance_async(case: Case) -> None:
     template = env.from_string(case.template)
 
     async def coro() -> str:
-        return template.render(**case.data)
+        return await template.render_async(**case.data)
 
     assert asyncio.run(coro()) == case.result
 
@@ -74,7 +74,7 @@ def test_invalid_compliance_async(case: Case) -> None:
 
     async def coro() -> str:
         template = env.from_string(case.template)
-        return template.render(**case.data)
+        return await template.render_async(**case.data)
 
     with pytest.raises(LiquidError):
         asyncio.run(coro())

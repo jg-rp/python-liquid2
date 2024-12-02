@@ -14,6 +14,7 @@ from itertools import cycle
 from operator import mul
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import AsyncIterator
 from typing import Callable
 from typing import Iterator
 from typing import Mapping
@@ -103,7 +104,6 @@ class RenderContext:
         self.locals[key] = val
         # TODO: namespace limit
 
-    # TODO: async get
     def get(
         self,
         path: Iterator[object],
@@ -125,6 +125,34 @@ class RenderContext:
         for segment in path:
             try:
                 obj = self.get_item(obj, segment)
+            except (KeyError, TypeError, IndexError):
+                if default == UNDEFINED:
+                    return self.env.undefined(root, token=token)
+                return default
+
+        return obj
+
+    async def get_async(
+        self,
+        path: AsyncIterator[object],
+        *,
+        token: TokenT,
+        default: object = UNDEFINED,
+    ) -> object:
+        """An async version of `get`."""
+        root = await anext(path)
+        assert isinstance(root, str)
+
+        try:
+            obj = self.scope[root]
+        except (KeyError, TypeError, IndexError):
+            if default == UNDEFINED:
+                return self.env.undefined(root, token=token)
+            return default
+
+        async for segment in path:
+            try:
+                obj = await self.get_item_async(obj, segment)
             except (KeyError, TypeError, IndexError):
                 if default == UNDEFINED:
                     return self.env.undefined(root, token=token)
@@ -165,6 +193,43 @@ class RenderContext:
                 raise
 
         return obj[key]
+
+    async def get_item_async(self, obj: Any, key: Any) -> Any:
+        """An async item getter for resolving paths."""
+
+        async def _get_item(obj: Any, key: Any) -> object:
+            if hasattr(obj, "__getitem_async__"):
+                return await obj.__getitem_async__(key)
+            return obj[key]
+
+        if hasattr(key, "__liquid__"):
+            key = key.__liquid__()
+
+        if key == "size":
+            try:
+                return await _get_item(obj, "size")
+            except (KeyError, IndexError, TypeError):
+                if isinstance(obj, Sized):
+                    return len(obj)
+                raise
+        if key == "first":
+            try:
+                return await _get_item(obj, "first")
+            except (KeyError, IndexError, TypeError):
+                if isinstance(obj, Mapping) and obj:
+                    return next(itertools.islice(obj.items(), 1))
+                if isinstance(obj, Sequence):
+                    return obj[0]
+                raise
+        if key == "last":
+            try:
+                return await _get_item(obj, "last")
+            except (KeyError, IndexError, TypeError):
+                if isinstance(obj, Sequence):
+                    return obj[-1]
+                raise
+
+        return await _get_item(obj, key)
 
     def filter(self, name: str, *, token: TokenT) -> Callable[..., object]:
         """Return the filter callable for _name_."""
