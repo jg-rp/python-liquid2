@@ -15,10 +15,6 @@ if TYPE_CHECKING:
 class Tag(ABC):
     """Base class for all built-in and custom template tags."""
 
-    block = True
-    name = ""
-    end = ""
-
     def __init__(self, env: Environment):
         self.env = env
 

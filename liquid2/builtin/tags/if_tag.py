@@ -3,16 +3,17 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+from typing import Iterable
 from typing import TextIO
 
 from liquid2 import BlockNode
 from liquid2 import ConditionalBlockNode
-from liquid2 import MetaNode
 from liquid2 import Node
 from liquid2 import Tag
 from liquid2 import TagToken
 from liquid2 import TokenStream
 from liquid2.builtin import BooleanExpression
+from liquid2.builtin import Expression
 
 if TYPE_CHECKING:
     from liquid2 import RenderContext
@@ -68,36 +69,18 @@ class IfNode(Node):
 
         return 0
 
-    def children(self) -> list[MetaNode]:
-        """Return a list of child nodes and/or expressions associated with this node."""
-        _children = [
-            MetaNode(
-                token=self.token,
-                node=self.consequence,
-                expression=self.condition,
-            )
-        ]
-
-        _children.extend(
-            [
-                MetaNode(
-                    token=alt.token,
-                    node=alt,
-                )
-                for alt in self.alternatives
-            ]
-        )
-
+    def children(
+        self, _static_context: RenderContext, *, _include_partials: bool = True
+    ) -> Iterable[Node]:
+        """Return this node's children."""
+        yield self.consequence
+        yield from self.alternatives
         if self.default:
-            _children.append(
-                MetaNode(
-                    token=self.default.token,
-                    node=self.default,
-                    expression=None,
-                )
-            )
+            yield self.default
 
-        return _children
+    def expressions(self) -> Iterable[Expression]:
+        """Return this node's expressions."""
+        yield self.condition
 
 
 class IfTag(Tag):

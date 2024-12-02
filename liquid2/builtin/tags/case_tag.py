@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+from typing import Iterable
 from typing import TextIO
 
 from liquid2 import BlockNode
 from liquid2 import ContentToken
-from liquid2 import MetaNode
 from liquid2 import Node
 from liquid2 import Tag
 from liquid2 import TagToken
@@ -64,22 +64,18 @@ class CaseNode(Node):
 
         return count
 
-    def children(self) -> list[MetaNode]:
-        """Return a list of child nodes and/or expressions associated with this node."""
-        children = [MetaNode(token=self.expression.token, expression=self.expression)]
-
-        for when in self.whens:
-            children.append(MetaNode(token=when.token, node=when))
+    def children(
+        self, _static_context: RenderContext, *, _include_partials: bool = True
+    ) -> Iterable[Node]:
+        """Return this node's children."""
+        yield from self.whens
 
         if self.default:
-            children.append(
-                MetaNode(
-                    token=self.default.token,
-                    node=self.default,
-                    expression=None,
-                )
-            )
-        return children
+            yield self.default
+
+    def expressions(self) -> Iterable[Expression]:
+        """Return this node's expressions."""
+        yield self.expression
 
 
 class CaseTag(Tag):
@@ -223,6 +219,12 @@ class MultiExpressionBlockNode(Node):
             return await self.block.render_async(context, buffer)
         return 0
 
-    def children(self) -> list[MetaNode]:
-        """Return a list of child nodes and/or expressions associated with this node."""
-        return [MetaNode(token=self.token, expression=self.expression, node=self.block)]
+    def children(
+        self, _static_context: RenderContext, *, _include_partials: bool = True
+    ) -> Iterable[Node]:
+        """Return this node's children."""
+        yield self.block
+
+    def expressions(self) -> Iterable[Expression]:
+        """Return this node's expressions."""
+        yield self.expression

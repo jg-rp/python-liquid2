@@ -103,7 +103,7 @@ class Environment:
         self,
         source: str,
         *,
-        name: str = "<string>",
+        name: str = "",
         path: str | Path | None = None,
         globals: Mapping[str, object] | None = None,
         overlay_data: Mapping[str, object] | None = None,

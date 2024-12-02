@@ -16,7 +16,6 @@ from liquid2 import TagToken
 from liquid2 import WhitespaceControl
 
 if TYPE_CHECKING:
-    from liquid2 import MetaNode
     from liquid2 import RenderContext
     from liquid2 import TokenStream
     from liquid2 import TokenT
@@ -37,10 +36,6 @@ class ContentNode(Node):
     def render_to_output(self, _context: RenderContext, buffer: TextIO) -> int:
         """Render the node to the output buffer."""
         return buffer.write(self.text)
-
-    def children(self) -> list[MetaNode]:
-        """Return a list of child nodes and/or expressions associated with this node."""
-        return []
 
 
 class Content(Tag):

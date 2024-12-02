@@ -4,10 +4,14 @@ from __future__ import annotations
 
 from abc import ABC
 from abc import abstractmethod
+from dataclasses import dataclass
+from enum import Enum
+from enum import auto
 from typing import TYPE_CHECKING
-from typing import Literal
-from typing import NamedTuple
+from typing import Iterable
 from typing import TextIO
+
+from liquid2.expression import Expression
 
 from .context import RenderContext
 from .exceptions import DisabledTagError
@@ -65,10 +69,61 @@ class Node(ABC):
                 token=token,
             )
 
-    @abstractmethod
-    def children(self) -> list[MetaNode]:
-        """Return a list of child nodes and/or expressions associated with this node."""
-        # TODO: cache children?
+    def children(
+        self,
+        _static_context: RenderContext,
+        *,
+        _include_partials: bool = True,
+    ) -> Iterable[Node]:
+        """Return this node's children."""
+        return []
+
+    async def children_async(
+        self,
+        _static_context: RenderContext,
+        *,
+        _include_partials: bool = True,
+    ) -> Iterable[Node]:
+        """An async version of `children()`."""
+        return self.children(_static_context, _include_partials=_include_partials)
+
+    def expressions(self) -> Iterable[Expression]:
+        """Return this node's expressions."""
+        return []
+
+    def template_scope(self) -> Iterable[Identifier]:
+        """Return variables this node adds to the template local scope."""
+        return []
+
+    def block_scope(self) -> Iterable[Identifier]:
+        """Return variables this node adds to the node's block scope."""
+        return []
+
+    def partial_scope(self) -> Partial | None:
+        """Return information about a partial template loaded by this node."""
+        return None
+
+
+class PartialScope(Enum):
+    """The kind of scope a partial template should have when loaded."""
+
+    SHARED = auto()
+    ISOLATED = auto()
+    INHERITED = auto()
+
+
+@dataclass(kw_only=True, slots=True)
+class Partial:
+    """Partial template meta data."""
+
+    name: Expression
+    """An expression resolving to the name associated with the partial template."""
+
+    scope: PartialScope
+    """The kind of scope the partial template should have when loaded."""
+
+    in_scope: Iterable[Identifier]
+    """Names that will be added to the partial template scope."""
 
 
 class BlockNode(Node):
@@ -90,9 +145,11 @@ class BlockNode(Node):
         """Render the node to the output buffer."""
         return sum([await node.render_async(context, buffer) for node in self.nodes])
 
-    def children(self) -> list[MetaNode]:
-        """Return a list of child nodes and/or expressions associated with this node."""
-        return [MetaNode(token=self.token, node=node) for node in self.nodes]
+    def children(
+        self, _static_context: RenderContext, *, _include_partials: bool = True
+    ) -> Iterable[Node]:
+        """Return this node's children."""
+        return self.nodes
 
 
 class ConditionalBlockNode(Node):
@@ -124,39 +181,12 @@ class ConditionalBlockNode(Node):
             return await self.block.render_async(context, buffer)
         return 0
 
-    def children(self) -> list[MetaNode]:
-        """Return a list of child nodes and/or expressions associated with this node."""
-        return [MetaNode(token=self.token, expression=self.expression, node=self.block)]
+    def children(
+        self, _static_context: RenderContext, *, _include_partials: bool = True
+    ) -> Iterable[Node]:
+        """Return this node's children."""
+        yield self.block
 
-
-class MetaNode(NamedTuple):
-    """An AST node and expression pair with optional scope and load data.
-
-    Args:
-        token: The child's first token.
-        expression: An `liquid.expression.Expression`. If not `None`, this expression is
-            expected to be related to the given `liquid.ast.Node`.
-        node: A `liquid.ast.Node`. Typically a `BlockNode` or `ConditionalBlockNode`.
-        template_scope: A list of names the parent node adds to the template "local"
-            scope. For example, the built-in `assign`, `capture`, `increment` and
-            `decrement` tags all add names to the template scope. This helps us
-            identify, through static analysis, names that are assumed to be "global".
-        block_scope: A list of names available to the given child node. For example,
-            the `for` tag adds the name "forloop" for the duration of its block.
-        load_mode: If not `None`, indicates that the given expression should be used to
-            load a partial template. In "render" mode, the partial will be analyzed in
-            an isolated namespace, without access to the parent's template local scope.
-            In "include" mode, the partial will have access to the parents template
-            local scope and the parent's scope can be updated by the partial template
-            too.
-        load_context: Meta data a template `Loader` might need to find the source
-            of a partial template.
-    """
-
-    token: TokenT  # XXX: every expression and node has a token already
-    expression: Expression | None = None
-    node: Node | None = None
-    template_scope: list[Identifier] | None = None
-    block_scope: list[Identifier] | None = None
-    load_mode: Literal["render", "include", "extends"] | None = None
-    load_context: dict[str, str] | None = None
+    def expressions(self) -> Iterable[Expression]:
+        """Return this node's expressions."""
+        yield self.expression

@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+from typing import Iterable
 from typing import TextIO
 
 from liquid2 import BlockNode
-from liquid2 import MetaNode
 from liquid2 import Node
 from liquid2 import RenderContext
 from liquid2 import Tag
@@ -46,15 +46,15 @@ class CaptureNode(Node):
         context.assign(self.name, context.markup(buf.getvalue()))
         return 0
 
-    def children(self) -> list[MetaNode]:
-        """Return a list of child nodes and/or expressions associated with this node."""
-        return [
-            MetaNode(
-                token=self.token,
-                node=self.block,
-                template_scope=[self.name],
-            )
-        ]
+    def children(
+        self, _static_context: RenderContext, *, _include_partials: bool = True
+    ) -> Iterable[Node]:
+        """Return this node's children."""
+        yield self.block
+
+    def template_scope(self) -> Iterable[Identifier]:
+        """Return variables this node adds to the template local scope."""
+        yield self.name
 
 
 class CaptureTag(Tag):

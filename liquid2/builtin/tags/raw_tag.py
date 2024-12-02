@@ -10,7 +10,6 @@ from liquid2 import RawToken
 from liquid2 import Tag
 
 if TYPE_CHECKING:
-    from liquid2 import MetaNode
     from liquid2 import RenderContext
     from liquid2 import TokenStream
     from liquid2 import TokenT
@@ -28,10 +27,6 @@ class RawNode(Node):
     def render_to_output(self, _context: RenderContext, buffer: TextIO) -> int:
         """Render the node to the output buffer."""
         return buffer.write(self.text)
-
-    def children(self) -> list[MetaNode]:
-        """Return a list of child nodes and/or expressions associated with this node."""
-        return []
 
 
 class RawTag(Tag):

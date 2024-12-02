@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+from typing import Iterable
 from typing import TextIO
 
-from liquid2 import MetaNode
 from liquid2 import Node
 from liquid2 import RenderContext
 from liquid2 import Tag
@@ -46,15 +46,13 @@ class AssignNode(Node):
         context.assign(self.name, await self.expression.evaluate_async(context))
         return 0
 
-    def children(self) -> list[MetaNode]:
-        """Return a list of child nodes and/or expressions associated with this node."""
-        return [
-            MetaNode(
-                token=self.token,
-                expression=self.expression,
-                template_scope=[self.name],
-            )
-        ]
+    def expressions(self) -> Iterable[Expression]:
+        """Return this node's expressions."""
+        yield self.expression
+
+    def template_scope(self) -> Iterable[Identifier]:
+        """Return variables this node adds to the template local scope."""
+        yield self.name
 
 
 class AssignTag(Tag):

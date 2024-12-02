@@ -5,6 +5,7 @@ from __future__ import annotations
 from abc import ABC
 from abc import abstractmethod
 from typing import TYPE_CHECKING
+from typing import Iterable
 
 if TYPE_CHECKING:
     from liquid2 import TokenT
@@ -29,5 +30,5 @@ class Expression(ABC):
         return self.evaluate(context)
 
     @abstractmethod
-    def children(self) -> list[Expression]:
-        """Return a list of child expressions."""
+    def children(self) -> Iterable[Expression]:
+        """Return this expression's child expressions."""

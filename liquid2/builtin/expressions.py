@@ -295,7 +295,7 @@ class RangeLiteral(Expression):
 
 
 RE_PROPERTY = re.compile(r"[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*")
-PathSegments: TypeAlias = tuple[Union[str, int, "PathSegments"], ...]
+Segments: TypeAlias = tuple[Union[str, int, "Segments"], ...]
 
 
 class Path(Expression):
@@ -304,6 +304,10 @@ class Path(Expression):
     def __init__(self, token: TokenT, path: PathT) -> None:
         super().__init__(token=token)
         self.path = [Path(p, p.path) if isinstance(p, PathToken) else p for p in path]
+
+        if isinstance(self.path[0], Path):
+            # Flatten root segment
+            self.path = self.path[0].path + self.path[1:]
 
     def __str__(self) -> str:
         it = iter(self.path)
@@ -346,13 +350,13 @@ class Path(Expression):
     def tail(self) -> int | str | Path:
         return self.path[-1]
 
-    def segments(self) -> PathSegments:
+    def segments(self) -> Segments:
         """Return this path's segments as a tuple of strings and ints.
 
         Segments can also be nested tuples of strings, ints and tuples if the path
         contains nested paths.
         """
-        segments: list[str | int | PathSegments] = []
+        segments: list[str | int | Segments] = []
         for segment in self.path:
             if isinstance(segment, Path):
                 segments.append(segment.segments())

@@ -11,6 +11,7 @@ from .expressions import BooleanExpression
 from .expressions import Continue
 from .expressions import Empty
 from .expressions import EqExpression
+from .expressions import Expression
 from .expressions import FalseLiteral
 from .expressions import Filter
 from .expressions import FilteredExpression
@@ -24,8 +25,8 @@ from .expressions import LogicalNotExpression
 from .expressions import LogicalOrExpression
 from .expressions import LoopExpression
 from .expressions import Null
-from .expressions import PositionalArgument
 from .expressions import Path
+from .expressions import PositionalArgument
 from .expressions import RangeLiteral
 from .expressions import StringLiteral
 from .expressions import SymbolArgument
@@ -114,6 +115,7 @@ from .tags.unless_tag import UnlessTag
 if TYPE_CHECKING:
     from ..environment import Environment  # noqa: TID252
 
+
 __all__ = (
     "AssignTag",
     "Blank",
@@ -187,6 +189,7 @@ __all__ = (
     "is_blank",
     "is_empty",
     "safe",
+    "Expression",
 )
 
 
