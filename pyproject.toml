@@ -193,4 +193,4 @@ convention = "google"
 "liquid2/lexer.py" = ["D102", "D103", "E741"]
 "liquid2/query/parse.py" = ["D102", "PLR2004"]
 "liquid2/unescape.py" = ["PLR2004"]
-"tests/*" = ["D100", "D101", "D104", "D103"]
+"tests/*" = ["D100", "D101", "D104", "D103", "PLR2004"]

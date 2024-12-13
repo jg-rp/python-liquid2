@@ -22,9 +22,7 @@ from liquid2.utils.html import strip_tags
 from liquid2.utils.text import truncate_chars
 
 if TYPE_CHECKING:
-    from ...environment import Environment  # noqa: TID252
-
-# TODO: Better. This was copied from python-liquid
+    from liquid2 import Environment
 
 
 @string_filter
