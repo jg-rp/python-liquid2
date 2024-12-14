@@ -30,7 +30,7 @@ class BaseLoader(ABC):
         context: RenderContext | None = None,
         **kwargs: object,
     ) -> TemplateSource:
-        """Get the template source, filename and reload helper for a template.
+        """Get source information for a template.
 
         Args:
             env: The `Environment` attempting to load the template source text.

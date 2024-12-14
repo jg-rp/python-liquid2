@@ -91,8 +91,11 @@ from .filters.string import upcase
 from .filters.string import url_decode
 from .filters.string import url_encode
 from .loaders.caching_file_system_loader import CachingFileSystemLoader
+from .loaders.choice_loader import CachingChoiceLoader
+from .loaders.choice_loader import ChoiceLoader
 from .loaders.dict_loader import DictLoader
 from .loaders.file_system_loader import FileSystemLoader
+from .loaders.package_loader import PackageLoader
 from .output import Output
 from .tags.assign_tag import AssignTag
 from .tags.capture_tag import CaptureTag
@@ -192,6 +195,9 @@ __all__ = (
     "safe",
     "CachingFileSystemLoader",
     "FileSystemLoader",
+    "CachingChoiceLoader",
+    "ChoiceLoader",
+    "PackageLoader",
 )
 
 

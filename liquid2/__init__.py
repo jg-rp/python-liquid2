@@ -33,8 +33,11 @@ from .environment import Environment
 from .lexer import tokenize
 from .template import Template
 from .builtin import DictLoader
+from .builtin import ChoiceLoader
+from .builtin import CachingChoiceLoader
 from .builtin import CachingFileSystemLoader
 from .builtin import FileSystemLoader
+from .builtin import PackageLoader
 from .undefined import StrictUndefined
 from .undefined import Undefined
 from .exceptions import TemplateNotFound
@@ -102,4 +105,7 @@ __all__ = (
     "FileSystemLoader",
     "Expression",
     "TemplateNotFound",
+    "ChoiceLoader",
+    "CachingChoiceLoader",
+    "PackageLoader",
 )
