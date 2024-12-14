@@ -8,12 +8,12 @@ from typing import TextIO
 
 from liquid2 import BlockNode
 from liquid2 import ConditionalBlockNode
+from liquid2 import Expression
 from liquid2 import Node
 from liquid2 import Tag
 from liquid2 import TagToken
 from liquid2 import TokenStream
 from liquid2.builtin import BooleanExpression
-from liquid2.builtin import Expression
 
 if TYPE_CHECKING:
     from liquid2 import RenderContext

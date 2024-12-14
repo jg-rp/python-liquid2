@@ -80,10 +80,12 @@ class BaseLoader(ABC):
             env, name, context=context, **kwargs
         )
 
+        path = Path(full_name)
+
         template = env.from_string(
             source,
-            name=name,
-            path=Path(full_name),
+            name=path.name,
+            path=path,
             globals=globals,
             overlay_data=matter,
         )

@@ -11,7 +11,6 @@ from .expressions import BooleanExpression
 from .expressions import Continue
 from .expressions import Empty
 from .expressions import EqExpression
-from .expressions import Expression
 from .expressions import FalseLiteral
 from .expressions import Filter
 from .expressions import FilteredExpression
@@ -91,7 +90,9 @@ from .filters.string import truncatewords
 from .filters.string import upcase
 from .filters.string import url_decode
 from .filters.string import url_encode
+from .loaders.caching_file_system_loader import CachingFileSystemLoader
 from .loaders.dict_loader import DictLoader
+from .loaders.file_system_loader import FileSystemLoader
 from .output import Output
 from .tags.assign_tag import AssignTag
 from .tags.capture_tag import CaptureTag
@@ -189,7 +190,8 @@ __all__ = (
     "is_blank",
     "is_empty",
     "safe",
-    "Expression",
+    "CachingFileSystemLoader",
+    "FileSystemLoader",
 )
 
 

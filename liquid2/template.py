@@ -5,6 +5,7 @@ from __future__ import annotations
 from io import StringIO
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import Awaitable
 from typing import Mapping
 from typing import TextIO
 
@@ -136,8 +137,8 @@ class Template:
         """Return a mapping including render arguments and template globals."""
         return ReadOnlyChainMap(
             render_args,
-            self.global_data,
             self.overlay_data,
+            self.global_data,
         )
 
     def analyze(self, *, include_partials: bool = True) -> TemplateAnalysis:
@@ -152,3 +153,27 @@ class Template:
     async def analyze_async(self, *, include_partials: bool = True) -> TemplateAnalysis:
         """An async version of `analyze`."""
         return await _analyze_async(self, include_partials=include_partials)
+
+    def is_up_to_date(self) -> bool:
+        """Return _False_ if the template has been modified, _True_ otherwise."""
+        if self.uptodate is None:
+            return True
+
+        uptodate = self.uptodate()
+        if not isinstance(uptodate, bool):
+            return False
+        return uptodate
+
+    async def is_up_to_date_async(self) -> bool:
+        """An async version of _is_up_to_date()_.
+
+        If _template.uptodate_ is a coroutine, it wil be awaited. Otherwise it will be
+        called just like _is_up_to_date_.
+        """
+        if self.uptodate is None:
+            return True
+
+        uptodate = self.uptodate()
+        if isinstance(uptodate, Awaitable):
+            return await uptodate
+        return uptodate

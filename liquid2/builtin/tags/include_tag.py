@@ -7,6 +7,7 @@ from typing import Iterable
 from typing import Sequence
 from typing import TextIO
 
+from liquid2 import Expression
 from liquid2 import Node
 from liquid2 import Tag
 from liquid2 import TagToken
@@ -14,7 +15,6 @@ from liquid2 import TokenStream
 from liquid2 import TokenType
 from liquid2.ast import Partial
 from liquid2.ast import PartialScope
-from liquid2.builtin import Expression
 from liquid2.builtin import Identifier
 from liquid2.builtin import Literal
 from liquid2.builtin import parse_keyword_arguments

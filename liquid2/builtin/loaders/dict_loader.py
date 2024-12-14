@@ -32,7 +32,7 @@ class DictLoader(BaseLoader):
         context: RenderContext | None = None,  # noqa: ARG002
         **kwargs: object,  # noqa: ARG002
     ) -> TemplateSource:
-        """Get the template source, filename and reload helper for a template."""
+        """Get the source, filename and reload helper for a template."""
         try:
             source = self.templates[template_name]
         except KeyError as err:

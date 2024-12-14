@@ -10,11 +10,11 @@ from typing import Mapping
 from typing import TextIO
 
 from liquid2 import BlockNode
+from liquid2 import Expression
 from liquid2 import Node
 from liquid2 import Tag
 from liquid2 import TagToken
 from liquid2 import TokenStream
-from liquid2.builtin import Expression
 from liquid2.builtin import Identifier
 from liquid2.builtin import LoopExpression
 from liquid2.exceptions import BreakLoop

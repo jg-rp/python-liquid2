@@ -22,6 +22,7 @@ from .token import is_raw_token
 from .token import is_tag_token
 from .token import is_token_type
 from .stream import TokenStream
+from .expression import Expression
 from .tag import Tag
 from .ast import BlockNode
 from .ast import ConditionalBlockNode
@@ -32,8 +33,11 @@ from .environment import Environment
 from .lexer import tokenize
 from .template import Template
 from .builtin import DictLoader
+from .builtin import CachingFileSystemLoader
+from .builtin import FileSystemLoader
 from .undefined import StrictUndefined
 from .undefined import Undefined
+from .exceptions import TemplateNotFound
 
 from .__about__ import __version__
 
@@ -94,4 +98,8 @@ __all__ = (
     "WhitespaceControl",
     "StrictUndefined",
     "Undefined",
+    "CachingFileSystemLoader",
+    "FileSystemLoader",
+    "Expression",
+    "TemplateNotFound",
 )
