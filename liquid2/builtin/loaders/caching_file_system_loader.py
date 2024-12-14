@@ -28,7 +28,7 @@ class CachingFileSystemLoader(CachingLoaderMixin, FileSystemLoader):
             If you're developing a multi-user application, a good namespace might be
             `uid`, where `uid` is a unique identifier for a user and templates are
             arranged in folders named for each `uid` inside the search path.
-        cache_size: The maximum number of templates to hold in the cache before removing
+        capacity: The maximum number of templates to hold in the cache before removing
             the least recently used template.
     """
 
@@ -40,12 +40,12 @@ class CachingFileSystemLoader(CachingLoaderMixin, FileSystemLoader):
         *,
         auto_reload: bool = True,
         namespace_key: str = "",
-        cache_size: int = 300,
+        capacity: int = 300,
     ):
         super().__init__(
             auto_reload=auto_reload,
             namespace_key=namespace_key,
-            cache_size=cache_size,
+            capacity=capacity,
         )
 
         FileSystemLoader.__init__(

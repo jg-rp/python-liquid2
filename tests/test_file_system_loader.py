@@ -235,5 +235,17 @@ def test_dont_auto_reload_cached_templates_async() -> None:
     asyncio.run(coro())
 
 
-# TODO: test_cache_capacity
-#
+def test_cache_capacity() -> None:
+    loader = CachingFileSystemLoader("tests/fixtures/001/", capacity=2)
+    env = Environment(loader=loader)
+    assert len(loader.cache) == 0
+    _template = env.get_template("main.html")
+    assert len(loader.cache) == 1
+    _template = env.get_template("main.html")
+    assert len(loader.cache) == 1
+    _template = env.get_template("header.html")
+    assert len(loader.cache) == 2
+    assert list(loader.cache.keys()) == ["header.html", "main.html"]
+    _template = env.get_template("footer.html")
+    assert len(loader.cache) == 2
+    assert list(loader.cache.keys()) == ["footer.html", "header.html"]

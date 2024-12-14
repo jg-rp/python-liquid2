@@ -160,6 +160,15 @@ class RenderContext:
 
         return obj
 
+    def resolve(self, name: str, default: object = UNDEFINED) -> object:
+        """Resolve variable _name_ in the current scope."""
+        try:
+            return self.scope[name]
+        except (KeyError, TypeError, IndexError):
+            if default == UNDEFINED:
+                return self.env.undefined(name, token=None)
+            return default
+
     def get_item(self, obj: Any, key: Any) -> Any:
         """An item getter used when resolving a Liquid path.
 

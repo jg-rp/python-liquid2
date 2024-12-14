@@ -59,14 +59,14 @@ class CachingLoaderMixin(ABC, _CachingLoaderProtocol):
         *,
         auto_reload: bool = True,
         namespace_key: str = "",
-        cache_size: int = 300,
+        capacity: int = 300,
         thread_safe: bool = False,
     ):
         self.auto_reload = auto_reload
         self.cache = (
-            ThreadSafeLRUCache[str, "Template"](capacity=cache_size)
+            ThreadSafeLRUCache[str, "Template"](capacity=capacity)
             if thread_safe
-            else LRUCache[str, "Template"](capacity=cache_size)
+            else LRUCache[str, "Template"](capacity=capacity)
         )
         self.namespace_key = namespace_key
 
