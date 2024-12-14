@@ -23,12 +23,28 @@ if TYPE_CHECKING:
 class CaptureNode(Node):
     """The standard  _capture_ tag."""
 
-    __slots__ = ("name", "block")
+    __slots__ = ("name", "block", "end_tag_token")
 
-    def __init__(self, token: TokenT, *, name: Identifier, block: BlockNode) -> None:
+    def __init__(
+        self,
+        token: TokenT,
+        *,
+        name: Identifier,
+        block: BlockNode,
+        end_tag_token: TagToken,
+    ) -> None:
         super().__init__(token)
         self.name = name
         self.block = block
+        self.end_tag_token = end_tag_token
+
+    def __str__(self) -> str:
+        assert isinstance(self.token, TagToken)
+        return (
+            f"{{%{self.token.wc[0]} capture {self.name} {self.token.wc[1]}%}}"
+            f"{self.block}"
+            f"{{%{self.end_tag_token.wc[0]} endcapture {self.end_tag_token.wc[1]}%}}"
+        )
 
     def render_to_output(self, context: RenderContext, buffer: TextIO) -> int:
         """Render the node to the output buffer."""
@@ -77,9 +93,12 @@ class CaptureTag(Tag):
         assert block_token is not None  # XXX: empty block or end of file
         nodes = self.env.parser.parse_block(stream, self.end_block)
         stream.expect_tag("endcapture")
+        end_tag_token = stream.current()
+        assert isinstance(end_tag_token, TagToken)
 
         return self.node_class(
             token,
             name=name,
             block=BlockNode(token=block_token, nodes=nodes),
+            end_tag_token=end_tag_token,
         )

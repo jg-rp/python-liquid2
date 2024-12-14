@@ -25,7 +25,8 @@ class CommentNode(Node):
         self.text = text
 
     def __str__(self) -> str:
-        return self.text
+        assert isinstance(self.token, CommentToken)
+        return f"{{#{self.token.wc[0]}{self.text}{self.token.wc[1]}#}}"
 
     def render_to_output(self, _context: RenderContext, _buffer: TextIO) -> int:
         """Render the node to the output buffer."""

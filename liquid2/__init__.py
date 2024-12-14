@@ -60,9 +60,6 @@ def parse(source: str, globals: Mapping[str, object] | None = None) -> Template:
     return DEFAULT_ENVIRONMENT.from_string(source, globals=globals)
 
 
-# TODO: expose undefined
-# TODO: expose some loaders
-
 __all__ = (
     "__version__",
     "BlockNode",

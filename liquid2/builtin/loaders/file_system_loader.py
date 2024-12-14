@@ -19,8 +19,6 @@ if TYPE_CHECKING:
     from liquid2 import Environment
     from liquid2 import RenderContext
 
-# TODO: test me
-
 
 class FileSystemLoader(BaseLoader):
     """A loader that loads templates from one or more directories on the file system.

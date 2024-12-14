@@ -57,6 +57,9 @@ class Template:
         self.overlay_data = overlay_data or {}
         self.uptodate: UpToDate = None
 
+    def __str__(self) -> str:
+        return "".join(str(n) for n in self.nodes)
+
     def render(self, *args: Any, **kwargs: Any) -> str:
         """Render this template with _args_ and _kwargs_."""
         buf = StringIO()  # TODO: limited buffer

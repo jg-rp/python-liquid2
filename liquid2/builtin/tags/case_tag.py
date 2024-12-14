@@ -26,7 +26,13 @@ if TYPE_CHECKING:
 class CaseNode(Node):
     """The standard _case_ tag."""
 
-    __slots__ = ("expression", "whens", "default")
+    __slots__ = (
+        "expression",
+        "whens",
+        "default",
+        "leading_whitespace",
+        "end_tag_token",
+    )
 
     def __init__(
         self,
@@ -34,11 +40,26 @@ class CaseNode(Node):
         expression: Expression,
         whens: list[MultiExpressionBlockNode],
         default: BlockNode | None,
+        leading_whitespace: str,
+        end_tag_token: TagToken,
     ) -> None:
         super().__init__(token)
         self.expression = expression
         self.whens = whens
         self.default = default
+        self.leading_whitespace = leading_whitespace
+        self.end_tag_token = end_tag_token
+
+    def __str__(self) -> str:
+        assert isinstance(self.token, TagToken)
+        default = str(self.default) if self.default else ""
+        return (
+            f"{{%{self.token.wc[0]} case {self.expression} {self.token.wc[1]}%}}"
+            f"{self.leading_whitespace}"
+            f"{''.join(str(w) for w in self.whens)}"
+            f"{{% else %}}{default}"  # XXX: don't have wc
+            f"{{%{self.end_tag_token.wc[0]} endcase {self.end_tag_token.wc[1]}%}}"
+        )
 
     def render_to_output(self, context: RenderContext, buffer: TextIO) -> int:
         """Render the node to the output buffer."""
@@ -96,6 +117,7 @@ class CaseTag(Tag):
         # Check for content or markup between the _case_ tag and the first _when_ or
         # _else_ tag. It is not allowed.
         block_token = stream.current()
+        leading_whitespace = ""
         match block_token:
             case TagToken(name=name):
                 if name not in self.end_block:
@@ -109,6 +131,7 @@ class CaseTag(Tag):
                         "unexpected text after 'case' tag",
                         token=block_token,
                     )
+                leading_whitespace = text
                 stream.next()
             case _:
                 raise LiquidSyntaxError(
@@ -144,12 +167,16 @@ class CaseTag(Tag):
             default = BlockNode(alternative_token, alternative_block)
 
         stream.expect_tag("endcase")
+        end_block_tag = stream.current()
+        assert isinstance(end_block_tag, TagToken)
 
         return self.node_class(
             token,
             left,
             whens,
             default,
+            leading_whitespace,
+            end_block_tag,
         )
 
     def _parse_when_expression(self, stream: TokenStream) -> list[Expression]:
@@ -173,6 +200,9 @@ class _AnyExpression(Expression):
         super().__init__(token)
         self.left = left
         self.expressions = expressions
+
+    def __str__(self) -> str:
+        return ", ".join(str(expr) for expr in self.expressions)
 
     def evaluate(self, context: RenderContext) -> object:
         left = self.left.evaluate(context)
@@ -204,6 +234,13 @@ class MultiExpressionBlockNode(Node):
         super().__init__(token)
         self.block = block
         self.expression = expression
+
+    def __str__(self) -> str:
+        assert isinstance(self.token, TagToken)
+        return (
+            f"{{%{self.token.wc[0]} when {self.expression} {self.token.wc[1]}%}}"
+            f"{self.block}"
+        )
 
     def render_to_output(self, context: RenderContext, buffer: TextIO) -> int:
         """Render the node to the output buffer."""

@@ -24,8 +24,6 @@ if TYPE_CHECKING:
 
 # ignoring "safe-super" type errors due to https://github.com/python/mypy/issues/14757
 
-# TODO: test me
-
 
 class _CachingLoaderProtocol(Protocol):
     def load(

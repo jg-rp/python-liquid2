@@ -34,6 +34,14 @@ class AssignNode(Node):
         self.name = name
         self.expression = expression
 
+    def __str__(self) -> str:
+        assert isinstance(self.token, TagToken)
+        return (
+            f"{{%{self.token.wc[0]} "
+            f"assign {self.name} = {self.expression}"
+            f" {self.token.wc[1]}%}}"
+        )
+
     def render_to_output(self, context: RenderContext, _buffer: TextIO) -> int:
         """Render the node to the output buffer."""
         context.assign(self.name, self.expression.evaluate(context))

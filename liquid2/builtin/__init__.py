@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .comments import Comment
+from .comment import Comment
 from .content import Content
 from .expressions import Blank
 from .expressions import BooleanExpression

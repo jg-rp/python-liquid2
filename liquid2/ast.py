@@ -135,6 +135,9 @@ class BlockNode(Node):
         super().__init__(token)
         self.nodes = nodes
 
+    def __str__(self) -> str:
+        return "".join(str(n) for n in self.nodes)
+
     def render_to_output(self, context: RenderContext, buffer: TextIO) -> int:
         """Render the node to the output buffer."""
         return sum(node.render(context, buffer) for node in self.nodes)
@@ -166,6 +169,9 @@ class ConditionalBlockNode(Node):
         super().__init__(token)
         self.block = block
         self.expression = expression
+
+    def __str__(self) -> str:
+        return str(self.block)
 
     def render_to_output(self, context: RenderContext, buffer: TextIO) -> int:
         """Render the node to the output buffer."""

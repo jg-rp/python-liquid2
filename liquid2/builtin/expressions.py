@@ -388,6 +388,12 @@ class FilteredExpression(Expression):
         self.left = left
         self.filters = filters
 
+    def __str__(self) -> str:
+        filters = (
+            " | " + " | ".join(str(f) for f in self.filters) if self.filters else ""
+        )
+        return f"{self.left}{filters}"
+
     def evaluate(self, context: RenderContext) -> object:
         rv = self.left.evaluate(context)
         if self.filters:
@@ -486,6 +492,20 @@ class TernaryFilteredExpression(Expression):
         self.alternative = alternative
         self.filters = filters
         self.tail_filters = tail_filters
+
+    def __str__(self) -> str:
+        buf = [f"{self.left} if {self.condition}"]
+
+        if self.alternative:
+            buf.append(f" else {self.alternative}")
+
+        if self.filters:
+            buf.append(" | " + " | ".join(str(f) for f in self.filters))
+
+        if self.tail_filters:
+            buf.append(" || " + " | ".join(str(f) for f in self.tail_filters))
+
+        return "".join(buf)
 
     def evaluate(self, context: RenderContext) -> object:
         rv: object = None

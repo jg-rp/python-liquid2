@@ -29,7 +29,8 @@ class OutputNode(Node):
         self.expression = expression
 
     def __str__(self) -> str:
-        return f"`{self.expression}`"
+        assert isinstance(self.token, OutputToken)
+        return f"{{{{{self.token.wc[0]} {self.expression} {self.token.wc[1]}}}}}"
 
     def render_to_output(self, context: RenderContext, buffer: TextIO) -> int:
         """Render the node to the output buffer."""
