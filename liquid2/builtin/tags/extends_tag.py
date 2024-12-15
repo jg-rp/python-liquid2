@@ -133,16 +133,33 @@ class ExtendsTag(Tag):
 class BlockNode(Node):
     """The standard _block_ tag."""
 
-    __slots__ = ("name", "block", "required")
+    __slots__ = ("name", "block", "required", "end_tag_token")
     tag = "block"
 
     def __init__(
-        self, token: TokenT, name: str, block: TemplateBlock, *, required: bool
+        self,
+        token: TokenT,
+        name: str,
+        block: TemplateBlock,
+        *,
+        required: bool,
+        end_tag_token: TagToken,
     ) -> None:
         super().__init__(token)
         self.name = name
         self.block = block
         self.required = required
+        self.end_tag_token = end_tag_token
+
+    def __str__(self) -> str:
+        assert isinstance(self.token, TagToken)
+        required = " required" if self.required else ""
+        return (
+            f"{{%{self.token.wc[0]} block {self.name}{required} {self.token.wc[1]}%}}"
+            f"{self.block}"
+            f"{{%{self.end_tag_token.wc[0]} endblock {self.name} "
+            f"{self.end_tag_token.wc[1]}%}}"
+        )
 
     def render_to_output(self, context: RenderContext, buffer: TextIO) -> int:
         """Render the node to the output buffer."""
@@ -301,7 +318,11 @@ class BlockTag(Tag):
             tokens.expect_eos()
 
         return self.node_class(
-            token=token, name=block_name, block=block, required=required
+            token=token,
+            name=block_name,
+            block=block,
+            required=required,
+            end_tag_token=end_block_token,
         )
 
 

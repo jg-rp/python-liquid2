@@ -52,6 +52,19 @@ class IncludeNode(Node):
         self.alias = alias
         self.args = args or []
 
+    def __str__(self) -> str:
+        assert isinstance(self.token, TagToken)
+        var = f" with {self.var}" if self.var else ""
+        if self.alias:
+            var += f" as {self.alias}"
+        if self.args:
+            var += ","
+        args = " " + ", ".join(str(arg) for arg in self.args) if self.args else ""
+        return (
+            f"{{%{self.token.wc[0]} include "
+            f"{self.name}{var}{args} {self.token.wc[1]}%}}"
+        )
+
     def render_to_output(self, context: RenderContext, buffer: TextIO) -> int:
         """Render the node to the output buffer."""
         name = self.name.evaluate(context)

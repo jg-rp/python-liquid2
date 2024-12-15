@@ -1,4 +1,4 @@
-"""The built in, standard implementation of the text content node."""
+"""The built-in implementation of the text content node."""
 
 from __future__ import annotations
 
@@ -22,20 +22,32 @@ if TYPE_CHECKING:
 
 
 class ContentNode(Node):
-    """The built in, standard implementation of the text content node."""
+    """The built-in implementation of the text content node."""
 
-    __slots__ = ("text",)
+    __slots__ = ("text", "left_trim", "right_trim")
 
-    def __init__(self, token: TokenT, text: str) -> None:
+    def __init__(
+        self,
+        token: TokenT,
+        text: str,
+        *,
+        left_trim: WhitespaceControl,
+        right_trim: WhitespaceControl,
+    ) -> None:
         super().__init__(token)
         self.text = text
+        self.left_trim = left_trim
+        self.right_trim = right_trim
 
     def __str__(self) -> str:
         return self.text
 
-    def render_to_output(self, _context: RenderContext, buffer: TextIO) -> int:
+    def render_to_output(self, context: RenderContext, buffer: TextIO) -> int:
         """Render the node to the output buffer."""
-        return buffer.write(self.text)
+        # NOTE: Trimming at render time for the benefit of template serialization.
+        return buffer.write(
+            context.env.trim(self.text, self.left_trim, self.right_trim)
+        )
 
 
 class Content(Tag):
@@ -62,4 +74,9 @@ class Content(Tag):
             ):
                 right_trim = peeked.wc[0]
 
-        return self.node_class(token, self.env.trim(token.text, left_trim, right_trim))
+        return self.node_class(
+            token,
+            token.text,
+            left_trim=left_trim,
+            right_trim=right_trim,
+        )

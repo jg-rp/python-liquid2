@@ -52,12 +52,20 @@ class CaseNode(Node):
 
     def __str__(self) -> str:
         assert isinstance(self.token, TagToken)
-        default = str(self.default) if self.default else ""
+        default = ""
+
+        if self.default:
+            assert isinstance(self.default.token, TagToken)
+            default = (
+                f"{{%{self.default.token.wc[0]} else {self.default.token.wc[1]}%}}"
+                f"{self.default}"
+            )
+
         return (
             f"{{%{self.token.wc[0]} case {self.expression} {self.token.wc[1]}%}}"
             f"{self.leading_whitespace}"
             f"{''.join(str(w) for w in self.whens)}"
-            f"{{% else %}}{default}"  # XXX: don't have wc
+            f"{default}"
             f"{{%{self.end_tag_token.wc[0]} endcase {self.end_tag_token.wc[1]}%}}"
         )
 
@@ -162,7 +170,6 @@ class CaseTag(Tag):
 
         if stream.is_tag("else"):
             alternative_token = stream.next()
-            assert isinstance(alternative_token, TagToken)
             alternative_block = parse_block(stream, self.end_block)
             default = BlockNode(alternative_token, alternative_block)
 

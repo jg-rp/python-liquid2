@@ -744,6 +744,9 @@ class KeywordArgument:
         self.name = name
         self.value = value
 
+    def __str__(self) -> str:
+        return f"{self.name}:{self.value}"
+
     def evaluate(self, context: RenderContext) -> tuple[str, object]:
         return (self.name, self.value.evaluate(context))
 

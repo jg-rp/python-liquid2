@@ -57,6 +57,25 @@ class RenderNode(Node):
         self.alias = alias
         self.args = args or []
 
+    def __str__(self) -> str:
+        assert isinstance(self.token, TagToken)
+        var = ""
+        if self.var:
+            if self.loop:
+                var = f" for {self.var}"
+            else:
+                var = f" with {self.var}"
+
+        if self.alias:
+            var += f" as {self.alias}"
+        if self.args:
+            var += ","
+        args = " " + ", ".join(str(arg) for arg in self.args) if self.args else ""
+        return (
+            f"{{%{self.token.wc[0]} render "
+            f"{self.name}{var}{args} {self.token.wc[1]}%}}"
+        )
+
     def render_to_output(self, context: RenderContext, buffer: TextIO) -> int:
         """Render the node to the output buffer."""
         template = context.env.get_template(

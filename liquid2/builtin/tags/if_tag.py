@@ -43,9 +43,16 @@ class IfNode(Node):
 
     def __str__(self) -> str:
         assert isinstance(self.token, TagToken)
-        # XXX: don't have `else` WC
         alts = "".join(str(alt) for alt in self.alternatives)
-        default = "{% else %}" + str(self.default) if self.default else ""
+        default = ""
+
+        if self.default:
+            assert isinstance(self.default.token, TagToken)
+            default = (
+                f"{{%{self.default.token.wc[0]} else {self.default.token.wc[1]}%}}"
+                f"{self.default}"
+            )
+
         return (
             f"{{%{self.token.wc[0]} if {self.condition} {self.token.wc[1]}%}}"
             f"{self.consequence}"
@@ -142,9 +149,7 @@ class IfTag(Tag):
             )
 
         if stream.is_tag("else"):
-            stream.next()
-            alternative_token = stream.current()
-            assert alternative_token is not None
+            alternative_token = stream.next()
             alternative = BlockNode(
                 alternative_token, parse_block(stream, self.end_block)
             )

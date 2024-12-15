@@ -73,6 +73,23 @@ def test_case_str_whitespace() -> None:
     assert str(template) == source
 
 
+def test_case_str_whitespace_wc() -> None:
+    source = "\n".join(
+        [
+            "{%- case x +%}",
+            "{% when y %}",
+            "  {{ a }}",
+            "{%+ when z +%}",
+            "  {{ b }}",
+            "{%+ else +%}",
+            "  {{ c }}",
+            "{% endcase %}",
+        ]
+    )
+    template = parse(source)
+    assert str(template) == source
+
+
 def test_cycle_str() -> None:
     source = "{% cycle 1, 2, 3 %}"
     template = parse(source)
@@ -139,7 +156,22 @@ def test_extends_str_wc() -> None:
     assert str(template) == source
 
 
-# TODO: block
+def test_block_str() -> None:
+    template = parse("{% block b required %}{{ greeting }}, {{ x }}! {% endblock %}")
+    assert (
+        str(template)
+        == "{% block b required %}{{ greeting }}, {{ x }}! {% endblock b %}"
+    )
+
+
+def test_block_wc() -> None:
+    template = parse(
+        "{%- block b required +%}{{ greeting }}, {{ x }}! {%+ endblock ~%}"
+    )
+    assert (
+        str(template)
+        == "{%- block b required +%}{{ greeting }}, {{ x }}! {%+ endblock b ~%}"
+    )
 
 
 def test_for_str() -> None:
@@ -149,12 +181,29 @@ def test_for_str() -> None:
 
 
 def test_for_str_wc() -> None:
-    source = "{%- for a in b +%}{{ a }},{% else %}c{%~ endfor %}"
+    source = "{%- for a in b +%}{{ a }},{%+ else -%}c{%~ endfor %}"
     template = parse(source)
     assert str(template) == source
 
 
-# TODO: continue and break
+def test_break_and_continue_str() -> None:
+    source = (
+        "{% for a in b %}"
+        "{% if true %}{% continue %}{% else %}{% break %}{% endif %}"
+        "{% endfor %}"
+    )
+    template = parse(source)
+    assert str(template) == source
+
+
+def test_break_and_continue_str_wc() -> None:
+    source = (
+        "{% for a in b %}"
+        "{% if true %}{%+ continue -%}{% else %}{%- break +%}{% endif %}"
+        "{% endfor %}"
+    )
+    template = parse(source)
+    assert str(template) == source
 
 
 def test_if_str() -> None:
@@ -164,7 +213,7 @@ def test_if_str() -> None:
 
 
 def test_if_str_wc() -> None:
-    source = "{%- if false +%}a{%~ elsif false -%}b{% else %}c{%+ endif %}"
+    source = "{%- if false +%}a{%~ elsif false -%}b{%+ else -%}c{%+ endif %}"
     template = parse(source)
     assert str(template) == source
 
@@ -179,3 +228,61 @@ def test_unless_str_wc() -> None:
     source = "{%- unless false +%}a{%~ elsif false -%}b{% else %}c{%+ endunless %}"
     template = parse(source)
     assert str(template) == source
+
+
+def test_include_str() -> None:
+    source = "{% include foo %}"
+    template = parse(source)
+    assert str(template) == source
+
+
+def test_include_str_wc() -> None:
+    source = "{%- include foo +%}"
+    template = parse(source)
+    assert str(template) == source
+
+
+def test_include_str_with_alias() -> None:
+    source = "{% include 'a' with b.c[1] as x, y:42 %}"
+    template = parse(source)
+    assert str(template) == source
+
+
+def test_render_str() -> None:
+    source = "{% render 'foo' %}"
+    template = parse(source)
+    assert str(template) == source
+
+
+def test_render_str_wc() -> None:
+    source = "{%- render 'foo' +%}"
+    template = parse(source)
+    assert str(template) == source
+
+
+def test_render_str_with_alias() -> None:
+    source = "{% render 'a' for b.c[1] as x, y:42 %}"
+    template = parse(source)
+    assert str(template) == source
+
+
+def test_liquid_str() -> None:
+    template = parse("{% liquid echo 'a'\nassign b = 'c'\necho b %}")
+    assert str(template) == "{% echo 'a' %}\n{% assign b = 'c' %}\n{% echo b %}"
+
+
+def test_raw_str() -> None:
+    source = "{% raw %}{{ a }}{% endraw %}"
+    template = parse(source)
+    assert str(template) == source
+
+
+def test_raw_str_wc() -> None:
+    source = "{%- raw +%}{{ a }}{%~ endraw -%}"
+    template = parse(source)
+    assert str(template) == source
+
+
+# TODO: ternary expressions
+# TODO: parentheses in logical expressions
+# TODO: liquid tag formatting

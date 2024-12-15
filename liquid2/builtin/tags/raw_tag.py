@@ -24,6 +24,14 @@ class RawNode(Node):
         super().__init__(token)
         self.text = text
 
+    def __str__(self) -> str:
+        assert isinstance(self.token, RawToken)
+        return (
+            f"{{%{self.token.wc[0]} raw {self.token.wc[1]}%}}"
+            f"{self.text}"
+            f"{{%{self.token.wc[2]} endraw {self.token.wc[3]}%}}"
+        )
+
     def render_to_output(self, _context: RenderContext, buffer: TextIO) -> int:
         """Render the node to the output buffer."""
         return buffer.write(self.text)

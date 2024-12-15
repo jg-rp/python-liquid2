@@ -46,8 +46,15 @@ class ForNode(Node):
 
     def __str__(self) -> str:
         assert isinstance(self.token, TagToken)
-        # XXX: don't have `else` WC
-        default = "{% else %}" + str(self.default) if self.default else ""
+        default = ""
+
+        if self.default:
+            assert isinstance(self.default.token, TagToken)
+            default = (
+                f"{{%{self.default.token.wc[0]} else {self.default.token.wc[1]}%}}"
+                f"{self.default}"
+            )
+
         return (
             f"{{%{self.token.wc[0]} for {self.expression} {self.token.wc[1]}%}}"
             f"{self.block}"
@@ -173,8 +180,7 @@ class ForTag(Tag):
         default: BlockNode | None = None
 
         if stream.is_tag("else"):
-            stream.next()
-            default_token = stream.current()
+            default_token = stream.next()
             assert default_token is not None
             default_block = parse_block(stream, self.end_block)
             default = BlockNode(default_token, default_block)
@@ -295,7 +301,8 @@ class BreakNode(Node):
     __slots__ = ()
 
     def __str__(self) -> str:
-        return "`break`"
+        assert isinstance(self.token, TagToken)
+        return f"{{%{self.token.wc[0]} break {self.token.wc[1]}%}}"
 
     def render_to_output(self, _context: RenderContext, _buffer: TextIO) -> int:
         """Render the node to the output buffer."""
@@ -306,7 +313,8 @@ class ContinueNode(Node):
     """Parse tree node for the standard _continue_ tag."""
 
     def __str__(self) -> str:
-        return "`continue`"
+        assert isinstance(self.token, TagToken)
+        return f"{{%{self.token.wc[0]} continue {self.token.wc[1]}%}}"
 
     def render_to_output(self, _context: RenderContext, _buffer: TextIO) -> int:
         """Render the node to the output buffer."""
