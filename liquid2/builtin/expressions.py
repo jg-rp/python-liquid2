@@ -46,7 +46,7 @@ class Null(Expression):
     def __eq__(self, other: object) -> bool:
         return other is None or isinstance(other, Null)
 
-    def __str__(self) -> str:  # pragma: no cover
+    def __str__(self) -> str:
         return ""
 
     def __hash__(self) -> int:
@@ -67,8 +67,8 @@ class Empty(Expression):
             return True
         return isinstance(other, (list, dict, str)) and not other
 
-    def __str__(self) -> str:  # pragma: no cover
-        return ""
+    def __str__(self) -> str:
+        return "empty"
 
     def __hash__(self) -> int:
         return hash(self.__class__)
@@ -95,8 +95,8 @@ class Blank(Expression):
             return True
         return isinstance(other, Blank)
 
-    def __str__(self) -> str:  # pragma: no cover
-        return ""
+    def __str__(self) -> str:
+        return "blank"
 
     def __hash__(self) -> int:
         return hash(self.__class__)
@@ -121,7 +121,7 @@ class Continue(Expression):
     def __eq__(self, other: object) -> bool:
         return isinstance(other, Continue)
 
-    def __str__(self) -> str:  # pragma: no cover
+    def __str__(self) -> str:
         return "continue"
 
     def __hash__(self) -> int:
@@ -169,6 +169,9 @@ class TrueLiteral(Literal[bool]):
     def __init__(self, token: TokenT) -> None:
         super().__init__(token, True)  # noqa: FBT003
 
+    def __str__(self) -> str:
+        return "true"
+
     def __eq__(self, other: object) -> bool:
         return isinstance(other, TrueLiteral) and self.value == other.value
 
@@ -181,6 +184,9 @@ class FalseLiteral(Literal[bool]):
 
     def __init__(self, token: TokenT) -> None:
         super().__init__(token, False)  # noqa: FBT003
+
+    def __str__(self) -> str:
+        return "false"
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, TrueLiteral) and self.value == other.value
@@ -780,6 +786,9 @@ class BooleanExpression(Expression):
         super().__init__(token=token)
         self.expression = expression
 
+    def __str__(self) -> str:
+        return str(self.expression)
+
     def evaluate(self, context: RenderContext) -> object:
         return is_truthy(self.expression.evaluate(context))
 
@@ -982,6 +991,9 @@ class LogicalNotExpression(Expression):
         super().__init__(token=token)
         self.expression = expression
 
+    def __str__(self) -> str:
+        return f"not {self.expression}"
+
     def evaluate(self, context: RenderContext) -> object:
         return not is_truthy(self.expression.evaluate(context))
 
@@ -1005,6 +1017,10 @@ class LogicalAndExpression(Expression):
         self.left = left
         self.right = right
 
+    def __str__(self) -> str:
+        # TODO: parens
+        return f"{self.left} and {self.right}"
+
     def evaluate(self, context: RenderContext) -> object:
         return is_truthy(self.left.evaluate(context)) and is_truthy(
             self.right.evaluate(context)
@@ -1026,6 +1042,10 @@ class LogicalOrExpression(Expression):
         super().__init__(token=token)
         self.left = left
         self.right = right
+
+    def __str__(self) -> str:
+        # TODO: parens
+        return f"{self.left} or {self.right}"
 
     def evaluate(self, context: RenderContext) -> object:
         return is_truthy(self.left.evaluate(context)) or is_truthy(
@@ -1049,6 +1069,9 @@ class EqExpression(Expression):
         self.left = left
         self.right = right
 
+    def __str__(self) -> str:
+        return f"{self.left} == {self.right}"
+
     def evaluate(self, context: RenderContext) -> object:
         return _eq(self.left.evaluate(context), self.right.evaluate(context))
 
@@ -1070,6 +1093,9 @@ class NeExpression(Expression):
         self.left = left
         self.right = right
 
+    def __str__(self) -> str:
+        return f"{self.left} != {self.right}"
+
     def evaluate(self, context: RenderContext) -> object:
         return not _eq(self.left.evaluate(context), self.right.evaluate(context))
 
@@ -1090,6 +1116,9 @@ class LeExpression(Expression):
         super().__init__(token=token)
         self.left = left
         self.right = right
+
+    def __str__(self) -> str:
+        return f"{self.left} <= {self.right}"
 
     def evaluate(self, context: RenderContext) -> object:
         left = self.left.evaluate(context)
@@ -1113,6 +1142,9 @@ class GeExpression(Expression):
         self.left = left
         self.right = right
 
+    def __str__(self) -> str:
+        return f"{self.left} >= {self.right}"
+
     def evaluate(self, context: RenderContext) -> object:
         left = self.left.evaluate(context)
         right = self.right.evaluate(context)
@@ -1134,6 +1166,9 @@ class LtExpression(Expression):
         super().__init__(token=token)
         self.left = left
         self.right = right
+
+    def __str__(self) -> str:
+        return f"{self.left} < {self.right}"
 
     def evaluate(self, context: RenderContext) -> object:
         return _lt(
@@ -1159,6 +1194,9 @@ class GtExpression(Expression):
         self.left = left
         self.right = right
 
+    def __str__(self) -> str:
+        return f"{self.left} > {self.right}"
+
     def evaluate(self, context: RenderContext) -> object:
         return _lt(
             self.token, self.right.evaluate(context), self.left.evaluate(context)
@@ -1183,6 +1221,9 @@ class ContainsExpression(Expression):
         self.left = left
         self.right = right
 
+    def __str__(self) -> str:
+        return f"{self.left} contains {self.right}"
+
     def evaluate(self, context: RenderContext) -> object:
         return _contains(
             self.token, self.left.evaluate(context), self.right.evaluate(context)
@@ -1206,6 +1247,9 @@ class InExpression(Expression):
         super().__init__(token=token)
         self.left = left
         self.right = right
+
+    def __str__(self) -> str:
+        return f"{self.left} in {self.right}"
 
     def evaluate(self, context: RenderContext) -> object:
         return _contains(

@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 class ForNode(Node):
     """The standard _for_ tag."""
 
-    __slots__ = ("expression", "block", "default")
+    __slots__ = ("expression", "block", "default", "end_tag_token")
 
     def __init__(
         self,
@@ -36,11 +36,24 @@ class ForNode(Node):
         expression: LoopExpression,
         block: BlockNode,
         default: BlockNode | None,
+        end_tag_token: TagToken,
     ) -> None:
         super().__init__(token)
         self.expression = expression
         self.block = block
         self.default = default
+        self.end_tag_token = end_tag_token
+
+    def __str__(self) -> str:
+        assert isinstance(self.token, TagToken)
+        # XXX: don't have `else` WC
+        default = "{% else %}" + str(self.default) if self.default else ""
+        return (
+            f"{{%{self.token.wc[0]} for {self.expression} {self.token.wc[1]}%}}"
+            f"{self.block}"
+            f"{default}"
+            f"{{%{self.end_tag_token.wc[0]} endfor {self.end_tag_token.wc[1]}%}}"
+        )
 
     def render_to_output(self, context: RenderContext, buffer: TextIO) -> int:
         """Render the node to the output buffer."""
@@ -166,11 +179,16 @@ class ForTag(Tag):
             default_block = parse_block(stream, self.end_block)
             default = BlockNode(default_token, default_block)
 
+        stream.expect_tag("endfor")
+        end_tag_token = stream.current()
+        assert isinstance(end_tag_token, TagToken)
+
         return self.node_class(
             token,
             expression,
             block,
             default,
+            end_tag_token,
         )
 
 

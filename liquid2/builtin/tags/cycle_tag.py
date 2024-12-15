@@ -35,6 +35,12 @@ class CycleNode(Node):
         self.items = tuple(items)
         self.cycle_hash = hash((self.name, self.items))
 
+    def __str__(self) -> str:
+        assert isinstance(self.token, TagToken)
+        name = f"{self.name}: " if self.name else ""
+        items = ", ".join(str(i) for i in self.items)
+        return f"{{%{self.token.wc[0]} cycle {name}{items} {self.token.wc[1]}%}}"
+
     def render_to_output(self, context: RenderContext, buffer: TextIO) -> int:
         """Render the node to the output buffer."""
         index = context.cycle(self.cycle_hash, len(self.items))

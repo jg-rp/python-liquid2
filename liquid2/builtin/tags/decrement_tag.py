@@ -28,6 +28,10 @@ class DecrementNode(Node):
         super().__init__(token)
         self.name = name
 
+    def __str__(self) -> str:
+        assert isinstance(self.token, TagToken)
+        return f"{{%{self.token.wc[0]} decrement {self.name} {self.token.wc[1]}%}}"
+
     def render_to_output(self, context: RenderContext, buffer: TextIO) -> int:
         """Render the node to the output buffer."""
         return buffer.write(str(context.decrement(self.name)))

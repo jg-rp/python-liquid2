@@ -6,6 +6,9 @@ from typing import Sequence
 from markupsafe import Markup
 from markupsafe import escape
 
+from liquid2.builtin import Blank
+from liquid2.builtin import Empty
+
 
 def to_liquid_string(val: Any, *, auto_escape: bool = False) -> str:
     """Stringify a Python object ready for output in a Liquid template."""
@@ -24,6 +27,8 @@ def to_liquid_string(val: Any, *, auto_escape: bool = False) -> str:
             val = "".join(to_liquid_string(itm, auto_escape=auto_escape) for itm in val)
     elif isinstance(val, range):
         val = f"{val.start}..{val.stop - 1}"
+    elif isinstance(val, (Empty, Blank)):
+        val = ""
     else:
         val = str(val)
 

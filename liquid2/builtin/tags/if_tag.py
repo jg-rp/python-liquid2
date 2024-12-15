@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 class IfNode(Node):
     """The standard _if_ tag."""
 
-    __slots__ = ("condition", "consequence", "alternatives", "default")
+    __slots__ = ("condition", "consequence", "alternatives", "default", "end_tag_token")
 
     def __init__(
         self,
@@ -32,12 +32,27 @@ class IfNode(Node):
         consequence: BlockNode,
         alternatives: list[ConditionalBlockNode],
         default: BlockNode | None,
+        end_tag_token: TagToken,
     ) -> None:
         super().__init__(token)
         self.condition = condition
         self.consequence = consequence
         self.alternatives = alternatives
         self.default = default
+        self.end_tag_token = end_tag_token
+
+    def __str__(self) -> str:
+        assert isinstance(self.token, TagToken)
+        # XXX: don't have `else` WC
+        alts = "".join(str(alt) for alt in self.alternatives)
+        default = "{% else %}" + str(self.default) if self.default else ""
+        return (
+            f"{{%{self.token.wc[0]} if {self.condition} {self.token.wc[1]}%}}"
+            f"{self.consequence}"
+            f"{alts}"
+            f"{default}"
+            f"{{%{self.end_tag_token.wc[0]} endif {self.end_tag_token.wc[1]}%}}"
+        )
 
     def render_to_output(self, context: RenderContext, buffer: TextIO) -> int:
         """Render the node to the output buffer."""
@@ -134,10 +149,15 @@ class IfTag(Tag):
                 alternative_token, parse_block(stream, self.end_block)
             )
 
+        stream.expect_tag("endif")
+        end_tag_token = stream.current()
+        assert isinstance(end_tag_token, TagToken)
+
         return self.node_class(
             token,
             condition,
             consequence,
             alternatives,
             alternative,
+            end_tag_token,
         )

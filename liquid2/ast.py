@@ -15,6 +15,7 @@ from liquid2.expression import Expression
 
 from .context import RenderContext
 from .exceptions import DisabledTagError
+from .token import TagToken
 from .token import is_tag_token
 
 if TYPE_CHECKING:
@@ -171,7 +172,11 @@ class ConditionalBlockNode(Node):
         self.expression = expression
 
     def __str__(self) -> str:
-        return str(self.block)
+        assert isinstance(self.token, TagToken)
+        return (
+            f"{{%{self.token.wc[0]} elsif {self.expression} {self.token.wc[1]}%}}"
+            f"{self.block}"
+        )
 
     def render_to_output(self, context: RenderContext, buffer: TextIO) -> int:
         """Render the node to the output buffer."""

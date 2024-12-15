@@ -14,9 +14,9 @@ from liquid2.builtin import parse_string_or_identifier
 from liquid2.exceptions import LiquidSyntaxError
 
 if TYPE_CHECKING:
+    from liquid2 import RenderContext
     from liquid2 import TokenT
     from liquid2.builtin import Identifier
-    from liquid2.context import RenderContext
 
 
 class IncrementNode(Node):
@@ -27,6 +27,10 @@ class IncrementNode(Node):
     def __init__(self, token: TokenT, name: Identifier) -> None:
         super().__init__(token)
         self.name = name
+
+    def __str__(self) -> str:
+        assert isinstance(self.token, TagToken)
+        return f"{{%{self.token.wc[0]} increment {self.name} {self.token.wc[1]}%}}"
 
     def render_to_output(self, context: RenderContext, buffer: TextIO) -> int:
         """Render the node to the output buffer."""
