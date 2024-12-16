@@ -11,7 +11,6 @@ from liquid2 import LinesToken
 from liquid2 import Node
 from liquid2 import Tag
 from liquid2 import TokenStream
-from liquid2.builtin.comment import CommentNode
 
 if TYPE_CHECKING:
     from liquid2 import RenderContext
@@ -33,10 +32,9 @@ class LiquidNode(Node):
 
     def __str__(self) -> str:
         assert isinstance(self.token, LinesToken)
-        # XXX: normalizes to non-liquid tags and output?
-        # What about whitespace control?
-        # TODO: smarter indentation
-        return "\n".join(str(node) for node in self.block.nodes)
+        # NOTE: We're using a string representation of the token, not the node.
+        # Which might cause issues later.
+        return str(self.token)
 
     def render_to_output(self, context: RenderContext, buffer: TextIO) -> int:
         """Render the node to the output buffer."""

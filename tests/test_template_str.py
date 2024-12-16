@@ -267,8 +267,26 @@ def test_render_str_with_alias() -> None:
 
 
 def test_liquid_str() -> None:
-    template = parse("{% liquid echo 'a'\nassign b = 'c'\necho b %}")
-    assert str(template) == "{% echo 'a' %}\n{% assign b = 'c' %}\n{% echo b %}"
+    source = "{% liquid echo 'a'\nassign b = 'c'\necho b %}"
+    template = parse(source)
+    assert str(template) == source
+
+
+def test_liquid_str_wc() -> None:
+    source = "{%- liquid echo 'a'\nassign b = 'c'\necho b +%}"
+    template = parse(source)
+    assert str(template) == source
+
+
+def test_liquid_comment_str() -> None:
+    source = "{% liquid echo 'a'\n# some comment\nassign b = 'c'\necho b %}"
+    template = parse(source)
+    assert str(template) == source
+
+
+def test_liquid_str_with_trailing_newline() -> None:
+    template = parse("{% liquid echo 'a'\nassign b = 'c'\necho b\n\n%}")
+    assert str(template) == "{% liquid echo 'a'\nassign b = 'c'\necho b %}"
 
 
 def test_raw_str() -> None:
@@ -285,4 +303,3 @@ def test_raw_str_wc() -> None:
 
 # TODO: ternary expressions
 # TODO: parentheses in logical expressions
-# TODO: liquid tag formatting

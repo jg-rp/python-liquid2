@@ -70,6 +70,8 @@ class Node(ABC):
                 token=token,
             )
 
+    # TODO: rename arguments below
+
     def children(
         self,
         _static_context: RenderContext,

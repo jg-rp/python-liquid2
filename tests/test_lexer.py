@@ -159,7 +159,7 @@ TEST_CASES = [
     Case(
         name="liquid tag, leading newline",
         source="{% liquid\nassign 'x' = 'y' %}",
-        want="{% liquid assign 'x' = 'y' %}",
+        want="{% liquid\nassign 'x' = 'y' %}",
     ),
     Case(
         name="liquid tag, multiple lines",
@@ -167,9 +167,9 @@ TEST_CASES = [
         want="{% liquid assign 'x' = 'y'\nfor a in b\necho a\nendfor %}",
     ),
     Case(
-        name="liquid tag, multiple lines",
-        source="{% liquid assign 'x' = 'y'\nfor a in b\necho a\nendfor %}",
-        want="{% liquid assign 'x' = 'y'\nfor a in b\necho a\nendfor %}",
+        name="liquid tag, multiple newlines",
+        source="{% liquid assign 'x' = 'y'\n\nfor a in b\necho a\nendfor %}",
+        want="{% liquid assign 'x' = 'y'\n\nfor a in b\necho a\nendfor %}",
     ),
     Case(
         name="liquid tag, tag without expression",
@@ -182,6 +182,6 @@ TEST_CASES = [
 
 
 @pytest.mark.parametrize("case", TEST_CASES, ids=operator.attrgetter("name"))
-def test_parser(case: Case) -> None:
+def test_lexer(case: Case) -> None:
     """Test the Rust parser."""
     assert "".join(str(t) for t in tokenize(case.source)) == case.want

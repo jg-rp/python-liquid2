@@ -119,12 +119,19 @@ class LinesToken(TokenT):
     stop: int
     wc: tuple[WhitespaceControl, WhitespaceControl]
     name: str
-    statements: list[TagToken | CommentToken]  # TODO: store indentation too
+    statements: list[TagToken | CommentToken]
+    whitespace: list[str]
 
     def __str__(self) -> str:
+        assert len(self.whitespace) >= len(self.statements)
         if self.statements:
-            lines = "\n".join(_tag_as_line_statement(line) for line in self.statements)
-            return f"{{%{self.wc[0]} liquid {lines} {self.wc[1]}%}}"
+            lines = "\n".join(
+                whitespace + _tag_as_line_statement(line)
+                for line, whitespace in zip(
+                    self.statements, self.whitespace, strict=False
+                )
+            )
+            return f"{{%{self.wc[0]} liquid{lines} {self.wc[1]}%}}"
         return f"{{%{self.wc[0]} liquid {self.wc[1]}%}}"
 
 
@@ -146,7 +153,7 @@ def _tag_as_line_statement(markup: TagToken | CommentToken) -> str:
         if markup.expression:
             return f"{markup.name} {_expression_as_string(markup.expression)}"
         return markup.name
-    return f"# {markup.text}"
+    return f"#{markup.text}"
 
 
 @dataclass(kw_only=True, slots=True)

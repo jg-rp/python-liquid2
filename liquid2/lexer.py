@@ -29,7 +29,7 @@ from .token import is_token_type
 if TYPE_CHECKING:
     from .token import TokenT
 
-RE_LINE_COMMENT = re.compile(r"\#.*?(?=(\n|[\-+~]?%\}))")
+RE_LINE_COMMENT = re.compile(r"\#(.*?)(?=(\n|[\-+~]?%\}))")
 RE_OUTPUT_END = re.compile(r"([+\-~]?)\}\}")
 RE_TAG_END = re.compile(r"([+\-~]?)%\}")
 RE_WHITESPACE_CONTROL = re.compile(r"[+\-~]")
@@ -160,6 +160,7 @@ class Lexer:
         "in_range",
         "line_start",
         "line_statements",
+        "line_space",
         "markup",
         "markup_start",
         "pos",
@@ -180,6 +181,9 @@ class Lexer:
 
         self.line_statements: list[TagToken | CommentToken] = []
         """Markup resulting from scanning a sequence of line statements."""
+
+        self.line_space: list[str] = []
+        """Whitespace preceding line statements."""
 
         self.path_stack: list[PathToken] = []
         """Current path/query/variable, possibly with nested paths."""
@@ -258,7 +262,7 @@ class Lexer:
         """Match _pattern_ starting from the current position."""
         match = pattern.match(self.source, self.pos)
         if match:
-            self.pos += len(match.group())
+            self.pos += match.end() - match.start()
             return True
         return False
 
@@ -288,7 +292,7 @@ class Lexer:
                 self.ignore_whitespace()
                 if match := RE_PROPERTY.match(self.source, self.pos):
                     self.path_stack[-1].path.append(match.group())
-                    self.pos += len(match.group())
+                    self.pos += match.end() - match.start()
                     self.start = self.pos
                     self.path_stack[-1].stop = self.pos
 
@@ -319,7 +323,7 @@ class Lexer:
 
                 elif match := RE_INDEX.match(self.source, self.pos):
                     self.path_stack[-1].path.append(int(match.group()))
-                    self.pos += len(match.group())
+                    self.pos += match.end() - match.start()
                     self.start = self.pos
 
                 elif match := RE_PROPERTY.match(self.source, self.pos):
@@ -333,7 +337,7 @@ class Lexer:
                             source=self.source,
                         )
                     )
-                    self.pos += len(match.group())
+                    self.pos += match.end() - match.start()
                     self.start = self.pos
             else:
                 self.backup()
@@ -548,12 +552,31 @@ class Lexer:
             )
             raise Exception(msg)
 
-        if self.accept(RE_WHITESPACE):
-            self.ignore()
+        match = RE_WHITESPACE.match(self.source, self.pos)
+        if match:
+            self.pos += match.end() - match.start()
+            self.start = self.pos
             return True
         return False
 
-    def ignore_line_space(self) -> bool:
+    def consume_whitespace(self) -> str:
+        """Consume and return whitespace."""
+        if self.pos != self.start:
+            msg = (
+                "must emit or ignore before consuming whitespace "
+                f"({self.source[self.start: self.pos]!r}:{self.pos})"
+            )
+            raise Exception(msg)
+
+        match = RE_WHITESPACE.match(self.source, self.pos)
+        if match:
+            whitespace = match.group()
+            self.pos += len(whitespace)
+            self.start = self.pos
+            return whitespace
+        return ""
+
+    def ignore_line_space(self) -> str:
         """Move the pointer past any allowed whitespace inside line statements."""
         if self.pos != self.start:
             msg = (
@@ -562,10 +585,13 @@ class Lexer:
             )
             raise Exception(msg)
 
-        if self.accept(RE_LINE_SPACE):
-            self.ignore()
-            return True
-        return False
+        match = RE_LINE_SPACE.match(self.source, self.pos)
+        if match:
+            whitespace = match.group()
+            self.pos += len(whitespace)
+            self.start = self.pos
+            return whitespace
+        return ""
 
     def error(self, msg: str) -> Never:
         """Emit an error token."""
@@ -677,7 +703,7 @@ def lex_inside_output_statement(
         if not l.accept_token():
             if match := RE_OUTPUT_END.match(l.source, l.pos):
                 l.wc.append(WC_MAP[match.group(1)])
-                l.pos += len(match.group())
+                l.pos += match.end() - match.start()
 
                 l.markup.append(
                     OutputToken(
@@ -703,7 +729,7 @@ def lex_inside_tag(l: Lexer) -> StateFn | None:
         if not l.accept_token():
             if match := RE_TAG_END.match(l.source, l.pos):
                 l.wc.append(WC_MAP[match.group(1)])
-                l.pos += len(match.group())
+                l.pos += match.end() - match.start()
                 l.markup.append(
                     TagToken(
                         type_=TokenType.TAG,
@@ -724,11 +750,11 @@ def lex_inside_tag(l: Lexer) -> StateFn | None:
 
 
 def lex_inside_liquid_tag(l: Lexer) -> StateFn | None:
-    l.ignore_whitespace()
+    l.line_space.append(l.consume_whitespace())
 
     if match := RE_TAG_END.match(l.source, l.pos):
         l.wc.append(WC_MAP[match.group(1)])
-        l.pos += len(match.group())
+        l.pos += match.end() - match.start()
         l.markup.append(
             LinesToken(
                 type_=TokenType.LINES,
@@ -737,12 +763,14 @@ def lex_inside_liquid_tag(l: Lexer) -> StateFn | None:
                 wc=(l.wc[0], l.wc[1]),
                 name="liquid",
                 statements=l.line_statements,
+                whitespace=l.line_space,
             )
         )
 
         l.wc.clear()
         l.tag_name = ""
         l.line_statements = []
+        l.line_space = []
         l.expression = []
         l.ignore()
         return lex_markup
@@ -753,18 +781,24 @@ def lex_inside_liquid_tag(l: Lexer) -> StateFn | None:
         l.ignore()
         return lex_inside_line_statement
 
-    if l.accept(RE_LINE_COMMENT):
+    if match := RE_LINE_COMMENT.match(l.source, l.pos):
+        l.pos += match.end() - match.start()
         l.line_statements.append(
             CommentToken(
                 type_=TokenType.COMMENT,
                 start=l.start,
                 stop=l.pos,
                 wc=WC_DEFAULT,
-                text=l.source[l.start : l.pos],
+                text=match.group(1),
                 hashes="#",
             )
         )
         l.start = l.pos
+        # Line comments don't consume their trailing newline, but
+        # lex_inside_line_statement does.
+        if l.peek() == "\n":
+            l.next()
+            l.ignore()
         return lex_inside_liquid_tag
 
     l.next()
@@ -794,7 +828,7 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:
         if not l.accept_token():
             if match := RE_TAG_END.match(l.source, l.pos):
                 l.wc.append(WC_MAP[match.group(1)])
-                l.pos += len(match.group())
+                l.pos += match.end() - match.start()
                 l.ignore()
                 l.line_statements.append(
                     TagToken(
@@ -815,12 +849,14 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:
                         wc=(l.wc[0], l.wc[1]),
                         name="liquid",
                         statements=l.line_statements,
+                        whitespace=l.line_space,
                     )
                 )
 
                 l.wc = []
                 l.tag_name = ""
                 l.line_statements = []
+                l.line_space = []
                 l.expression = []
                 l.ignore()
                 return lex_markup
