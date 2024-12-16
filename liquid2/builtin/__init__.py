@@ -28,7 +28,6 @@ from .expressions import Path
 from .expressions import PositionalArgument
 from .expressions import RangeLiteral
 from .expressions import StringLiteral
-from .expressions import SymbolArgument
 from .expressions import TernaryFilteredExpression
 from .expressions import TrueLiteral
 from .expressions import is_blank
@@ -176,7 +175,6 @@ __all__ = (
     "RenderTag",
     "register_standard_tags_and_filters",
     "StringLiteral",
-    "SymbolArgument",
     "TernaryFilteredExpression",
     "TrueLiteral",
     "UnlessTag",

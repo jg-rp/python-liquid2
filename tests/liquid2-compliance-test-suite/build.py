@@ -23,7 +23,10 @@ with open(SCHEMA_PATH, encoding="utf-8") as fd:
 
 
 def build() -> str:
-    files = ROOT.rglob("*.json")
+    # Sort files with files before folders
+    # NOTE: This is OK for one level of nesting, but might not be great with more
+    # sub folders.
+    files = sorted(ROOT.rglob("*.json"), key=lambda p: (len(p.parts), str(p)))
     tests = list(itertools.chain.from_iterable(load_tests(f) for f in files))
 
     cts = {

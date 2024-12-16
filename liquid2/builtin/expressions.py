@@ -608,7 +608,7 @@ class Filter:
 
     def __str__(self) -> str:
         if self.args:
-            return f"{self.name}: {''.join(str(arg for arg in self.args))}"
+            return f"{self.name}: {''.join(str(arg) for arg in self.args)}"
         return self.name
 
     def evaluate(self, left: object, context: RenderContext) -> object:
@@ -764,22 +764,14 @@ class PositionalArgument:
         self.token = value.token
         self.value = value
 
+    def __str__(self) -> str:
+        return str(self.value)
+
     def evaluate(self, context: RenderContext) -> tuple[None, object]:
         return (None, self.value.evaluate(context))
 
     async def evaluate_async(self, context: RenderContext) -> tuple[None, object]:
         return (None, await self.value.evaluate_async(context))
-
-
-class SymbolArgument:
-    __slots__ = (
-        "token",
-        "name",
-    )
-
-    def __init__(self, token: TokenT, name: str) -> None:
-        self.token = token
-        self.name = name
 
 
 class BooleanExpression(Expression):
@@ -790,7 +782,32 @@ class BooleanExpression(Expression):
         self.expression = expression
 
     def __str__(self) -> str:
-        return str(self.expression)
+        def _str(expression: Expression, parent_precedence: int) -> str:
+            if isinstance(expression, LogicalAndExpression):
+                precedence = PRECEDENCE_LOGICAL_AND
+                op = "and"
+                left = _str(expression.left, precedence)
+                right = _str(expression.right, precedence)
+            elif isinstance(expression, LogicalOrExpression):
+                precedence = PRECEDENCE_LOGICAL_OR
+                op = "or"
+                left = _str(expression.left, precedence)
+                right = _str(expression.right, precedence)
+            elif isinstance(expression, LogicalNotExpression):
+                operand_str = _str(expression.expression, PRECEDENCE_PREFIX)
+                expr = f"not {operand_str}"
+                if parent_precedence > PRECEDENCE_PREFIX:
+                    return f"({expr})"
+                return expr
+            else:
+                return str(expression)
+
+            expr = f"{left} {op} {right}"
+            if precedence < parent_precedence:
+                return f"({expr})"
+            return expr
+
+        return _str(self.expression, 0)
 
     def evaluate(self, context: RenderContext) -> object:
         return is_truthy(self.expression.evaluate(context))
@@ -1021,7 +1038,6 @@ class LogicalAndExpression(Expression):
         self.right = right
 
     def __str__(self) -> str:
-        # TODO: parens
         return f"{self.left} and {self.right}"
 
     def evaluate(self, context: RenderContext) -> object:
@@ -1047,7 +1063,6 @@ class LogicalOrExpression(Expression):
         self.right = right
 
     def __str__(self) -> str:
-        # TODO: parens
         return f"{self.left} or {self.right}"
 
     def evaluate(self, context: RenderContext) -> object:

@@ -90,7 +90,6 @@ class CaptureTag(Tag):
         expr_stream.expect_eos()
 
         block_token = stream.current()
-        assert block_token is not None  # XXX: empty block or end of file
         nodes = self.env.parser.parse_block(stream, self.end_block)
         stream.expect_tag("endcapture")
         end_tag_token = stream.current()

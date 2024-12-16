@@ -301,5 +301,23 @@ def test_raw_str_wc() -> None:
     assert str(template) == source
 
 
-# TODO: ternary expressions
-# TODO: parentheses in logical expressions
+def test_logical_expression_str() -> None:
+    template = parse(
+        "{% if not (true and (false and (false or a < b))) %}Hello{% endif %}"
+    )
+    assert (
+        str(template)
+        == "{% if not (true and false and (false or a < b)) %}Hello{% endif %}"
+    )
+
+
+def test_ternary_str() -> None:
+    source = "{{ foo | upcase if bar else baz || append: '!' }}"
+    template = parse(source)
+    assert str(template) == source
+
+
+def test_ternary_str_no_alternative() -> None:
+    source = "{{ foo | upcase if a <= b }}"
+    template = parse(source)
+    assert str(template) == source
