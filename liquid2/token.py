@@ -119,7 +119,7 @@ class LinesToken(TokenT):
     stop: int
     wc: tuple[WhitespaceControl, WhitespaceControl]
     name: str
-    statements: list[TagToken | CommentToken]
+    statements: list[TagToken | CommentToken]  # TODO: store indentation too
 
     def __str__(self) -> str:
         if self.statements:

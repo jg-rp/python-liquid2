@@ -52,10 +52,7 @@ dependencies = [
   "jsonschema",
   "types-jsonschema",
   "types-python-dateutil",
-  "sphinx",
-  "pydata-sphinx-theme",
-  "myst-parser",
-  "sphinx-design",
+  "mkdocs-material",
 ]
 python = "3.12"
 

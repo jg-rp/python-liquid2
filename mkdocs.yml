@@ -1,0 +1,7 @@
+site_name: Python Liquid2
+site_url: https://jg-rp.github.io/python-liquid2/
+theme:
+  name: material
+  palette:
+    primary: black
+    
