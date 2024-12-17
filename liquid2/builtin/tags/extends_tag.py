@@ -71,10 +71,10 @@ class ExtendsNode(Node):
         raise StopRender
 
     def children(
-        self, static_context: RenderContext, *, _include_partials: bool = True
+        self, static_context: RenderContext, *, include_partials: bool = True
     ) -> Iterable[Node]:
         """Return this node's children."""
-        if _include_partials:
+        if include_partials:
             try:
                 parent = static_context.env.get_template(
                     self.name.value, context=static_context, tag=self.tag
@@ -86,10 +86,10 @@ class ExtendsNode(Node):
                 raise
 
     async def children_async(
-        self, static_context: RenderContext, *, _include_partials: bool = True
+        self, static_context: RenderContext, *, include_partials: bool = True
     ) -> Iterable[Node]:
         """Return this node's children."""
-        if _include_partials:
+        if include_partials:
             try:
                 parent = await static_context.env.get_template_async(
                     self.name.value, context=static_context, tag=self.tag
@@ -269,7 +269,10 @@ class BlockNode(Node):
         return await stack_item.block.block.render_async(ctx, buffer)
 
     def children(
-        self, _static_context: RenderContext, *, _include_partials: bool = True
+        self,
+        static_context: RenderContext,  # noqa: ARG002
+        *,
+        include_partials: bool = True,  # noqa: ARG002
     ) -> Iterable[Node]:
         """Return this node's expressions."""
         yield self.block
@@ -513,7 +516,7 @@ def _find_inheritance_nodes(
         if isinstance(node, ExtendsNode):
             extends_nodes.append(node)
 
-        for child in node.children(context, _include_partials=False):
+        for child in node.children(context, include_partials=False):
             _visit_node(child, context=context)
 
     for node in template.nodes:

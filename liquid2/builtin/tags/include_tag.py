@@ -153,10 +153,10 @@ class IncludeNode(Node):
         return character_count
 
     def children(
-        self, static_context: RenderContext, *, _include_partials: bool = True
+        self, static_context: RenderContext, *, include_partials: bool = True
     ) -> Iterable[Node]:
         """Return this node's children."""
-        if _include_partials:
+        if include_partials:
             name = self.name.evaluate(static_context)
             try:
                 template = static_context.env.get_template(
@@ -169,10 +169,10 @@ class IncludeNode(Node):
                 raise
 
     async def children_async(
-        self, static_context: RenderContext, *, _include_partials: bool = True
+        self, static_context: RenderContext, *, include_partials: bool = True
     ) -> Iterable[Node]:
         """Return this node's children."""
-        if _include_partials:
+        if include_partials:
             name = await self.name.evaluate_async(static_context)
             try:
                 template = await static_context.env.get_template_async(

@@ -94,7 +94,10 @@ class CaseNode(Node):
         return count
 
     def children(
-        self, _static_context: RenderContext, *, _include_partials: bool = True
+        self,
+        static_context: RenderContext,  # noqa: ARG002
+        *,
+        include_partials: bool = True,  # noqa: ARG002
     ) -> Iterable[Node]:
         """Return this node's children."""
         yield from self.whens
@@ -264,7 +267,10 @@ class MultiExpressionBlockNode(Node):
         return 0
 
     def children(
-        self, _static_context: RenderContext, *, _include_partials: bool = True
+        self,
+        static_context: RenderContext,  # noqa: ARG002
+        *,
+        include_partials: bool = True,  # noqa: ARG002
     ) -> Iterable[Node]:
         """Return this node's children."""
         yield self.block

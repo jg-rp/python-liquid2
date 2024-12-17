@@ -70,25 +70,23 @@ class Node(ABC):
                 token=token,
             )
 
-    # TODO: rename arguments below
-
     def children(
         self,
-        _static_context: RenderContext,
+        static_context: RenderContext,  # noqa: ARG002
         *,
-        _include_partials: bool = True,
+        include_partials: bool = True,  # noqa: ARG002
     ) -> Iterable[Node]:
         """Return this node's children."""
         return []
 
     async def children_async(
         self,
-        _static_context: RenderContext,
+        static_context: RenderContext,
         *,
-        _include_partials: bool = True,
+        include_partials: bool = True,
     ) -> Iterable[Node]:
         """An async version of `children()`."""
-        return self.children(_static_context, _include_partials=_include_partials)
+        return self.children(static_context, include_partials=include_partials)
 
     def expressions(self) -> Iterable[Expression]:
         """Return this node's expressions."""
@@ -152,7 +150,10 @@ class BlockNode(Node):
         return sum([await node.render_async(context, buffer) for node in self.nodes])
 
     def children(
-        self, _static_context: RenderContext, *, _include_partials: bool = True
+        self,
+        static_context: RenderContext,  # noqa: ARG002
+        *,
+        include_partials: bool = True,  # noqa: ARG002
     ) -> Iterable[Node]:
         """Return this node's children."""
         return self.nodes
@@ -195,7 +196,10 @@ class ConditionalBlockNode(Node):
         return 0
 
     def children(
-        self, _static_context: RenderContext, *, _include_partials: bool = True
+        self,
+        static_context: RenderContext,  # noqa: ARG002
+        *,
+        include_partials: bool = True,  # noqa: ARG002
     ) -> Iterable[Node]:
         """Return this node's children."""
         yield self.block

@@ -38,9 +38,6 @@ class Span:
     start: int
     end: int
 
-    def __str__(self) -> str:
-        return f"{self.template_name}[{self.start}:{self.end}]"
-
 
 Segments: TypeAlias = list[Union[int, str, "Segments"]]
 
@@ -53,11 +50,15 @@ class Variable:
     span: Span
 
     def __str__(self) -> str:
-        it = iter(self.segments)
+        return self._segments_str(self.segments)
+
+    def _segments_str(self, segments: Segments) -> str:
+        it = iter(segments)
         buf = [str(next(it))]
+
         for segment in it:
-            if isinstance(segment, Path):
-                buf.append(f"[{segment}]")
+            if isinstance(segment, list):
+                buf.append(f"[{self._segments_str(segment)}]")
             elif isinstance(segment, str):
                 if RE_PROPERTY.fullmatch(segment):
                     buf.append(f".{segment}")
@@ -96,9 +97,6 @@ class _VariableMap:
         if k not in self._data:
             self._data[k] = []
         return self._data[k]
-
-    def __contains__(self, var: Variable) -> bool:
-        return str(var.segments[0]) in self._data
 
     def add(self, var: Variable) -> None:
         self[var].append(var)
@@ -192,7 +190,7 @@ def _analyze(template: Template, *, include_partials: bool) -> TemplateAnalysis:
             )
 
             for child in node.children(
-                static_context, _include_partials=include_partials
+                static_context, include_partials=include_partials
             ):
                 seen.add(partial_name)
                 _visit(child, partial_name, partial_scope)
@@ -201,7 +199,7 @@ def _analyze(template: Template, *, include_partials: bool) -> TemplateAnalysis:
         else:
             scope.push(set(node.block_scope()))
             for child in node.children(
-                static_context, _include_partials=include_partials
+                static_context, include_partials=include_partials
             ):
                 _visit(child, template_name, scope)
             scope.pop()
@@ -282,7 +280,7 @@ async def _analyze_async(
             )
 
             for child in await node.children_async(
-                static_context, _include_partials=include_partials
+                static_context, include_partials=include_partials
             ):
                 seen.add(partial_name)
                 await _visit(child, partial_name, partial_scope)
@@ -291,7 +289,7 @@ async def _analyze_async(
         else:
             scope.push(set(node.block_scope()))
             for child in await node.children_async(
-                static_context, _include_partials=include_partials
+                static_context, include_partials=include_partials
             ):
                 await _visit(child, template_name, scope)
             scope.pop()

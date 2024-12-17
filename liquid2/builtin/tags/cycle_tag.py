@@ -100,18 +100,15 @@ class CycleTag(Tag):
         while True:
             item_token = expr_stream.next()
 
-            # TODO: don't use match
-            match item_token.type_:
-                case TokenType.EOI:
-                    break
-                case TokenType.COMMA:
-                    pass
-                case _:
-                    raise LiquidSyntaxError(
-                        "expected a comma separated list, "
-                        f"found '{item_token.__class__.__name__}'",
-                        token=item_token,
-                    )
+            if item_token.type_ == TokenType.EOI:
+                break
+
+            if item_token.type_ != TokenType.COMMA:
+                raise LiquidSyntaxError(
+                    "expected a comma separated list, "
+                    f"found '{item_token.__class__.__name__}'",
+                    token=item_token,
+                )
 
             # Trailing commas are OK
             item_token = expr_stream.next()

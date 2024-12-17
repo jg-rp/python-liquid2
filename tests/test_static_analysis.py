@@ -706,14 +706,14 @@ def test_analyze_render_template_not_found(env: Environment) -> None:
 
 
 def test_variable_segments(env: Environment) -> None:
-    source = "{{ a['b.c'] }}{{ d[e.f] }}"
+    source = "{{ a['b.c'] }}{{ d[e.f][4] }}"
 
     _assert(
         env.from_string(source),
         locals={},
         globals={
             "a": [Variable(["a", "b.c"], Span("", 3, 11))],
-            "d": [Variable(["d", ["e", "f"]], Span("", 17, 23))],
+            "d": [Variable(["d", ["e", "f"], 4], Span("", 17, 26))],
             "e": [Variable(["e", "f"], Span("", 19, 22))],
         },
     )
@@ -722,8 +722,10 @@ def test_variable_segments(env: Environment) -> None:
     variables = list(itertools.chain.from_iterable(analysis.variables.values()))
     assert len(variables) == 3  # noqa: PLR2004
     assert variables[0].segments == ["a", "b.c"]
-    assert variables[1].segments == ["d", ["e", "f"]]
+    assert variables[1].segments == ["d", ["e", "f"], 4]
     assert variables[2].segments == ["e", "f"]
+    assert str(analysis.globals["a"][0]) == "a['b.c']"
+    assert str(analysis.globals["d"][0]) == "d[e.f][4]"
 
 
 def test_analyze_inheritance_chain() -> None:
