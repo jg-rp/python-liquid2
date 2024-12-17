@@ -238,17 +238,7 @@ class Lexer:
         """Move the pointer back one character."""
         if self.pos <= self.start:
             # Cant backup beyond start.
-            msg = "unexpected end of expression"
-            raise LiquidSyntaxError(
-                msg,
-                token=ErrorToken(
-                    type_=TokenType.ERROR,
-                    value=msg,
-                    index=self.pos,
-                    source=self.source,
-                    message=msg,
-                ),
-            )
+            raise LiquidSyntaxError("unexpected end of expression", token=None)
         self.pos -= 1
 
     def peek(self) -> str:
@@ -364,6 +354,8 @@ class Lexer:
                             type_=TokenType.ERROR,
                             index=self.pos,
                             value=peeked,
+                            markup_start=self.markup_start,
+                            markup_stop=self.pos,
                             source=self.source,
                             message="invalid escape sequence",
                         ),
@@ -380,6 +372,8 @@ class Lexer:
                         type_=TokenType.ERROR,
                         index=self.start,
                         value=self.source[self.start],
+                        markup_start=self.markup_start,
+                        markup_stop=self.pos,
                         source=self.source,
                         message="unclosed string literal",
                     ),
@@ -536,6 +530,8 @@ class Lexer:
                     type_=TokenType.ERROR,
                     index=self.start,
                     value=self.source[self.start : self.pos],
+                    markup_start=self.markup_start,
+                    markup_stop=self.pos,
                     source=self.source,
                     message=msg,
                 ),
@@ -595,13 +591,15 @@ class Lexer:
 
     def error(self, msg: str) -> Never:
         """Emit an error token."""
-        # better error messages.
+        # TODO: better error messages.
         raise LiquidSyntaxError(
             msg,
             token=ErrorToken(
                 type_=TokenType.ERROR,
                 index=self.pos,
                 value=self.source[self.start : self.pos],
+                markup_start=self.markup_start,
+                markup_stop=self.pos,
                 source=self.source,
                 message=msg,
             ),
@@ -614,6 +612,8 @@ class Lexer:
                 type_=TokenType.ERROR,
                 index=token.start,
                 value=self.source[token.start : token.stop],
+                markup_start=self.markup_start,
+                markup_stop=self.pos,
                 source=self.source,
                 message=msg,
             ),
@@ -639,6 +639,7 @@ def lex_markup(l: Lexer) -> StateFn | None:
                     start=l.start,
                     stop=l.pos,
                     text=value,
+                    source=l.source,
                 )
             )
             l.start = l.pos
@@ -670,6 +671,7 @@ def lex_markup(l: Lexer) -> StateFn | None:
                     ),
                     text=match.group("COMMENT_TEXT"),
                     hashes=match.group("HASHES"),
+                    source=l.source,
                 )
             )
             continue
@@ -687,6 +689,7 @@ def lex_markup(l: Lexer) -> StateFn | None:
                         WC_MAP[match.group("RAW_WC3")],
                     ),
                     text=match.group("RAW_TEXT"),
+                    source=l.source,
                 )
             )
             l.start = l.pos
@@ -712,6 +715,7 @@ def lex_inside_output_statement(
                         stop=l.pos,
                         wc=(l.wc[0], l.wc[1]),
                         expression=l.expression,
+                        source=l.source,
                     )
                 )
 
@@ -720,7 +724,7 @@ def lex_inside_output_statement(
                 l.ignore()
                 return lex_markup
 
-            l.error(f"unknown symbol '{l.next()}'")
+            l.error(f"unexpected {l.next()!r}")
 
 
 def lex_inside_tag(l: Lexer) -> StateFn | None:
@@ -738,6 +742,7 @@ def lex_inside_tag(l: Lexer) -> StateFn | None:
                         wc=(l.wc[0], l.wc[1]),
                         name=l.tag_name,
                         expression=l.expression,
+                        source=l.source,
                     )
                 )
                 l.wc.clear()
@@ -746,7 +751,7 @@ def lex_inside_tag(l: Lexer) -> StateFn | None:
                 l.ignore()
                 return lex_markup
 
-            l.error(f"unknown symbol '{l.next()}'")
+            l.error(f"unexpected {l.next()!r}")
 
 
 def lex_inside_liquid_tag(l: Lexer) -> StateFn | None:
@@ -764,6 +769,7 @@ def lex_inside_liquid_tag(l: Lexer) -> StateFn | None:
                 name="liquid",
                 statements=l.line_statements,
                 whitespace=l.line_space,
+                source=l.source,
             )
         )
 
@@ -791,6 +797,7 @@ def lex_inside_liquid_tag(l: Lexer) -> StateFn | None:
                 wc=WC_DEFAULT,
                 text=match.group(1),
                 hashes="#",
+                source=l.source,
             )
         )
         l.start = l.pos
@@ -818,6 +825,7 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:
                     wc=WC_DEFAULT,
                     name=l.tag_name,
                     expression=l.expression,
+                    source=l.source,
                 )
             )
             l.ignore()
@@ -838,6 +846,7 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:
                         wc=WC_DEFAULT,
                         name=l.tag_name,
                         expression=l.expression,
+                        source=l.source,
                     )
                 )
 
@@ -850,6 +859,7 @@ def lex_inside_line_statement(l: Lexer) -> StateFn | None:
                         name="liquid",
                         statements=l.line_statements,
                         whitespace=l.line_space,
+                        source=l.source,
                     )
                 )
 

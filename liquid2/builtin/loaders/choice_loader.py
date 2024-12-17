@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from typing import List
 
-from liquid2.exceptions import TemplateNotFound
+from liquid2.exceptions import TemplateNotFoundError
 from liquid2.loader import BaseLoader
 from liquid2.loader import TemplateSource
 
@@ -39,10 +39,10 @@ class ChoiceLoader(BaseLoader):
         for loader in self.loaders:
             try:
                 return loader.get_source(env, template_name, context=context, **kwargs)
-            except TemplateNotFound:
+            except TemplateNotFoundError:
                 pass
 
-        raise TemplateNotFound(template_name)
+        raise TemplateNotFoundError(template_name)
 
     async def get_source_async(
         self,
@@ -58,10 +58,10 @@ class ChoiceLoader(BaseLoader):
                 return await loader.get_source_async(
                     env, template_name, context=context, **kwargs
                 )
-            except TemplateNotFound:
+            except TemplateNotFoundError:
                 pass
 
-        raise TemplateNotFound(template_name)
+        raise TemplateNotFoundError(template_name)
 
 
 class CachingChoiceLoader(CachingLoaderMixin, ChoiceLoader):

@@ -21,6 +21,7 @@ from liquid2.builtin import parse_keyword_arguments
 from liquid2.builtin import parse_primitive
 from liquid2.builtin import parse_string_or_identifier
 from liquid2.exceptions import LiquidSyntaxError
+from liquid2.exceptions import TemplateNotFoundError
 
 if TYPE_CHECKING:
     from liquid2 import RenderContext
@@ -68,7 +69,16 @@ class IncludeNode(Node):
     def render_to_output(self, context: RenderContext, buffer: TextIO) -> int:
         """Render the node to the output buffer."""
         name = self.name.evaluate(context)
-        template = context.env.get_template(str(name), context=context, tag=self.tag)
+
+        try:
+            template = context.env.get_template(
+                str(name), context=context, tag=self.tag
+            )
+        except TemplateNotFoundError as err:
+            err.token = self.name.token
+            err.template_name = context.template.full_name()
+            raise
+
         namespace: dict[str, object] = dict(arg.evaluate(context) for arg in self.args)
 
         character_count = 0
@@ -102,9 +112,16 @@ class IncludeNode(Node):
     ) -> int:
         """Render the node to the output buffer."""
         name = await self.name.evaluate_async(context)
-        template = await context.env.get_template_async(
-            str(name), context=context, tag=self.tag
-        )
+
+        try:
+            template = await context.env.get_template_async(
+                str(name), context=context, tag=self.tag
+            )
+        except TemplateNotFoundError as err:
+            err.token = self.name.token
+            err.template_name = context.template.full_name()
+            raise
+
         namespace: dict[str, object] = dict(
             [await arg.evaluate_async(context) for arg in self.args]
         )
@@ -141,10 +158,15 @@ class IncludeNode(Node):
         """Return this node's children."""
         if _include_partials:
             name = self.name.evaluate(static_context)
-            template = static_context.env.get_template(
-                str(name), context=static_context, tag=self.tag
-            )
-            yield from template.nodes
+            try:
+                template = static_context.env.get_template(
+                    str(name), context=static_context, tag=self.tag
+                )
+                yield from template.nodes
+            except TemplateNotFoundError as err:
+                err.token = self.name.token
+                err.template_name = static_context.template.full_name()
+                raise
 
     async def children_async(
         self, static_context: RenderContext, *, _include_partials: bool = True
@@ -152,10 +174,15 @@ class IncludeNode(Node):
         """Return this node's children."""
         if _include_partials:
             name = await self.name.evaluate_async(static_context)
-            template = await static_context.env.get_template_async(
-                str(name), context=static_context, tag=self.tag
-            )
-            return template.nodes
+            try:
+                template = await static_context.env.get_template_async(
+                    str(name), context=static_context, tag=self.tag
+                )
+                return template.nodes
+            except TemplateNotFoundError as err:
+                err.token = self.name.token
+                err.template_name = static_context.template.full_name()
+                raise
         return []
 
     def expressions(self) -> Iterable[Expression]:

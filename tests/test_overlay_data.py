@@ -3,7 +3,7 @@
 from liquid2 import DictLoader
 from liquid2 import Environment
 from liquid2 import RenderContext
-from liquid2 import TemplateNotFound
+from liquid2 import TemplateNotFoundError
 from liquid2.loader import TemplateSource
 
 
@@ -28,7 +28,7 @@ class MockFrontMatterLoader(DictLoader):
         try:
             source = self.templates[template_name]
         except KeyError as err:
-            raise TemplateNotFound(template_name) from err
+            raise TemplateNotFoundError(template_name) from err
 
         return TemplateSource(
             source=source,

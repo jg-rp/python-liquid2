@@ -17,6 +17,7 @@ from typing import Union
 @dataclass(kw_only=True, slots=True)
 class TokenT(ABC):
     type_: TokenType
+    source: str
 
     @property
     @abstractmethod
@@ -214,6 +215,8 @@ class RangeToken(TokenT):
 class ErrorToken(TokenT):
     index: int
     value: str
+    markup_start: int
+    markup_stop: int
     source: str = field(repr=False)
     message: str
 

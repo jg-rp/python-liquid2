@@ -9,7 +9,7 @@ from liquid2 import CachingFileSystemLoader
 from liquid2 import Environment
 from liquid2 import FileSystemLoader
 from liquid2 import Template
-from liquid2 import TemplateNotFound
+from liquid2 import TemplateNotFoundError
 
 
 def test_load_template() -> None:
@@ -34,7 +34,7 @@ def test_load_template_async() -> None:
 
 def test_template_not_found() -> None:
     env = Environment(loader=FileSystemLoader("tests/fixtures/001/"))
-    with pytest.raises(TemplateNotFound):
+    with pytest.raises(TemplateNotFoundError):
         env.get_template("nosuchthing.html")
 
 
@@ -44,13 +44,13 @@ def test_template_not_found_async() -> None:
     async def coro() -> Template:
         return await env.get_template_async("nosuchthing.html")
 
-    with pytest.raises(TemplateNotFound):
+    with pytest.raises(TemplateNotFoundError):
         asyncio.run(coro())
 
 
 def test_no_such_search_path() -> None:
     env = Environment(loader=FileSystemLoader("no/such/thing/"))
-    with pytest.raises(TemplateNotFound):
+    with pytest.raises(TemplateNotFoundError):
         env.get_template("main.html")
 
 
@@ -82,7 +82,7 @@ def test_default_file_extension() -> None:
     assert template.name == "main.html"
     assert str(template.path) == "tests/fixtures/001/main.html"
 
-    with pytest.raises(TemplateNotFound):
+    with pytest.raises(TemplateNotFoundError):
         env.get_template("main")
 
 
@@ -101,7 +101,7 @@ def test_set_default_file_extension() -> None:
 
 def test_stay_in_search_path() -> None:
     env = Environment(loader=FileSystemLoader("tests/fixtures/001/snippets"))
-    with pytest.raises(TemplateNotFound):
+    with pytest.raises(TemplateNotFoundError):
         env.get_template("../main.html")
 
 

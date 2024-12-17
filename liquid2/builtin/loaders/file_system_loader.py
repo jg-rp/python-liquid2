@@ -11,7 +11,7 @@ from typing import Iterable
 from typing import Tuple
 from typing import Union
 
-from liquid2.exceptions import TemplateNotFound
+from liquid2.exceptions import TemplateNotFoundError
 from liquid2.loader import BaseLoader
 from liquid2.loader import TemplateSource
 
@@ -57,14 +57,14 @@ class FileSystemLoader(BaseLoader):
             template_path = template_path.with_suffix(self.ext)
 
         if os.path.pardir in template_path.parts:
-            raise TemplateNotFound(template_name)
+            raise TemplateNotFoundError(template_name)
 
         for path in self.search_path:
             source_path = path.joinpath(template_path)
             if not source_path.exists():
                 continue
             return source_path
-        raise TemplateNotFound(template_name)
+        raise TemplateNotFoundError(template_name)
 
     def _read(self, source_path: Path) -> Tuple[str, float]:
         with source_path.open(encoding=self.encoding) as fd:

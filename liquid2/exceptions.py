@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import TYPE_CHECKING
+
+from .token import ErrorToken
+from .token import TagToken
+from .token import Token
+from .token import TokenType
 
 if TYPE_CHECKING:
     from .token import TokenT
@@ -16,38 +20,107 @@ class LiquidError(Exception):
         self,
         *args: object,
         token: TokenT | None,
-        filename: str | Path | None = None,
-        source: str | None = None,
+        template_name: str | None = None,
     ):
         super().__init__(*args)
         self.token = token
-        self.filename = filename
-        self.source = source
+        self.template_name = template_name
 
     def __str__(self) -> str:
-        # TODO:
-        return super().__str__()
+        return self.detailed_message()
+
+    def detailed_message(self) -> str:
+        """Return an error message formatted with extra context info."""
+        if not self.token:
+            return super().__str__()
+
+        lineno, col, _prev, current, _next = self._error_context(
+            self.token.source, self.token.start
+        )
+
+        template_and_pos = (
+            f"{self.template_name}:{lineno}:{col}"
+            if self.template_name
+            else f"'{current}' {lineno}:{col}"
+        )
+        pad = " " * len(str(lineno))
+
+        if isinstance(self.token, TagToken):
+            pointer = (" " * (col - 1)) + (
+                "^" * max(self.token.stop - self.token.start, len(current))
+            )
+        elif isinstance(self.token, (Token, ErrorToken)):
+            # Special case for string literal tokens so we cover quote characters
+            # with the pointer.
+            length = len(self.token.value)
+            if self.token.type_ in (
+                TokenType.SINGLE_QUOTE_STRING,
+                TokenType.DOUBLE_QUOTE_STRING,
+            ):
+                length += 2
+
+            pointer = (" " * (col - 1)) + ("^" * max(length, 1))
+        else:
+            pointer = (" " * (col - 1)) + "^"
+
+        return (
+            f"{self.message}\n"
+            f"{pad} -> {template_and_pos}\n"
+            f"{pad} |\n"
+            f"{lineno} | {current}\n"
+            f"{pad} | {pointer} {self._pointer_message()}\n"
+        )
 
     @property
     def message(self) -> object:
         """The exception's error message if one was given."""
-        # TODO
         if self.args:
             return self.args[0]
         return None
 
-    @property
-    def name(self) -> str:
-        """The name of the template that raised this exception.
+    def _pointer_message(self) -> object:
+        return self.message
 
-        An empty string is return if a name is not available.
+    def context(self) -> tuple[int, int, str, str, str] | None:
+        """Return context information for this error.
+
+        Returns (line, col, previous line, current line, next line) or None
+        if no context information is available.
         """
-        # TODO:
-        if isinstance(self.filename, Path):
-            return self.filename.as_posix()
-        if self.filename:
-            return str(self.filename)
-        return ""
+        if self.token is None:
+            return None
+        return self._error_context(self.token.source, self.token.start)
+
+    def _error_context(self, text: str, index: int) -> tuple[int, int, str, str, str]:
+        lines = text.splitlines(keepends=True)
+        cumulative_length = 0
+        target_line_index = -1
+
+        for i, line in enumerate(lines):
+            cumulative_length += len(line)
+            if index < cumulative_length:
+                target_line_index = i
+                break
+
+        if target_line_index == -1:
+            raise ValueError("Index is out of bounds for the given string")
+
+        # Line number (1-based)
+        line_number = target_line_index + 1
+        # Column number within the line
+        column_number = index - (cumulative_length - len(lines[target_line_index]))
+
+        previous_line = (
+            lines[target_line_index - 1].rstrip() if target_line_index > 0 else ""
+        )
+        current_line = lines[target_line_index].rstrip()
+        next_line = (
+            lines[target_line_index + 1].rstrip()
+            if target_line_index < len(lines) - 1
+            else ""
+        )
+
+        return line_number, column_number, previous_line, current_line, next_line
 
 
 class LiquidInterrupt(Exception):  # noqa: N818
@@ -102,20 +175,27 @@ class NoSuchFilterFunc(LiquidError):  # noqa: N818
     """Exception raised when a filter lookup fails."""
 
 
-class TemplateNotFound(LiquidError):  # noqa: N818
+class TemplateNotFoundError(LiquidError):  # noqa: N818
     """Exception raised when a template could not be found."""
 
     def __init__(
         self,
         *args: object,
-        filename: str | Path | None = None,
-        source: str | None = None,
+        filename: str | None = None,
     ):
-        super().__init__(*args, token=None, filename=filename, source=source)
+        super().__init__(*args, token=None, template_name=filename)
 
     def __str__(self) -> str:
-        msg = super().__str__()
-        return f"template not found {msg}"
+        if not self.token:
+            return repr(super().__str__())
+        return super().__str__()
+
+    def _pointer_message(self) -> object:
+        if self.args:
+            if self.token:
+                return "template not found"
+            return self.args[0]
+        return None
 
 
 class ResourceLimitError(LiquidError):

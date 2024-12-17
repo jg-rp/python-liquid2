@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from io import StringIO
+from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Awaitable
@@ -18,8 +19,6 @@ from .static_analysis import _analyze_async
 from .utils import ReadOnlyChainMap
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     from .ast import Node
     from .environment import Environment
     from .loader import UpToDate
@@ -59,6 +58,13 @@ class Template:
 
     def __str__(self) -> str:
         return "".join(str(n) for n in self.nodes)
+
+    def full_name(self) -> str:
+        """Return this template's path, if available, joined with its name."""
+        if self.path:
+            path = Path(self.path)
+            return str(path / self.name if not path.name else path)
+        return self.name
 
     def render(self, *args: Any, **kwargs: Any) -> str:
         """Render this template with _args_ and _kwargs_."""

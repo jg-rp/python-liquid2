@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 from typing import Iterable
 from typing import Union
 
-from liquid2.exceptions import TemplateNotFound
+from liquid2.exceptions import TemplateNotFoundError
 from liquid2.loader import BaseLoader
 from liquid2.loader import TemplateSource
 
@@ -57,7 +57,7 @@ class PackageLoader(BaseLoader):
         # Don't build a path that escapes package/package_path.
         # Does ".." appear in template_name?
         if os.path.pardir in template_path.parts:
-            raise TemplateNotFound(template_name)
+            raise TemplateNotFoundError(template_name)
 
         # Add suffix self.ext if template name does not have a suffix.
         if not template_path.suffix:
@@ -69,7 +69,7 @@ class PackageLoader(BaseLoader):
                 # MyPy seems to think source_path has `Any` type :(
                 return source_path  # type: ignore
 
-        raise TemplateNotFound(template_name)
+        raise TemplateNotFoundError(template_name)
 
     def get_source(
         self,

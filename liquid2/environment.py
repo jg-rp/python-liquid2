@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Callable
 from typing import ClassVar
@@ -10,6 +11,7 @@ from typing import Type
 
 from .builtin import DictLoader
 from .builtin import register_standard_tags_and_filters
+from .exceptions import LiquidError
 from .lexer import tokenize
 from .parser import Parser
 from .template import Template
@@ -17,8 +19,6 @@ from .token import WhitespaceControl
 from .undefined import Undefined
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     from .ast import Node
     from .context import RenderContext
     from .loader import BaseLoader
@@ -109,14 +109,24 @@ class Environment:
         overlay_data: Mapping[str, object] | None = None,
     ) -> Template:
         """Create a template from a string."""
-        return self.template_class(
-            self,
-            self.parse(source),
-            name=name,
-            path=path,
-            global_data=self.make_globals(globals),
-            overlay_data=overlay_data,
-        )
+        try:
+            return self.template_class(
+                self,
+                self.parse(source),
+                name=name,
+                path=path,
+                global_data=self.make_globals(globals),
+                overlay_data=overlay_data,
+            )
+        except LiquidError as err:
+            if path:
+                path = Path(path)
+                template_name = str(path / name if not path.name else path)
+            else:
+                template_name = name
+            if not err.template_name:
+                err.template_name = template_name
+            raise
 
     def get_template(
         self,

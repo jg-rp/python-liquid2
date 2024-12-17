@@ -40,7 +40,7 @@ from .builtin import FileSystemLoader
 from .builtin import PackageLoader
 from .undefined import StrictUndefined
 from .undefined import Undefined
-from .exceptions import TemplateNotFound
+from .exceptions import TemplateNotFoundError
 
 from .__about__ import __version__
 
@@ -101,7 +101,7 @@ __all__ = (
     "CachingFileSystemLoader",
     "FileSystemLoader",
     "Expression",
-    "TemplateNotFound",
+    "TemplateNotFoundError",
     "ChoiceLoader",
     "CachingChoiceLoader",
     "PackageLoader",

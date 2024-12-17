@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from typing import DefaultDict
@@ -28,6 +27,7 @@ from liquid2.builtin import parse_string_or_identifier
 from liquid2.exceptions import RequiredBlockError
 from liquid2.exceptions import StopRender
 from liquid2.exceptions import TemplateInheritanceError
+from liquid2.exceptions import TemplateNotFoundError
 
 if TYPE_CHECKING:
     from liquid2 import RenderContext
@@ -52,12 +52,7 @@ class ExtendsNode(Node):
 
     def render_to_output(self, context: RenderContext, buffer: TextIO) -> int:
         """Render the node to the output buffer."""
-        base_template = build_block_stacks(
-            context,
-            context.template,
-            self.name.value,
-            "extends",
-        )
+        base_template = _build_block_stacks(context, context.template, "extends")
 
         base_template.render_with_context(context, buffer)
         context.tag_namespace["extends"].clear()
@@ -67,11 +62,8 @@ class ExtendsNode(Node):
         self, context: RenderContext, buffer: TextIO
     ) -> int:
         """Render the node to the output buffer."""
-        base_template = await build_block_stacks_async(
-            context,
-            context.template,
-            self.name.value,
-            "extends",
+        base_template = await _build_block_stacks_async(
+            context, context.template, "extends"
         )
 
         await base_template.render_with_context_async(context, buffer)
@@ -83,20 +75,30 @@ class ExtendsNode(Node):
     ) -> Iterable[Node]:
         """Return this node's children."""
         if _include_partials:
-            parent = static_context.env.get_template(
-                self.name.value, context=static_context, tag=self.tag
-            )
-            yield from parent.nodes
+            try:
+                parent = static_context.env.get_template(
+                    self.name.value, context=static_context, tag=self.tag
+                )
+                yield from parent.nodes
+            except TemplateNotFoundError as err:
+                err.token = self.name.token
+                err.template_name = static_context.template.full_name()
+                raise
 
     async def children_async(
         self, static_context: RenderContext, *, _include_partials: bool = True
     ) -> Iterable[Node]:
         """Return this node's children."""
         if _include_partials:
-            parent = await static_context.env.get_template_async(
-                self.name.value, context=static_context, tag=self.tag
-            )
-            return parent.nodes
+            try:
+                parent = await static_context.env.get_template_async(
+                    self.name.value, context=static_context, tag=self.tag
+                )
+                return parent.nodes
+            except TemplateNotFoundError as err:
+                err.token = self.name.token
+                err.template_name = static_context.template.full_name()
+                raise
         return []
 
     def expressions(self) -> Iterable[Expression]:
@@ -193,7 +195,7 @@ class BlockNode(Node):
             raise RequiredBlockError(
                 f"block {self.name!r} must be overridden",
                 token=self.token,
-                filename=stack_item.source_name,
+                template_name=stack_item.source_name,
             )
 
         ctx = context.copy(
@@ -247,7 +249,7 @@ class BlockNode(Node):
             raise RequiredBlockError(
                 f"block {self.name!r} must be overridden",
                 token=self.token,
-                filename=stack_item.source_name,
+                template_name=stack_item.source_name,
             )
 
         ctx = context.copy(
@@ -295,7 +297,6 @@ class BlockTag(Tag):
         tokens.expect_eos()
 
         block_token = stream.next()
-        assert block_token is not None  # TODO:
         block = TemplateBlock(
             block_token, self.env.parser.parse_block(stream, end=self.end_block)
         )
@@ -392,10 +393,62 @@ class BlockDrop(Mapping[str, object]):
         return iter(["super"])
 
 
-def build_block_stacks(
+def _build_block_stacks(
     context: RenderContext,
     template: Template,
-    parent_name: str,
+    tag: str,
+) -> Template:
+    """Build a stack for each `{% block %}` in the inheritance chain.
+
+    Blocks defined in the base template will be at the top of the stack.
+
+    Args:
+        context: A render context to build the block stacks in.
+        template: A leaf template with an `extends` tag.
+        parent_name: The name of the immediate parent template as a string literal.
+        tag: The name of the `extends` tag, if it is overridden.
+    """
+    # Guard against recursive `extends`.
+    seen: set[StringLiteral] = set()
+
+    def _stack_template_blocks(template: Template) -> Template | None:
+        extends_node, _ = _stack_blocks(context, template)
+
+        if not extends_node:
+            return None
+
+        if extends_node.name in seen:
+            raise TemplateInheritanceError(
+                f"circular extends {extends_node.name.value!r}",
+                token=extends_node.token,
+                template_name=template.name,
+            )
+
+        seen.add(extends_node.name)
+
+        try:
+            return context.env.get_template(
+                extends_node.name.value, context=context, tag=tag
+            )
+        except TemplateNotFoundError as err:
+            err.token = extends_node.name.token
+            err.template_name = template.full_name()
+            raise
+
+    base = next_template = _stack_template_blocks(template)
+
+    while next_template:
+        next_template = _stack_template_blocks(next_template)
+        if next_template:
+            base = next_template
+
+    assert base
+    return base
+
+
+async def _build_block_stacks_async(
+    context: RenderContext,
+    template: Template,
     tag: str,
 ) -> Template:
     """Build a stack for each `{% block %}` in the inheritance chain.
@@ -409,168 +462,81 @@ def build_block_stacks(
         tag: The name of the `extends` tag, if it is overridden.
     """
     # Guard against recursive `extends`.
-    seen: set[str] = set()
+    seen: set[StringLiteral] = set()
 
-    extends_node, _ = stack_blocks(context, template)
-    parent = context.env.get_template(parent_name, context=context, tag=tag)
-    assert extends_node
-    seen.add(extends_node.name.value)
+    async def _stack_template_blocks(template: Template) -> Template | None:
+        extends_node, _ = _stack_blocks(context, template)
 
-    extends_node, _ = stack_blocks(context, parent)
+        if not extends_node:
+            return None
 
-    if extends_node:
-        parent_template_name: str | None = extends_node.name.value
-        assert parent_template_name
-        if parent_template_name in seen:
+        if extends_node.name in seen:
             raise TemplateInheritanceError(
-                f"circular extends {parent_template_name!r}",
+                f"circular extends {extends_node.name.value!r}",
                 token=extends_node.token,
-                filename=template.name,
+                template_name=template.name,
             )
-        seen.add(parent_template_name)
-    else:
-        parent_template_name = None
 
-    while parent_template_name:
-        parent = context.env.get_template(
-            parent_template_name, context=context, tag=tag
-        )
-        extends_node, _ = stack_blocks(context, parent)
+        seen.add(extends_node.name)
 
-        if extends_node:
-            parent_template_name = extends_node.name.value
-            assert parent_template_name
-            if parent_template_name in seen:
-                raise TemplateInheritanceError(
-                    f"circular extends {parent_template_name!r}",
-                    token=extends_node.token,
-                    filename=parent.name,
-                )
-            seen.add(parent_template_name)
-        else:
-            parent_template_name = None
-
-    return parent
-
-
-async def build_block_stacks_async(
-    context: RenderContext,
-    template: Template,
-    parent_name: str,
-    tag: str,
-) -> Template:
-    """Build a stack for each `{% block %}` in the inheritance chain.
-
-    Blocks defined in the base template will be at the top of the stack.
-
-    Args:
-        context: A render context to build the block stacks in.
-        template: A leaf template with an `extends` tag.
-        parent_name: The name of the immediate parent template as a string.
-        tag: The name of the `extends` tag, if it is overridden.
-    """
-    if "extends" not in context.tag_namespace:
-        context.tag_namespace["extends"] = defaultdict(list)
-
-    # Guard against recursive `extends`.
-    seen: set[str] = set()
-
-    extends_node, _ = stack_blocks(context, template)
-    parent = await context.env.get_template_async(parent_name, context=context, tag=tag)
-    assert extends_node
-    seen.add(extends_node.name.value)
-
-    extends_node, _ = stack_blocks(context, parent)
-
-    if extends_node:
-        parent_template_name: str | None = extends_node.name.value
-        assert parent_template_name
-        if parent_template_name in seen:
-            raise TemplateInheritanceError(
-                f"circular extends {parent_template_name!r}",
-                token=extends_node.token,
-                filename=template.name,
+        try:
+            return await context.env.get_template_async(
+                extends_node.name.value, context=context, tag=tag
             )
-        seen.add(parent_template_name)
-    else:
-        parent_template_name = None
+        except TemplateNotFoundError as err:
+            err.token = extends_node.name.token
+            err.template_name = template.full_name()
+            raise
 
-    while parent_template_name:
-        parent = await context.env.get_template_async(
-            parent_template_name, context=context, tag=tag
-        )
-        extends_node, _ = stack_blocks(context, parent)
+    base = next_template = await _stack_template_blocks(template)
 
-        if extends_node:
-            parent_template_name = extends_node.name.value
-            assert parent_template_name
-            if parent_template_name in seen:
-                raise TemplateInheritanceError(
-                    f"circular extends {parent_template_name!r}",
-                    token=extends_node.token,
-                    filename=parent.name,
-                )
-            seen.add(parent_template_name)
-        else:
-            parent_template_name = None
+    while next_template:
+        next_template = await _stack_template_blocks(next_template)
+        if next_template:
+            base = next_template
 
-    return parent
+    assert base
+    return base
 
 
-def find_inheritance_nodes(
+def _find_inheritance_nodes(
     template: Template, context: RenderContext
 ) -> tuple[list["ExtendsNode"], list[BlockNode]]:
     """Return lists of `extends` and `block` nodes from the given template."""
     extends_nodes: list["ExtendsNode"] = []
     block_nodes: list[BlockNode] = []
 
+    def _visit_node(node: Node, context: RenderContext) -> None:
+        if isinstance(node, BlockNode):
+            block_nodes.append(node)
+
+        if isinstance(node, ExtendsNode):
+            extends_nodes.append(node)
+
+        for child in node.children(context, _include_partials=False):
+            _visit_node(child, context=context)
+
     for node in template.nodes:
-        _visit_node(
-            node,
-            extends_nodes=extends_nodes,
-            block_nodes=block_nodes,
-            context=context,
-        )
+        _visit_node(node, context=context)
 
     return extends_nodes, block_nodes
 
 
-def _visit_node(
-    node: Node,
-    extends_nodes: list["ExtendsNode"],
-    block_nodes: list[BlockNode],
-    context: RenderContext,
-) -> None:
-    if isinstance(node, BlockNode):
-        block_nodes.append(node)
-
-    if isinstance(node, ExtendsNode):
-        extends_nodes.append(node)
-
-    for child in node.children(context, _include_partials=False):
-        _visit_node(
-            child,
-            extends_nodes=extends_nodes,
-            block_nodes=block_nodes,
-            context=context,
-        )
-
-
-def stack_blocks(
+def _stack_blocks(
     context: RenderContext, template: Template
 ) -> tuple[ExtendsNode | None, list[BlockNode]]:
     """Find template inheritance nodes in `template`.
 
     Each node found is pushed on to the appropriate block stack.
     """
-    extends, blocks = find_inheritance_nodes(template, context)
+    extends, blocks = _find_inheritance_nodes(template, context)
     template_name = str(template.path or template.name)
 
     if len(extends) > 1:
         raise TemplateInheritanceError(
             "too many 'extends' tags",
             token=extends[1].token,
-            filename=template_name,
+            template_name=template_name,
         )
 
     seen_block_names: set[str] = set()

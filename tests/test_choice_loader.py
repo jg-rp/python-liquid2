@@ -6,7 +6,7 @@ from liquid2 import CachingChoiceLoader
 from liquid2 import ChoiceLoader
 from liquid2 import DictLoader
 from liquid2 import Environment
-from liquid2 import TemplateNotFound
+from liquid2 import TemplateNotFoundError
 
 
 def test_choose_between_loaders() -> None:
@@ -28,7 +28,7 @@ def test_choose_between_loaders() -> None:
     template = env.get_template("b")
     assert template.render() == "the quick brown fox"
 
-    with pytest.raises(TemplateNotFound):
+    with pytest.raises(TemplateNotFoundError):
         env.get_template("c")
 
 
@@ -53,7 +53,7 @@ def test_choose_between_loaders_async() -> None:
         template = await env.get_template_async("b")
         assert await template.render_async() == "the quick brown fox"
 
-        with pytest.raises(TemplateNotFound):
+        with pytest.raises(TemplateNotFoundError):
             await env.get_template_async("c")
 
     asyncio.run(coro())
@@ -81,5 +81,5 @@ def test_caching_choice_loader() -> None:
     assert template.render() == "the quick brown fox"
     assert len(loader.cache) == 2
 
-    with pytest.raises(TemplateNotFound):
+    with pytest.raises(TemplateNotFoundError):
         env.get_template("c")

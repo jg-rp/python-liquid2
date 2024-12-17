@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from liquid2.exceptions import TemplateNotFound
+from liquid2.exceptions import TemplateNotFoundError
 from liquid2.loader import BaseLoader
 from liquid2.loader import TemplateSource
 
@@ -36,6 +36,9 @@ class DictLoader(BaseLoader):
         try:
             source = self.templates[template_name]
         except KeyError as err:
-            raise TemplateNotFound(template_name) from err
+            raise TemplateNotFoundError(template_name) from err
 
         return TemplateSource(source, template_name, None)
+
+
+# TODO: caching dict loader
