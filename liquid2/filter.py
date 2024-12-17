@@ -16,8 +16,6 @@ from .limits import to_int
 from .stringify import to_liquid_string
 from .undefined import is_undefined
 
-# TODO: replace `Any` generics
-
 
 def bool_arg(value: object) -> bool:
     """Return _True_ if _value_ is liquid truthy."""

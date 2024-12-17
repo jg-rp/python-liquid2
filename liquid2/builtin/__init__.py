@@ -196,6 +196,7 @@ __all__ = (
     "CachingChoiceLoader",
     "ChoiceLoader",
     "PackageLoader",
+    "BlockComment",
 )
 
 

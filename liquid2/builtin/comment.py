@@ -25,8 +25,13 @@ class CommentNode(Node):
         self.text = text
 
     def __str__(self) -> str:
+        # TODO: different str for each of block comment, inline comment and new-style comment
         assert isinstance(self.token, CommentToken)
-        return f"{{#{self.token.wc[0]}{self.text}{self.token.wc[1]}#}}"
+        return (
+            f"{{{self.token.hashes}{self.token.wc[0]}"
+            f"{self.text}"
+            f"{self.token.wc[1]}{self.token.hashes}}}"
+        )
 
     def render_to_output(self, _context: RenderContext, _buffer: TextIO) -> int:
         """Render the node to the output buffer."""

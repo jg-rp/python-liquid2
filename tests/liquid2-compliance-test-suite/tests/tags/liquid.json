@@ -98,6 +98,28 @@
       "template": "{% liquid\necho 'a'\n \t\n\necho 'b' %}",
       "data": {},
       "result": "ab"
+    },
+    {
+      "name": "block comment",
+      "template": "{% liquid\ncomment\necho 'b'\nendcomment %}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "block comment, nested",
+      "template": "{% liquid\ncomment\ncomment\necho 'b'\nendcomment\nendcomment %}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "block comment, unclosed",
+      "template": "{% liquid\ncomment\necho 'b' %}",
+      "invalid": true
+    },
+    {
+      "name": "block comment, unclosed nested",
+      "template": "{% liquid\ncomment\ncomment\necho 'b'\nendcomment %}",
+      "invalid": true
     }
   ]
 }

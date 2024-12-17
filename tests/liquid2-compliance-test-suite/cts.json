@@ -4582,6 +4582,60 @@
       "invalid": true
     },
     {
+      "name": "tags, comment, comment block",
+      "template": "{% comment %}don't render me{% endcomment %}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "tags, comment, comment block, whitespace control",
+      "template": "a\n{%- comment %}don't render me{% endcomment -%}\t \rb",
+      "data": {},
+      "result": "ab"
+    },
+    {
+      "name": "tags, comment, comment block with tags",
+      "template": "{% comment %}\n{% if true %}\n{{ title }}\n{% endif %}{% endcomment %}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "tags, comment, comment block, ignore invalid expressions",
+      "template": "{% comment %}    {% if true %}    {% if ... %}    {%- for ? -%}    {% while true %}    {%    unless if    %}    {% endcase %}{% endcomment %}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "tags, comment, comment block, ignore malformed tags",
+      "template": "{% comment %}{% assign foo = '1'{% endcomment %}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "tags, comment, comment block, ignore incomplete tags",
+      "template": "{% comment %}{% {{ {%- endcomment %}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "tags, comment, comment block, nested",
+      "template": "{% comment %}{% comment %}{% endcomment %}{% endcomment %}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "tags, comment, comment block, nested, unclosed",
+      "template": "{% comment %}{% comment %}{% endcomment %}",
+      "data": {},
+      "invalid": true
+    },
+    {
+      "name": "tags, comment, comment block, raw",
+      "template": "a{% comment %}{% raw %}{% endcomment %}{% endraw %}{% endcomment %}b",
+      "data": {},
+      "result": "ab"
+    },
+    {
       "name": "tags, cycle, string literals",
       "template": "{% cycle 'a', 'b' %}{% cycle 'a', 'b' %}{% cycle 'a', 'b' %}",
       "data": {},
@@ -6379,6 +6433,108 @@
       "result": "0 1 1 0 0"
     },
     {
+      "name": "tags, inline comment, with whitespace control and padding",
+      "template": "{%- # some comment -%}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "tags, inline comment, with whitespace control no padding",
+      "template": "{%-# some comment -%}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "tags, inline comment, no whitespace control with padding",
+      "template": "{% # some comment %}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "tags, inline comment, no whitespace control no padding",
+      "template": "{%# some comment %}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "tags, inline comment, no padding after the hash",
+      "template": "{%#some comment %}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "tags, inline comment, empty",
+      "template": "{%#%}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "tags, inline comment, liquid tag",
+      "template": "{% liquid \n  # first comment line\n  # second comment line\n\n  # another comment line\n  echo 'Hello '\n\n  # more comments\n  echo 'goodbye'\n-%}",
+      "data": {},
+      "result": "Hello goodbye"
+    },
+    {
+      "name": "tags, inline comment, multiple lines",
+      "template": "{%-\n  # spread inline comments\n  # over multiple lines\n-%}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "tags, inline comment, lots of hashes in a liquid tag",
+      "template": "{% liquid\n  ##########################\n  # spread inline comments #\n  ##########################\n-%}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "tags, inline comment, enforce leading hash",
+      "template": "{%-\n  # spread inline comments\n  over multiple lines\n-%}",
+      "data": {},
+      "invalid": true
+    },
+    {
+      "name": "tags, inline comment, can't comment tags",
+      "template": "{%- # {% echo 'hello world' %} -%}",
+      "data": {},
+      "result": " -%}"
+    },
+    {
+      "name": "tags, inline comment, comment with single quote",
+      "template": "{%# some 'comment %}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "tags, inline comment, comment with single quoted string",
+      "template": "{%# some 'comment' %}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "tags, inline comment, comment with double quote",
+      "template": "{%# some \"comment %}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "tags, inline comment, comment with double quoted string",
+      "template": "{%# some \"comment\" %}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "tags, inline comment, comment with u2018",
+      "template": "{%# some \u2018comment %}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "tags, inline comment, comment with u201C",
+      "template": "{%# some \u201ccomment %}",
+      "data": {},
+      "result": ""
+    },
+    {
       "name": "tags, liquid, string literal, single line",
       "template": "{% liquid echo 'a' %}",
       "data": {},
@@ -6476,6 +6632,28 @@
       "template": "{% liquid\necho 'a'\n \t\n\necho 'b' %}",
       "data": {},
       "result": "ab"
+    },
+    {
+      "name": "tags, liquid, block comment",
+      "template": "{% liquid\ncomment\necho 'b'\nendcomment %}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "tags, liquid, block comment, nested",
+      "template": "{% liquid\ncomment\ncomment\necho 'b'\nendcomment\nendcomment %}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "tags, liquid, block comment, unclosed",
+      "template": "{% liquid\ncomment\necho 'b' %}",
+      "invalid": true
+    },
+    {
+      "name": "tags, liquid, block comment, unclosed nested",
+      "template": "{% liquid\ncomment\ncomment\necho 'b'\nendcomment %}",
+      "invalid": true
     },
     {
       "name": "tags, raw, no markup",

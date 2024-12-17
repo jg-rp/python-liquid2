@@ -321,3 +321,7 @@ def test_ternary_str_no_alternative() -> None:
     source = "{{ foo | upcase if a <= b }}"
     template = parse(source)
     assert str(template) == source
+
+
+# TODO: block comments
+# TODO: block comments with WC (check for wc leaks)
