@@ -107,7 +107,7 @@ class RenderNode(Node):
             key = self.alias or template.name.split(".")[0]
 
             if self.loop and isinstance(val, Sequence) and not isinstance(val, str):
-                # TODO: raise for loop limit
+                context.raise_for_loop_limit(len(val))
                 forloop = ForLoop(
                     name=key,
                     it=iter(val),
@@ -169,7 +169,7 @@ class RenderNode(Node):
             key = self.alias or template.name.split(".")[0]
 
             if self.loop and isinstance(val, Sequence) and not isinstance(val, str):
-                # TODO: raise for loop limit
+                context.raise_for_loop_limit(len(val))
                 forloop = ForLoop(
                     name=key,
                     it=iter(val),

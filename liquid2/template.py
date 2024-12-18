@@ -14,6 +14,7 @@ from .context import RenderContext
 from .exceptions import LiquidInterrupt
 from .exceptions import LiquidSyntaxError
 from .exceptions import StopRender
+from .output import LimitedStringIO
 from .static_analysis import _analyze
 from .static_analysis import _analyze_async
 from .utils import ReadOnlyChainMap
@@ -68,7 +69,7 @@ class Template:
 
     def render(self, *args: Any, **kwargs: Any) -> str:
         """Render this template with _args_ and _kwargs_."""
-        buf = StringIO()  # TODO: limited buffer
+        buf = self._get_buffer()
         context = RenderContext(
             self,
             global_data=self.make_globals(dict(*args, **kwargs)),
@@ -78,7 +79,7 @@ class Template:
 
     async def render_async(self, *args: Any, **kwargs: Any) -> str:
         """Render this template with _args_ and _kwargs_."""
-        buf = StringIO()  # TODO: limited buffer
+        buf = self._get_buffer()
         context = RenderContext(
             self,
             global_data=self.make_globals(dict(*args, **kwargs)),
@@ -186,3 +187,8 @@ class Template:
         if isinstance(uptodate, Awaitable):
             return await uptodate
         return uptodate
+
+    def _get_buffer(self) -> StringIO:
+        if self.env.output_stream_limit is None:
+            return StringIO()
+        return LimitedStringIO(limit=self.env.output_stream_limit)

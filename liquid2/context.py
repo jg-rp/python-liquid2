@@ -25,7 +25,10 @@ from typing import TextIO
 from markupsafe import Markup
 
 from .exceptions import ContextDepthError
+from .exceptions import LocalNamespaceLimitError
+from .exceptions import LoopIterationLimitError
 from .exceptions import NoSuchFilterFunc
+from .output import LimitedStringIO
 from .undefined import UNDEFINED
 from .utils import ReadOnlyChainMap
 
@@ -102,7 +105,11 @@ class RenderContext:
     def assign(self, key: str, val: object) -> None:
         """Add _key_ to the local namespace with value _val_."""
         self.locals[key] = val
-        # TODO: namespace limit
+        if (
+            self.env.local_namespace_limit
+            and self.get_size_of_locals() > self.env.local_namespace_limit
+        ):
+            raise LocalNamespaceLimitError("local namespace limit reached", token=None)
 
     def get(
         self,
@@ -376,7 +383,7 @@ class RenderContext:
         self, namespace: Mapping[str, object], forloop: ForLoop
     ) -> Iterator[RenderContext]:
         """Just like `Context.extend`, but keeps track of ForLoop objects too."""
-        # TODO: self.raise_for_loop_limit(forloop.length)
+        self.raise_for_loop_limit(forloop.length)
         self.loops.append(forloop)
         with self.extend(namespace) as context:
             try:
@@ -391,10 +398,26 @@ class RenderContext:
         except IndexError:
             return self.env.undefined("parentloop", token=token)
 
+    def raise_for_loop_limit(self, length: int = 1) -> None:
+        """Raise a `LoopIterationLimitError` if loop stack is bigger than the limit."""
+        if (
+            self.env.loop_iteration_limit
+            and reduce(
+                mul,
+                (loop.length for loop in self.loops),
+                length * self.loop_iteration_carry,
+            )
+            > self.env.loop_iteration_limit
+        ):
+            raise LoopIterationLimitError("loop iteration limit reached", token=None)
+
     def get_output_buffer(self, parent_buffer: TextIO | None) -> StringIO:
         """Return a new output buffer respecting any limits set on the environment."""
-        # TODO
-        return StringIO()
+        if self.env.output_stream_limit is None:
+            return StringIO()
+
+        carry = parent_buffer.size if isinstance(parent_buffer, LimitedStringIO) else 0
+        return LimitedStringIO(limit=self.env.output_stream_limit - carry)
 
     def markup(self, s: str) -> str | Markup:
         """Return a _safe_ string if auto escape is enabled."""

@@ -47,17 +47,6 @@ class Environment:
 
     template_class = Template
 
-    __slots__ = (
-        "loader",
-        "globals",
-        "auto_escape",
-        "undefined",
-        "default_trim",
-        "filters",
-        "tags",
-        "parser",
-    )
-
     def __init__(
         self,
         *,
@@ -81,11 +70,7 @@ class Environment:
         self.filters: dict[str, Callable[..., object]] = {}
         self.tags: dict[str, Tag] = {}
         self.setup_tags_and_filters()
-
         self.parser = Parser(self)
-
-        # TODO: limits
-        # TODO: test environment and template API
 
     def setup_tags_and_filters(self) -> None:
         """Add tags and filters to this environment.
@@ -156,7 +141,7 @@ class Environment:
             name=name,
             globals=self.make_globals(globals),
             context=context,
-            **kwargs,  # type: ignore
+            **kwargs,
         )
 
     async def get_template_async(
@@ -173,7 +158,7 @@ class Environment:
             name=name,
             globals=self.make_globals(globals),
             context=context,
-            **kwargs,  # type: ignore
+            **kwargs,
         )
 
     def make_globals(

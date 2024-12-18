@@ -89,7 +89,7 @@ class IncludeNode(Node):
                 key = self.alias or template.name.split(".")[0]
 
                 if isinstance(val, Sequence) and not isinstance(val, str):
-                    # TODO: raise for loop limit
+                    context.raise_for_loop_limit(len(val))
                     for itm in val:
                         namespace[key] = itm
                         character_count += template.render_with_context(
@@ -134,7 +134,7 @@ class IncludeNode(Node):
                 key = self.alias or template.name.split(".")[0]
 
                 if isinstance(val, Sequence) and not isinstance(val, str):
-                    # TODO: raise for loop limit
+                    context.raise_for_loop_limit(len(val))
                     for itm in val:
                         namespace[key] = itm
                         character_count += await template.render_with_context_async(
