@@ -1618,6 +1618,12 @@ def is_truthy(obj: object) -> bool:
 
 
 def _eq(left: object, right: object) -> bool:
+    if hasattr(left, "__liquid__"):
+        left = left.__liquid__()
+
+    if hasattr(right, "__liquid__"):
+        right = right.__liquid__()
+
     if isinstance(right, (Empty, Blank)):
         left, right = right, left
 
@@ -1632,6 +1638,12 @@ def _eq(left: object, right: object) -> bool:
 
 
 def _lt(token: TokenT, left: object, right: object) -> bool:
+    if hasattr(left, "__liquid__"):
+        left = left.__liquid__()
+
+    if hasattr(right, "__liquid__"):
+        right = right.__liquid__()
+
     if isinstance(left, str) and isinstance(right, str):
         return left < right
 

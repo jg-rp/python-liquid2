@@ -73,8 +73,8 @@ class Undefined(Mapping[Any, object]):
     def __reversed__(self) -> Iterable[Any]:
         return []
 
-    def __liquid__(self) -> bool:
-        return False
+    def __liquid__(self) -> object:
+        return None
 
     def poke(self) -> bool:
         """Prod the type, giving it the opertunity to raise an exception."""
