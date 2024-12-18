@@ -136,7 +136,7 @@ MARKUP: dict[str, str] = {
     "TAG": r"\{%(?P<TAG_WC>[\-+~]?)\s*(?P<TAG_NAME>[a-z][a-z_0-9]*)",
     "COMMENT": (  # new style `{# some comment #}`
         r"\{(?P<HASHES>#+)(?P<COMMENT_WC0>[\-+~]?)"
-        r"(?P<COMMENT_TEXT>.*)"
+        r"(?P<COMMENT_TEXT>.*?)"
         r"(?P<COMMENT_WC1>[\-+~]?)(?P=HASHES)\}"
     ),
     "INLINE_COMMENT": (  # shopify style `{% # some comment %}`

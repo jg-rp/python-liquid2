@@ -2,6 +2,30 @@
   "description": "Liquid2 compliance test suite",
   "tests": [
     {
+      "name": "comment, comment",
+      "template": "Hello, {# this is a comment #} World!",
+      "data": {},
+      "result": "Hello,  World!"
+    },
+    {
+      "name": "comment, no trailing hash",
+      "template": "Hello, {# this is not a comment } World!",
+      "data": {},
+      "result": "Hello, {# this is not a comment } World!"
+    },
+    {
+      "name": "comment, commented markup",
+      "template": "Hello, {# this is {% if %} a {{ comment }} #} World!",
+      "data": {},
+      "result": "Hello,  World!"
+    },
+    {
+      "name": "comment, whitespace control",
+      "template": "Hello,   {#- this is a comment -#}\nWorld!",
+      "data": {},
+      "result": "Hello,World!"
+    },
+    {
       "name": "identifiers, ascii lowercase",
       "template": "{% assign foo = 'hello' %}{{ foo }} {{ bar }}",
       "data": {
@@ -4414,6 +4438,60 @@
       "invalid": true
     },
     {
+      "name": "tags, block comment, comment block",
+      "template": "{% comment %}don't render me{% endcomment %}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "tags, block comment, comment block, whitespace control",
+      "template": "a\n{%- comment %}don't render me{% endcomment -%}\t \rb",
+      "data": {},
+      "result": "ab"
+    },
+    {
+      "name": "tags, block comment, comment block with tags",
+      "template": "{% comment %}\n{% if true %}\n{{ title }}\n{% endif %}{% endcomment %}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "tags, block comment, comment block, ignore invalid expressions",
+      "template": "{% comment %}    {% if true %}    {% if ... %}    {%- for ? -%}    {% while true %}    {%    unless if    %}    {% endcase %}{% endcomment %}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "tags, block comment, comment block, ignore malformed tags",
+      "template": "{% comment %}{% assign foo = '1'{% endcomment %}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "tags, block comment, comment block, ignore incomplete tags",
+      "template": "{% comment %}{% {{ {%- endcomment %}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "tags, block comment, comment block, nested",
+      "template": "{% comment %}{% comment %}{% endcomment %}{% endcomment %}",
+      "data": {},
+      "result": ""
+    },
+    {
+      "name": "tags, block comment, comment block, nested, unclosed",
+      "template": "{% comment %}{% comment %}{% endcomment %}",
+      "data": {},
+      "invalid": true
+    },
+    {
+      "name": "tags, block comment, comment block, raw",
+      "template": "a{% comment %}{% raw %}{% endcomment %}{% endraw %}{% endcomment %}b",
+      "data": {},
+      "result": "ab"
+    },
+    {
       "name": "tags, capture, content with global variables",
       "template": "{% capture a %}Hello, {{ b }}!{% endcapture %}{{ a }}",
       "data": {
@@ -4580,60 +4658,6 @@
       "name": "tags, case, when after else",
       "template": "{% case a %}{% when b %}c{% else %}d{% when 'e' %}f{% endcase %}",
       "invalid": true
-    },
-    {
-      "name": "tags, comment, comment block",
-      "template": "{% comment %}don't render me{% endcomment %}",
-      "data": {},
-      "result": ""
-    },
-    {
-      "name": "tags, comment, comment block, whitespace control",
-      "template": "a\n{%- comment %}don't render me{% endcomment -%}\t \rb",
-      "data": {},
-      "result": "ab"
-    },
-    {
-      "name": "tags, comment, comment block with tags",
-      "template": "{% comment %}\n{% if true %}\n{{ title }}\n{% endif %}{% endcomment %}",
-      "data": {},
-      "result": ""
-    },
-    {
-      "name": "tags, comment, comment block, ignore invalid expressions",
-      "template": "{% comment %}    {% if true %}    {% if ... %}    {%- for ? -%}    {% while true %}    {%    unless if    %}    {% endcase %}{% endcomment %}",
-      "data": {},
-      "result": ""
-    },
-    {
-      "name": "tags, comment, comment block, ignore malformed tags",
-      "template": "{% comment %}{% assign foo = '1'{% endcomment %}",
-      "data": {},
-      "result": ""
-    },
-    {
-      "name": "tags, comment, comment block, ignore incomplete tags",
-      "template": "{% comment %}{% {{ {%- endcomment %}",
-      "data": {},
-      "result": ""
-    },
-    {
-      "name": "tags, comment, comment block, nested",
-      "template": "{% comment %}{% comment %}{% endcomment %}{% endcomment %}",
-      "data": {},
-      "result": ""
-    },
-    {
-      "name": "tags, comment, comment block, nested, unclosed",
-      "template": "{% comment %}{% comment %}{% endcomment %}",
-      "data": {},
-      "invalid": true
-    },
-    {
-      "name": "tags, comment, comment block, raw",
-      "template": "a{% comment %}{% raw %}{% endcomment %}{% endraw %}{% endcomment %}b",
-      "data": {},
-      "result": "ab"
     },
     {
       "name": "tags, cycle, string literals",

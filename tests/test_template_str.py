@@ -14,8 +14,8 @@ def test_comment_str() -> None:
 
 
 def test_comment_str_wc() -> None:
-    template = parse("{#- this is a comment +#}")
-    assert str(template) == "{#- this is a comment +#}"
+    template = parse("{#- this is a comment ~#}")
+    assert str(template) == "{#- this is a comment ~#}"
 
 
 def test_output_str() -> None:
@@ -24,8 +24,8 @@ def test_output_str() -> None:
 
 
 def test_output_str_wc() -> None:
-    template = parse("{{- a.b +}}")
-    assert str(template) == "{{- a.b +}}"
+    template = parse("{{- a.b ~}}")
+    assert str(template) == "{{- a.b ~}}"
 
 
 def test_assign_str() -> None:
@@ -45,7 +45,7 @@ def test_capture_str() -> None:
 
 
 def test_capture_str_wc() -> None:
-    source = "{%- capture foo +%}Hello, {{ you }}!{%+ endcapture -%}"
+    source = "{%- capture foo ~%}Hello, {{ you }}!{%~ endcapture -%}"
     template = parse(source)
     assert str(template) == source
 
@@ -76,12 +76,12 @@ def test_case_str_whitespace() -> None:
 def test_case_str_whitespace_wc() -> None:
     source = "\n".join(
         [
-            "{%- case x +%}",
+            "{%- case x ~%}",
             "{% when y %}",
             "  {{ a }}",
-            "{%+ when z +%}",
+            "{%~ when z ~%}",
             "  {{ b }}",
-            "{%+ else +%}",
+            "{%~ else ~%}",
             "  {{ c }}",
             "{% endcase %}",
         ]
@@ -115,7 +115,7 @@ def test_decrement_str() -> None:
 
 
 def test_decrement_str_wc() -> None:
-    source = "{%~ decrement foo +%}"
+    source = "{%~ decrement foo ~%}"
     template = parse(source)
     assert str(template) == source
 
@@ -127,7 +127,7 @@ def test_increment_str() -> None:
 
 
 def test_increment_str_wc() -> None:
-    source = "{%~ increment foo +%}"
+    source = "{%~ increment foo ~%}"
     template = parse(source)
     assert str(template) == source
 
@@ -139,7 +139,7 @@ def test_echo_str() -> None:
 
 
 def test_echo_str_wc() -> None:
-    source = "{%+ echo foo | upcase -%}"
+    source = "{%~ echo foo | upcase -%}"
     template = parse(source)
     assert str(template) == source
 
@@ -151,7 +151,7 @@ def test_extends_str() -> None:
 
 
 def test_extends_str_wc() -> None:
-    source = "{%+ extends 'foo' -%}"
+    source = "{%~ extends 'foo' -%}"
     template = parse(source)
     assert str(template) == source
 
@@ -166,11 +166,11 @@ def test_block_str() -> None:
 
 def test_block_wc() -> None:
     template = parse(
-        "{%- block b required +%}{{ greeting }}, {{ x }}! {%+ endblock ~%}"
+        "{%- block b required ~%}{{ greeting }}, {{ x }}! {%~ endblock ~%}"
     )
     assert (
         str(template)
-        == "{%- block b required +%}{{ greeting }}, {{ x }}! {%+ endblock b ~%}"
+        == "{%- block b required ~%}{{ greeting }}, {{ x }}! {%~ endblock b ~%}"
     )
 
 
@@ -181,7 +181,7 @@ def test_for_str() -> None:
 
 
 def test_for_str_wc() -> None:
-    source = "{%- for a in b +%}{{ a }},{%+ else -%}c{%~ endfor %}"
+    source = "{%- for a in b ~%}{{ a }},{%~ else -%}c{%~ endfor %}"
     template = parse(source)
     assert str(template) == source
 
@@ -199,7 +199,7 @@ def test_break_and_continue_str() -> None:
 def test_break_and_continue_str_wc() -> None:
     source = (
         "{% for a in b %}"
-        "{% if true %}{%+ continue -%}{% else %}{%- break +%}{% endif %}"
+        "{% if true %}{%~ continue -%}{% else %}{%- break ~%}{% endif %}"
         "{% endfor %}"
     )
     template = parse(source)
@@ -213,7 +213,7 @@ def test_if_str() -> None:
 
 
 def test_if_str_wc() -> None:
-    source = "{%- if false +%}a{%~ elsif false -%}b{%+ else -%}c{%+ endif %}"
+    source = "{%- if false ~%}a{%~ elsif false -%}b{%~ else -%}c{%~ endif %}"
     template = parse(source)
     assert str(template) == source
 
@@ -225,7 +225,7 @@ def test_unless_str() -> None:
 
 
 def test_unless_str_wc() -> None:
-    source = "{%- unless false +%}a{%~ elsif false -%}b{% else %}c{%+ endunless %}"
+    source = "{%- unless false ~%}a{%~ elsif false -%}b{% else %}c{%~ endunless %}"
     template = parse(source)
     assert str(template) == source
 
@@ -237,7 +237,7 @@ def test_include_str() -> None:
 
 
 def test_include_str_wc() -> None:
-    source = "{%- include foo +%}"
+    source = "{%- include foo ~%}"
     template = parse(source)
     assert str(template) == source
 
@@ -255,7 +255,7 @@ def test_render_str() -> None:
 
 
 def test_render_str_wc() -> None:
-    source = "{%- render 'foo' +%}"
+    source = "{%- render 'foo' ~%}"
     template = parse(source)
     assert str(template) == source
 
@@ -273,7 +273,7 @@ def test_liquid_str() -> None:
 
 
 def test_liquid_str_wc() -> None:
-    source = "{%- liquid echo 'a'\nassign b = 'c'\necho b +%}"
+    source = "{%- liquid echo 'a'\nassign b = 'c'\necho b ~%}"
     template = parse(source)
     assert str(template) == source
 
@@ -302,7 +302,7 @@ def test_raw_str() -> None:
 
 
 def test_raw_str_wc() -> None:
-    source = "{%- raw +%}{{ a }}{%~ endraw -%}"
+    source = "{%- raw ~%}{{ a }}{%~ endraw -%}"
     template = parse(source)
     assert str(template) == source
 
@@ -336,7 +336,7 @@ def test_inline_comment_str() -> None:
 
 
 def test_inline_comment_str_wc() -> None:
-    source = "{%- # this is a comment +%}"
+    source = "{%- # this is a comment ~%}"
     template = parse(source)
     assert str(template) == source
 
@@ -348,5 +348,5 @@ def test_block_comment_str() -> None:
 
 
 def test_block_comment_str_wc() -> None:
-    template = parse("{%- comment +%}don't render me{%~ endcomment +%}")
-    assert str(template) == "{%- comment %}don't render me{% endcomment +%}"
+    template = parse("{%- comment ~%}don't render me{%~ endcomment ~%}")
+    assert str(template) == "{%- comment %}don't render me{% endcomment ~%}"
