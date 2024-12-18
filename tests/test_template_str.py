@@ -284,6 +284,12 @@ def test_liquid_comment_str() -> None:
     assert str(template) == source
 
 
+def test_liquid_block_comment_str() -> None:
+    source = "{% liquid\ncomment\necho 'b'\nendcomment %}"
+    template = parse(source)
+    assert str(template) == source
+
+
 def test_liquid_str_with_trailing_newline() -> None:
     template = parse("{% liquid echo 'a'\nassign b = 'c'\necho b\n\n%}")
     assert str(template) == "{% liquid echo 'a'\nassign b = 'c'\necho b %}"
@@ -323,5 +329,24 @@ def test_ternary_str_no_alternative() -> None:
     assert str(template) == source
 
 
-# TODO: block comments
-# TODO: block comments with WC (check for wc leaks)
+def test_inline_comment_str() -> None:
+    source = "{% # this is a comment %}"
+    template = parse(source)
+    assert str(template) == source
+
+
+def test_inline_comment_str_wc() -> None:
+    source = "{%- # this is a comment +%}"
+    template = parse(source)
+    assert str(template) == source
+
+
+def test_block_comment_str() -> None:
+    source = "{% comment %}don't render me{% endcomment %}"
+    template = parse(source)
+    assert str(template) == source
+
+
+def test_block_comment_str_wc() -> None:
+    template = parse("{%- comment +%}don't render me{%~ endcomment +%}")
+    assert str(template) == "{%- comment %}don't render me{% endcomment +%}"

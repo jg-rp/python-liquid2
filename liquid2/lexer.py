@@ -12,9 +12,11 @@ from typing import Pattern
 from typing_extensions import Never
 
 from .exceptions import LiquidSyntaxError
+from .token import BlockCommentToken
 from .token import CommentToken
 from .token import ContentToken
 from .token import ErrorToken
+from .token import InlineCommentToken
 from .token import LinesToken
 from .token import OutputToken
 from .token import PathToken
@@ -138,9 +140,7 @@ MARKUP: dict[str, str] = {
         r"(?P<COMMENT_WC1>[\-+~]?)(?P=HASHES)\}"
     ),
     "INLINE_COMMENT": (  # shopify style `{% # some comment %}`
-        r"\{%(?P<ILC_WC0>[\-+~]?)"
-        r"\s*#\s*(?P<ILC_TEXT>.*?)"
-        r"(?P<ILC_WC1>[\-+~]?)%\}"
+        r"\{%(?P<ILC_WC0>[\-+~]?)\s*#(?P<ILC_TEXT>.*?)(?P<ILC_WC1>[\-+~]?)%\}"
     ),
     "CONTENT": r".+?(?=(\{\{|\{%|\{#+|$))",
 }
@@ -711,7 +711,7 @@ def lex_markup(l: Lexer) -> StateFn | None:
 
         if kind == "INLINE_COMMENT":
             l.markup.append(
-                CommentToken(
+                InlineCommentToken(
                     type_=TokenType.COMMENT,
                     start=l.start,
                     stop=l.pos,
@@ -934,7 +934,7 @@ def lex_inside_block_comment(l: Lexer) -> StateFn | None:
                 comment_depth -= 1
                 if comment_depth == 0:
                     l.markup.append(
-                        CommentToken(
+                        BlockCommentToken(
                             type_=TokenType.COMMENT,
                             start=l.markup_start,
                             stop=l.pos,
@@ -942,13 +942,12 @@ def lex_inside_block_comment(l: Lexer) -> StateFn | None:
                             text=l.source[
                                 l.start : match.start() + len(match.group(1))
                             ],
-                            hashes="%",
+                            hashes="",
                             source=l.source,
                         )
                     )
                     l.wc.clear()
                     l.tag_name = ""
-                    l.expression = []
                     break
             elif tag_name == "raw":
                 raw_depth += 1
@@ -978,13 +977,13 @@ def lex_inside_liquid_block_comment(l: Lexer) -> StateFn | None:
                     l.accept(RE_REST_OF_LINE)
                     l.accept(RE_LINE_TERM)
                     l.line_statements.append(
-                        CommentToken(
+                        BlockCommentToken(
                             type_=TokenType.COMMENT,
                             start=l.line_start,
                             stop=l.pos,
                             wc=WC_DEFAULT,
                             text=l.source[l.start : text_end_pos],
-                            hashes="%",
+                            hashes="",
                             source=l.source,
                         )
                     )

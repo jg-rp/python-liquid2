@@ -1,6 +1,8 @@
 from typing import Mapping
 
+from .token import BlockCommentToken
 from .token import CommentToken
+from .token import InlineCommentToken
 from .token import ContentToken
 from .token import LinesToken
 from .token import OutputToken
@@ -105,4 +107,6 @@ __all__ = (
     "ChoiceLoader",
     "CachingChoiceLoader",
     "PackageLoader",
+    "BlockCommentToken",
+    "InlineCommentToken",
 )

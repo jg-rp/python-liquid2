@@ -77,12 +77,20 @@ class CommentToken(TokenT):
     text: str
     hashes: str
 
-    # TODO: hashes of "" indicates an old-style inline comment tag.
-    # TODO: hashes of "%" indicates an old-style block comment tag.
-    # Or have distinct subclasses of CommentToken for each
-
     def __str__(self) -> str:
         return f"{{{self.hashes}{self.wc[0]}{self.text}{self.wc[1]}{self.hashes}}}"
+
+
+@dataclass(kw_only=True, slots=True)
+class BlockCommentToken(CommentToken):
+    def __str__(self) -> str:
+        return f"{{%{self.wc[0]} comment %}}{self.text}{{% endcomment {self.wc[1]}%}}"
+
+
+@dataclass(kw_only=True, slots=True)
+class InlineCommentToken(CommentToken):
+    def __str__(self) -> str:
+        return f"{{%{self.wc[0]} #{self.text}{self.wc[1]}%}}"
 
 
 @dataclass(kw_only=True, slots=True)
@@ -158,7 +166,8 @@ def _tag_as_line_statement(markup: TagToken | CommentToken) -> str:
         if markup.expression:
             return f"{markup.name} {_expression_as_string(markup.expression)}"
         return markup.name
-    # TODO: handle block comment
+    if isinstance(markup, BlockCommentToken):
+        return f"comment\n{markup.text}endcomment"
     return f"#{markup.text}"
 
 
