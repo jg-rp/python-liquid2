@@ -14,6 +14,7 @@ from liquid2 import Tag
 from liquid2 import TagToken
 from liquid2 import TokenStream
 from liquid2.builtin import BooleanExpression
+from liquid2.exceptions import LiquidSyntaxError
 
 if TYPE_CHECKING:
     from liquid2 import RenderContext
@@ -123,6 +124,9 @@ class IfTag(Tag):
         parse_block = self.env.parser.parse_block
         parse_expression = BooleanExpression.parse
 
+        if not token.expression:
+            raise LiquidSyntaxError("missing expression", token=token)
+
         condition = parse_expression(TokenStream(token.expression))
 
         block_token = stream.current()
@@ -135,6 +139,9 @@ class IfTag(Tag):
         while stream.is_tag("elsif"):
             alternative_token = stream.next()
             assert isinstance(alternative_token, TagToken)
+
+            if not alternative_token.expression:
+                raise LiquidSyntaxError("missing expression", token=alternative_token)
 
             alternative_expression = parse_expression(
                 TokenStream(alternative_token.expression)

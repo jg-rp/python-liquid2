@@ -15,6 +15,7 @@ from liquid2 import TokenType
 from liquid2.builtin import FilteredExpression
 from liquid2.builtin import Identifier
 from liquid2.builtin import parse_identifier
+from liquid2.exceptions import LiquidSyntaxError
 
 if TYPE_CHECKING:
     from liquid2 import RenderContext
@@ -73,6 +74,9 @@ class AssignTag(Tag):
         """Parse tokens from _stream_ into an AST node."""
         token = stream.current()
         assert isinstance(token, TagToken)
+
+        if not token.expression:
+            raise LiquidSyntaxError("missing expression", token=token)
 
         expr_stream = TokenStream(token.expression)
         name = parse_identifier(expr_stream.next())

@@ -69,7 +69,7 @@ class Parser:
                 except KeyError as err:
                     # TODO: change error message if name is "liquid"
                     raise LiquidSyntaxError(
-                        f"unknown tag '{token.name}'", token=stream.current()
+                        f"unexpected tag '{token.name}'", token=stream.current()
                     ) from err
             elif is_lines_token(token):
                 left_trim = token.wc[-1]
@@ -127,7 +127,7 @@ class Parser:
                 except KeyError as err:
                     # TODO: change error message if name is "liquid"
                     raise LiquidSyntaxError(
-                        f"unknown tag '{token.name}'", token=stream.current()
+                        f"unexpected tag '{token.name}'", token=stream.current()
                     ) from err
             elif is_lines_token(token):
                 left_trim = token.wc[-1]

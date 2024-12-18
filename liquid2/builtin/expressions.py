@@ -431,6 +431,8 @@ class FilteredExpression(Expression):
             return TernaryFilteredExpression.parse(
                 FilteredExpression(left.token, left, filters), stream
             )
+
+        stream.expect_eos()
         return FilteredExpression(left.token, left, filters)
 
 
@@ -588,6 +590,7 @@ class TernaryFilteredExpression(Expression):
                 stream, delim=(TokenType.PIPE, TokenType.DOUBLE_PIPE)
             )
 
+        stream.expect_eos()
         return TernaryFilteredExpression(
             expr.token, expr, condition, alternative, filters, tail_filters
         )
@@ -1512,6 +1515,7 @@ class LoopExpression(Expression):
                     token=arg_token,
                 )
 
+        stream.expect_eos()
         assert token is not None
         return LoopExpression(
             token,
@@ -1593,7 +1597,7 @@ def parse_keyword_arguments(tokens: TokenStream) -> list[KeywordArgument]:
             break
 
         if is_token_type(token, TokenType.COMMA):
-            # XXX: Leading and/or trailing commas are OK.
+            # Leading and/or trailing commas are OK.
             continue
 
         if is_token_type(token, TokenType.WORD):

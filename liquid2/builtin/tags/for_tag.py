@@ -19,6 +19,7 @@ from liquid2.builtin import Identifier
 from liquid2.builtin import LoopExpression
 from liquid2.exceptions import BreakLoop
 from liquid2.exceptions import ContinueLoop
+from liquid2.exceptions import LiquidSyntaxError
 
 if TYPE_CHECKING:
     from liquid2 import TokenT
@@ -172,6 +173,10 @@ class ForTag(Tag):
         """Parse tokens from _stream_ into an AST node."""
         token = stream.next()
         assert isinstance(token, TagToken)
+
+        if not token.expression:
+            raise LiquidSyntaxError("missing expression", token=token)
+
         expression = LoopExpression.parse(TokenStream(token.expression))
 
         parse_block = self.env.parser.parse_block

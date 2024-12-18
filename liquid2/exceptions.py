@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from .token import ErrorToken
+from .token import PathToken
 from .token import TagToken
 from .token import Token
 from .token import TokenType
@@ -27,11 +28,13 @@ class LiquidError(Exception):
         self.template_name = template_name
 
     def __str__(self) -> str:
+        # TODO: env var to disable detailed messages
+        # TODO: include line and col in short messages
         return self.detailed_message()
 
     def detailed_message(self) -> str:
         """Return an error message formatted with extra context info."""
-        if not self.token:
+        if not self.token or self.token.start < 0:
             return super().__str__()
 
         lineno, col, _prev, current, _next = self._error_context(
@@ -45,9 +48,9 @@ class LiquidError(Exception):
         )
         pad = " " * len(str(lineno))
 
-        if isinstance(self.token, TagToken):
-            pointer = (" " * (col - 1)) + (
-                "^" * max(self.token.stop - self.token.start, len(current))
+        if isinstance(self.token, (TagToken, PathToken)):
+            pointer = (" " * col) + (
+                "^" * min(self.token.stop - self.token.start, len(current))
             )
         elif isinstance(self.token, (Token, ErrorToken)):
             # Special case for string literal tokens so we cover quote characters
@@ -59,7 +62,7 @@ class LiquidError(Exception):
             ):
                 length += 2
 
-            pointer = (" " * (col - 1)) + ("^" * max(length, 1))
+            pointer = (" " * col) + ("^" * max(length, 1))
         else:
             pointer = (" " * (col - 1)) + "^"
 
@@ -87,7 +90,7 @@ class LiquidError(Exception):
         Returns (line, col, previous line, current line, next line) or None
         if no context information is available.
         """
-        if self.token is None:
+        if self.token is None or self.token.start < 0:
             return None
         return self._error_context(self.token.source, self.token.start)
 
@@ -103,7 +106,7 @@ class LiquidError(Exception):
                 break
 
         if target_line_index == -1:
-            raise ValueError("Index is out of bounds for the given string")
+            raise ValueError("index is out of bounds for the given string")
 
         # Line number (1-based)
         line_number = target_line_index + 1

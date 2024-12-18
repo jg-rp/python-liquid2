@@ -326,10 +326,16 @@ class Lexer:
                     self.next()
                     self.ignore()  # skip closing quote
 
+                    if self.peek() != "]":
+                        self.error("invalid selector")
+
                 elif match := RE_INDEX.match(self.source, self.pos):
                     self.path_stack[-1].path.append(int(match.group()))
                     self.pos += match.end() - match.start()
                     self.start = self.pos
+
+                    if self.peek() != "]":
+                        self.error("invalid selector")
 
                 elif match := RE_PROPERTY.match(self.source, self.pos):
                     # A nested path
@@ -538,7 +544,7 @@ class Lexer:
                 self.accept_range()
                 self.in_range = False
         else:
-            msg = f"unknown token {self.source[self.start:self.pos]!r}"
+            msg = f"unexpected token {self.source[self.start:self.pos]!r}"
             raise LiquidSyntaxError(
                 msg,
                 token=ErrorToken(
@@ -762,7 +768,10 @@ def lex_inside_output_statement(
                 l.ignore()
                 return lex_markup
 
-            l.error(f"unexpected {l.next()!r}")
+            ch = l.peek()
+            if ch == "}":
+                l.error("missing bracket detected")
+            l.error(f"unexpected {ch!r}")
 
 
 def lex_inside_tag(l: Lexer) -> StateFn | None:
@@ -789,7 +798,12 @@ def lex_inside_tag(l: Lexer) -> StateFn | None:
                 l.ignore()
                 return lex_markup
 
-            l.error(f"unexpected {l.next()!r}")
+            ch = l.peek()
+            if ch == "}":
+                l.error("missing percent detected")
+            if ch == "%":
+                l.error("missing bracket detected")
+            l.error(f"unexpected {ch!r}")
 
 
 def lex_inside_liquid_tag(l: Lexer) -> StateFn | None:

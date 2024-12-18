@@ -24,6 +24,7 @@ from liquid2.ast import PartialScope
 from liquid2.builtin import Identifier
 from liquid2.builtin import StringLiteral
 from liquid2.builtin import parse_string_or_identifier
+from liquid2.exceptions import LiquidSyntaxError
 from liquid2.exceptions import RequiredBlockError
 from liquid2.exceptions import StopRender
 from liquid2.exceptions import TemplateInheritanceError
@@ -120,6 +121,9 @@ class ExtendsTag(Tag):
         """Parse tokens from _stream_ into an AST node."""
         token = stream.current()
         assert isinstance(token, TagToken)
+
+        if not token.expression:
+            raise LiquidSyntaxError("missing name", token=token)
 
         tokens = TokenStream(token.expression)
         name_token = tokens.next()
@@ -293,6 +297,9 @@ class BlockTag(Tag):
         """Parse tokens from _stream_ into an AST node."""
         token = stream.current()
         assert isinstance(token, TagToken)
+
+        if not token.expression:
+            raise LiquidSyntaxError("missing name", token=token)
 
         tokens = TokenStream(token.expression)
         block_name = parse_string_or_identifier(tokens.next())

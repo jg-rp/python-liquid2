@@ -11,6 +11,7 @@ from liquid2 import OutputToken
 from liquid2 import Tag
 from liquid2 import TokenStream
 from liquid2.builtin import FilteredExpression
+from liquid2.exceptions import LiquidSyntaxError
 from liquid2.stringify import to_liquid_string
 
 if TYPE_CHECKING:
@@ -67,6 +68,10 @@ class Output(Tag):
         """Parse tokens from _stream_ into an AST node."""
         token = stream.current()
         assert isinstance(token, OutputToken)
+
+        if not token.expression:
+            raise LiquidSyntaxError("missing expression", token=token)
+
         return self.node_class(
             token, FilteredExpression.parse(TokenStream(token.expression))
         )

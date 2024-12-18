@@ -13,6 +13,7 @@ from liquid2 import Tag
 from liquid2 import TagToken
 from liquid2 import TokenStream
 from liquid2.builtin import parse_identifier
+from liquid2.exceptions import LiquidSyntaxError
 
 if TYPE_CHECKING:
     from liquid2 import RenderContext
@@ -87,6 +88,9 @@ class CaptureTag(Tag):
         """Parse tokens from _stream_ into an AST node."""
         token = stream.next()
         assert isinstance(token, TagToken)
+
+        if not token.expression:
+            raise LiquidSyntaxError("missing identifier", token=token)
 
         expr_stream = TokenStream(token.expression)
         name = parse_identifier(expr_stream.next())

@@ -89,7 +89,7 @@ class TokenStream:
 
         if token.name != tag_name:
             raise LiquidSyntaxError(
-                f"expected tag '{tag_name}', found {token.name}", token=token
+                f"expected tag {tag_name!r}, found {token.name!r}", token=token
             )
 
     def expect_eos(self) -> None:
@@ -100,9 +100,7 @@ class TokenStream:
                 name = repr(token.value)
             else:
                 name = token.type_.name
-            raise LiquidSyntaxError(
-                f"expected end of expression, found {name}", token=token
-            )
+            raise LiquidSyntaxError(f"unexpected token {name}", token=token)
 
     def is_tag(self, tag_name: str) -> bool:
         """Return _True_ if the current token is a tag named _tag_name_."""
