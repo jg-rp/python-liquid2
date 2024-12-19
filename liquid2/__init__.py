@@ -34,6 +34,7 @@ from .unescape import unescape
 from .environment import Environment
 from .lexer import tokenize
 from .template import Template
+from .builtin import CachingDictLoader
 from .builtin import DictLoader
 from .builtin import ChoiceLoader
 from .builtin import CachingChoiceLoader
@@ -64,13 +65,21 @@ def parse(source: str, globals: Mapping[str, object] | None = None) -> Template:
 
 __all__ = (
     "__version__",
+    "BlockCommentToken",
     "BlockNode",
+    "CachingChoiceLoader",
+    "CachingDictLoader",
+    "CachingFileSystemLoader",
+    "ChoiceLoader",
     "CommentToken",
     "ConditionalBlockNode",
     "ContentToken",
     "DEFAULT_ENVIRONMENT",
     "DictLoader",
     "Environment",
+    "Expression",
+    "FileSystemLoader",
+    "InlineCommentToken",
     "is_comment_token",
     "is_content_token",
     "is_lines_token",
@@ -83,30 +92,23 @@ __all__ = (
     "LinesToken",
     "Node",
     "OutputToken",
+    "PackageLoader",
     "parse",
     "PathT",
     "PathToken",
     "RawToken",
     "RenderContext",
+    "StrictUndefined",
     "Tag",
     "TagToken",
     "Template",
+    "TemplateNotFoundError",
     "Token",
     "tokenize",
     "TokenStream",
     "TokenT",
     "TokenType",
+    "Undefined",
     "unescape",
     "WhitespaceControl",
-    "StrictUndefined",
-    "Undefined",
-    "CachingFileSystemLoader",
-    "FileSystemLoader",
-    "Expression",
-    "TemplateNotFoundError",
-    "ChoiceLoader",
-    "CachingChoiceLoader",
-    "PackageLoader",
-    "BlockCommentToken",
-    "InlineCommentToken",
 )

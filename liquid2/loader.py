@@ -136,5 +136,5 @@ class TemplateSource(NamedTuple):
 
     source: str
     name: str
-    uptodate: UpToDate
+    uptodate: Callable[[], bool] | Callable[[], Awaitable[bool]] | None
     matter: dict[str, object] | None = None

@@ -8,6 +8,8 @@ from liquid2.exceptions import TemplateNotFoundError
 from liquid2.loader import BaseLoader
 from liquid2.loader import TemplateSource
 
+from .mixins import CachingLoaderMixin
+
 if TYPE_CHECKING:
     from liquid2 import Environment
     from liquid2.context import RenderContext
@@ -41,4 +43,21 @@ class DictLoader(BaseLoader):
         return TemplateSource(source, template_name, None)
 
 
-# TODO: caching dict loader
+class CachingDictLoader(CachingLoaderMixin, DictLoader):
+    """A `DictLoader` that caches parsed templates in memory."""
+
+    def __init__(
+        self,
+        templates: dict[str, str],
+        *,
+        auto_reload: bool = True,
+        namespace_key: str = "",
+        capacity: int = 300,
+    ):
+        super().__init__(
+            auto_reload=auto_reload,
+            namespace_key=namespace_key,
+            capacity=capacity,
+        )
+
+        DictLoader.__init__(self, templates)

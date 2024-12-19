@@ -69,11 +69,11 @@ class Content(Tag):
 
         right_trim = self.env.default_trim
 
-        if peeked := stream.peek():  # noqa: SIM102
-            if isinstance(
-                peeked, (TagToken, OutputToken, CommentToken, RawToken, LinesToken)
-            ):
-                right_trim = peeked.wc[0]
+        peeked = stream.peek()
+        if isinstance(
+            peeked, (TagToken, OutputToken, CommentToken, RawToken, LinesToken)
+        ):
+            right_trim = peeked.wc[0]
 
         return self.node_class(
             token,

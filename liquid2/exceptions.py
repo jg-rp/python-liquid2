@@ -178,7 +178,7 @@ class NoSuchFilterFunc(LiquidError):  # noqa: N818
     """Exception raised when a filter lookup fails."""
 
 
-class TemplateNotFoundError(LiquidError):  # noqa: N818
+class TemplateNotFoundError(LiquidError):
     """Exception raised when a template could not be found."""
 
     def __init__(

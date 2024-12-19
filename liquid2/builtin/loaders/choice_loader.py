@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
-from typing import List
 
 from liquid2.exceptions import TemplateNotFoundError
 from liquid2.loader import BaseLoader
@@ -23,7 +22,7 @@ class ChoiceLoader(BaseLoader):
         loaders: A list of loaders implementing `liquid.loaders.BaseLoader`.
     """
 
-    def __init__(self, loaders: List[BaseLoader]):
+    def __init__(self, loaders: list[BaseLoader]):
         super().__init__()
         self.loaders = loaders
 
@@ -79,7 +78,7 @@ class CachingChoiceLoader(CachingLoaderMixin, ChoiceLoader):
 
     def __init__(
         self,
-        loaders: List[BaseLoader],
+        loaders: list[BaseLoader],
         *,
         auto_reload: bool = True,
         namespace_key: str = "",
