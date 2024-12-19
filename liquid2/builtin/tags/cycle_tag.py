@@ -34,6 +34,7 @@ class CycleNode(Node):
         self.name = name
         self.items = tuple(items)
         self.cycle_hash = hash((self.name, self.items))
+        self.blank = False
 
     def __str__(self) -> str:
         assert isinstance(self.token, TagToken)

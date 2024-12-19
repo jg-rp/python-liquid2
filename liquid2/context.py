@@ -134,6 +134,8 @@ class RenderContext:
                 obj = self.get_item(obj, segment)
             except (KeyError, TypeError, IndexError):
                 if default == UNDEFINED:
+                    # TODO: provide a hint for index error
+                    # TODO: hint include path up to fail
                     return self.env.undefined(root, token=token)
                 return default
 

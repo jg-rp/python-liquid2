@@ -28,6 +28,7 @@ class OutputNode(Node):
     def __init__(self, token: TokenT, expression: Expression) -> None:
         super().__init__(token)
         self.expression = expression
+        self.blank = False
 
     def __str__(self) -> str:
         assert isinstance(self.token, OutputToken)

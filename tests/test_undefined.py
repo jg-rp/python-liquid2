@@ -114,77 +114,77 @@ strict_undefined_test_cases: list[Case] = [
     Case(
         description="undefined in output statement",
         template=r"{{ nosuchthing }}",
-        expect="'nosuchthing' is undefined, on line 1",
+        expect="'nosuchthing' is undefined",
     ),
     Case(
         description="undefined in loop expression",
         template=r"{% for tag in nosuchthing %}{tag}{% endfor %}",
-        expect="'nosuchthing' is undefined, on line 1",
+        expect="'nosuchthing' is undefined",
     ),
     Case(
         description="index undefined",
         template=r"{{ nosuchthing[0] }}",
-        expect="'nosuchthing' is undefined, on line 1",
+        expect="'nosuchthing' is undefined",
     ),
     Case(
         description="test undefined for truthy-ness",
         template=r"{% if nosuchthing %}hello{% endif %}",
-        expect="'nosuchthing' is undefined, on line 1",
+        expect="'nosuchthing' is undefined",
     ),
     Case(
         description="compare undefined",
         template=r"{% if nosuchthing == 'hello' %}hello{% endif %}",
-        expect="'nosuchthing' is undefined, on line 1",
+        expect="'nosuchthing' is undefined",
     ),
     Case(
         description="undefined equals undefined",
         template=r"{% if nosuchthing == noway %}hello{% endif %}",
-        expect="'nosuchthing' is undefined, on line 1",
+        expect="'nosuchthing' is undefined",
     ),
     Case(
         description="undefined contains string",
         template=r"{% if nosuchthing contains 'hello' %}hello{% endif %}",
-        expect="'nosuchthing' is undefined, on line 1",
+        expect="'nosuchthing' is undefined",
     ),
     Case(
         description="access `last` from undefined",
         template=r"{{ nosuchthing.last }}",
-        expect="'nosuchthing' is undefined, on line 1",
+        expect="'nosuchthing' is undefined",
     ),
     Case(
         description="access `size` from undefined",
         template=r"{{ nosuchthing.size }}",
-        expect="'nosuchthing' is undefined, on line 1",
+        expect="'nosuchthing' is undefined",
     ),
     Case(
         description="filtered undefined",
         template=r"hello {{ nosuchthing | last }} there",
-        expect="'nosuchthing' is undefined, on line 1",
+        expect="'nosuchthing' is undefined",
     ),
     Case(
         description="undefined filter argument",
         template=r"hello {{ '1,2,3' | split: nosuchthing }} there",
-        expect="'nosuchthing' is undefined, on line 1",
+        expect="'nosuchthing' is undefined",
     ),
     Case(
         description="math filter undefined",
         template=r"hello {{ nosuchthing | abs }} there",
-        expect="'nosuchthing' is undefined, on line 1",
+        expect="'nosuchthing' is undefined",
     ),
     Case(
         description="array index out of range",
         template=r"{% assign a = '1,2,3,4,5' | split: ',' %}{{ a[100] }}",
-        expect="list index out of range: a[100], on line 1",
+        expect="list index out of range: a[100]",
     ),
     Case(
         description="negative array index out of range",
         template=r"{% assign a = '1,2,3,4,5' | split: ',' %}{{ a[-100] }}",
-        expect="list index out of range: a[-100], on line 1",
+        expect="list index out of range: a[-100]",
     ),
     Case(
         description="key error",
         template=r"{{ obj['bar'] }}",
-        expect="key error: 'bar', obj[bar], on line 1",
+        expect="key error: 'bar', obj[bar]",
         context={"obj": {"foo": 1}},
     ),
 ]
@@ -197,7 +197,7 @@ def test_strict_undefined(case: Case) -> None:
     env = Environment(undefined=StrictUndefined)
     template = env.from_string(case.template)
 
-    with pytest.raises(UndefinedError):
+    with pytest.raises(UndefinedError, match=case.expect):
         template.render(**case.context)
 
 

@@ -46,6 +46,7 @@ class ExtendsNode(Node):
     def __init__(self, token: TokenT, name: StringLiteral) -> None:
         super().__init__(token)
         self.name = name
+        self.blank = False
 
     def __str__(self) -> str:
         assert isinstance(self.token, TagToken)
@@ -156,6 +157,7 @@ class BlockNode(Node):
         self.block = block
         self.required = required
         self.end_tag_token = end_tag_token
+        self.blank = False
 
     def __str__(self) -> str:
         assert isinstance(self.token, TagToken)

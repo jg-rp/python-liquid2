@@ -38,6 +38,7 @@ class ContentNode(Node):
         self.text = text
         self.left_trim = left_trim
         self.right_trim = right_trim
+        self.blank = not text or text.isspace()
 
     def __str__(self) -> str:
         return self.text

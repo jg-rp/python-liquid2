@@ -27,6 +27,7 @@ class DecrementNode(Node):
     def __init__(self, token: TokenT, name: Identifier) -> None:
         super().__init__(token)
         self.name = name
+        self.blank = False
 
     def __str__(self) -> str:
         assert isinstance(self.token, TagToken)

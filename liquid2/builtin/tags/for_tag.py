@@ -44,6 +44,7 @@ class ForNode(Node):
         self.block = block
         self.default = default
         self.end_tag_token = end_tag_token
+        self.blank = block.blank and (not default or default.blank)
 
     def __str__(self) -> str:
         assert isinstance(self.token, TagToken)

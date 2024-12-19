@@ -50,6 +50,10 @@ class CaseNode(Node):
         self.leading_whitespace = leading_whitespace
         self.end_tag_token = end_tag_token
 
+        self.blank = all(node.blank for node in self.whens) and (
+            not self.default or self.default.blank
+        )
+
     def __str__(self) -> str:
         assert isinstance(self.token, TagToken)
         default = ""
@@ -244,6 +248,7 @@ class MultiExpressionBlockNode(Node):
         super().__init__(token)
         self.block = block
         self.expression = expression
+        self.blank = self.block.blank
 
     def __str__(self) -> str:
         assert isinstance(self.token, TagToken)

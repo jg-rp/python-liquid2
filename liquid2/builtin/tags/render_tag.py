@@ -57,6 +57,7 @@ class RenderNode(Node):
         self.var = var
         self.alias = alias
         self.args = args or []
+        self.blank = False
 
     def __str__(self) -> str:
         assert isinstance(self.token, TagToken)

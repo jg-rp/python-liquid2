@@ -15,6 +15,7 @@ from liquid2.expression import Expression
 
 from .context import RenderContext
 from .exceptions import DisabledTagError
+from .output import NullIO
 from .token import TagToken
 from .token import is_tag_token
 
@@ -29,11 +30,19 @@ if TYPE_CHECKING:
 class Node(ABC):
     """Base class for all template nodes."""
 
-    __slots__ = ("token",)
+    __slots__ = ("token", "blank")
 
     def __init__(self, token: TokenT) -> None:
         super().__init__()
         self.token = token
+
+        self.blank = True
+        """If True, indicates that the node, when rendered, produces no output text
+        or only whitespace.
+        
+        The output node (`{{ something }}`) and echo tag are exception. Even if they
+        evaluate to an empty or blank string, they are not considered "blank".
+        """
 
     def render(self, context: RenderContext, buffer: TextIO) -> int:
         """Write this node's content to _buffer_."""
@@ -135,18 +144,29 @@ class BlockNode(Node):
     def __init__(self, token: TokenT, nodes: list[Node]) -> None:
         super().__init__(token)
         self.nodes = nodes
+        self.blank = all(node.blank for node in nodes)
 
     def __str__(self) -> str:
         return "".join(str(n) for n in self.nodes)
 
     def render_to_output(self, context: RenderContext, buffer: TextIO) -> int:
         """Render the node to the output buffer."""
+        if self.blank:
+            buf = NullIO()
+            for node in self.nodes:
+                node.render(context, buf)
+            return 0
         return sum(node.render(context, buffer) for node in self.nodes)
 
     async def render_to_output_async(
         self, context: RenderContext, buffer: TextIO
     ) -> int:
         """Render the node to the output buffer."""
+        if self.blank:
+            buf = NullIO()
+            for node in self.nodes:
+                await node.render_async(context, buf)
+            return 0
         return sum([await node.render_async(context, buffer) for node in self.nodes])
 
     def children(
@@ -173,6 +193,7 @@ class ConditionalBlockNode(Node):
         super().__init__(token)
         self.block = block
         self.expression = expression
+        self.blank = block.blank
 
     def __str__(self) -> str:
         assert isinstance(self.token, TagToken)

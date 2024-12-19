@@ -178,8 +178,6 @@ TEST_CASES = [
     ),
 ]
 
-# TODO: test lexer errors
-
 
 @pytest.mark.parametrize("case", TEST_CASES, ids=operator.attrgetter("name"))
 def test_lexer(case: Case) -> None:

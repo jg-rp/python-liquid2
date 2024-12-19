@@ -42,6 +42,12 @@ class IfNode(Node):
         self.default = default
         self.end_tag_token = end_tag_token
 
+        self.blank = (
+            consequence.blank
+            and all(node.blank for node in alternatives)
+            and (not default or default.blank)
+        )
+
     def __str__(self) -> str:
         assert isinstance(self.token, TagToken)
         alts = "".join(str(alt) for alt in self.alternatives)

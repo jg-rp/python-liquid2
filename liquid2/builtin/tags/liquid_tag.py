@@ -29,6 +29,7 @@ class LiquidNode(Node):
     ) -> None:
         super().__init__(token)
         self.block = block
+        self.blank = block.blank
 
     def __str__(self) -> str:
         assert isinstance(self.token, LinesToken)

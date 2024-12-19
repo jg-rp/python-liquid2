@@ -11,6 +11,7 @@ from typing import Mapping
 from typing import TextIO
 
 from .context import RenderContext
+from .exceptions import LiquidError
 from .exceptions import LiquidInterrupt
 from .exceptions import LiquidSyntaxError
 from .exceptions import StopRender
@@ -109,8 +110,14 @@ class Template:
                 except LiquidInterrupt as err:
                     if not partial or block_scope:
                         raise LiquidSyntaxError(
-                            f"unexpected '{err}'", token=node.token
+                            f"unexpected '{err}'",
+                            token=node.token,
+                            template_name=self.full_name(),
                         ) from err
+                    raise
+                except LiquidError as err:
+                    if not err.template_name:
+                        err.template_name = self.full_name()
                     raise
 
         return character_count
@@ -137,8 +144,14 @@ class Template:
                 except LiquidInterrupt as err:
                     if not partial or block_scope:
                         raise LiquidSyntaxError(
-                            f"unexpected '{err}'", token=node.token
+                            f"unexpected '{err}'",
+                            token=node.token,
+                            template_name=self.full_name(),
                         ) from err
+                    raise
+                except LiquidError as err:
+                    if not err.template_name:
+                        err.template_name = self.full_name()
                     raise
 
         return character_count
