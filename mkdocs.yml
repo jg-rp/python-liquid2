@@ -1,7 +1,63 @@
 site_name: Python Liquid2
+site_description: Liquid templates for Python.
 site_url: https://jg-rp.github.io/python-liquid2/
+
 theme:
   name: material
   palette:
     primary: black
-    
+  features:
+    - navigation.tabs
+    - content.code.copy
+
+repo_name: jg-rp/python-liquid2
+repo_url: https://github.com/jg-rp/python-liquid2
+edit_uri: ""
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            show_source: false
+            show_signature_annotations: true
+            show_root_heading: true
+            separate_signature: true
+            docstring_section_style: "spacy"
+  - autorefs
+
+nav:
+  - Home: 
+    - Introduction: "index.md"
+    - Install: "install.md"
+    - Quick start: "quick_start.md"
+    - Liquid Syntax: "syntax.md"
+    - Migration guide: "migration.md"
+  - User guide:
+    - Rendering templates: "rendering_templates.md"
+    - Loading templates: "loading_templates.md"
+    - Render context data: "render_context.md"
+    - Variables and drops: "variables_and_drops.md"
+    - Whitespace control: "whitespace_control.md"
+    - HTML auto escape: "auto_escape.md"
+    - Resource limits: "resource_limits.md"
+    - Internationalization and localization: "babel.md"
+    - Async support: "async_support.md"
+    - Static template analysis: "static_analysis.md"
+    - Liquid exceptions: "exceptions.md"
+    - Custom filters: "custom_filters.md"
+    - Custom tags: "custom_tags.md"
+    - Custom template loaders: "custom_loaders.md"
+  - Tag reference: "tag_reference.md"
+  - Filter reference: "filter_reference.md"
+  - API reference:
+    - Environment: "api/environment.md"
+    - Template: "api/template.md"
+    - Loaders: "api/loaders.md"
+    - Exceptions: "api/exceptions.md"
+    - AST: "api/ast.md"
+    - Filters: "api/filter.md"
+    - Tags: "api/tag.md"
+

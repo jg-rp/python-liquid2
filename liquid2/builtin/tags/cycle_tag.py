@@ -84,7 +84,7 @@ class CycleTag(Tag):
 
         expr_stream = TokenStream(token.expression)
 
-        # Does this cycle tag define a name followed by a colon, before listing
+        # Does this cycle tag define a name followed by a colon before listing
         # items to cycle through?
         if expr_stream.peek().type_ == TokenType.COLON:
             name: str | None = parse_string_or_identifier(expr_stream.next())

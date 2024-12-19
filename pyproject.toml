@@ -53,6 +53,8 @@ dependencies = [
   "types-jsonschema",
   "types-python-dateutil",
   "mkdocs-material",
+  "mkdocs-autorefs",
+  "mkdocstrings[python]",
 ]
 python = "3.12"
 
