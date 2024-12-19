@@ -39,7 +39,7 @@ def test_int_arg_sting_value_error() -> None:
 
 
 def test_int_arg_sting_value_error_with_default() -> None:
-    assert int_arg("foo", default=42) == 42  # noqa: PLR2004
+    assert int_arg("foo", default=42) == 42
 
 
 # TODO: more tests following implicit conversion rules

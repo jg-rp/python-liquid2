@@ -629,10 +629,6 @@ class Filter:
         func = context.filter(self.name, token=self.token)
         positional_args, keyword_args = await self.evaluate_args_async(context)
 
-        if hasattr(func, "filter_async"):
-            # TODO:
-            raise NotImplementedError(":(")
-
         try:
             return func(left, *positional_args, **keyword_args)
         except TypeError as err:
@@ -684,7 +680,7 @@ class Filter:
         while stream.current().type_ in delim:
             stream.next()
             stream.expect(TokenType.WORD)
-            filter_token = cast(Token, stream.next())  # TODO:
+            filter_token = cast(Token, stream.next())
             filter_name = filter_token.value
             filter_arguments: list[KeywordArgument | PositionalArgument] = []
 
@@ -727,7 +723,7 @@ class Filter:
                             PositionalArgument(parse_primitive(stream.current()))
                         )
                     elif token.type_ == TokenType.COMMA:
-                        # XXX: leading, trailing and duplicate commas are OK
+                        # Leading, trailing and duplicate commas are OK
                         pass
                     else:
                         break
@@ -1568,16 +1564,41 @@ def parse_identifier(token: TokenT) -> Identifier:
 
 def parse_string_or_identifier(token: TokenT) -> Identifier:
     """Parse _token_ as an identifier or a string literal."""
-    if (
-        is_token_type(token, TokenType.WORD)
-        or is_token_type(token, TokenType.SINGLE_QUOTE_STRING)
-        or is_token_type(token, TokenType.DOUBLE_QUOTE_STRING)
-    ):
-        # TODO: unescape
+    if is_token_type(token, TokenType.DOUBLE_QUOTE_STRING):
+        return Identifier(unescape(token.value, token=token), token=token)
+
+    if is_token_type(token, TokenType.SINGLE_QUOTE_STRING):
+        return Identifier(
+            unescape(token.value.replace("\\'", "'"), token=token), token=token
+        )
+
+    if is_token_type(token, TokenType.WORD):
         return Identifier(token.value, token=token)
 
     raise LiquidSyntaxError(
         f"expected an identifier, found {token.type_.name}",
+        token=token,
+    )
+
+
+def parse_string_or_path(token: TokenT) -> StringLiteral | Path:
+    """Parse _token_ as a string literal or a path."""
+    if is_token_type(token, TokenType.WORD):
+        return Path(token, [token.value])
+
+    if is_token_type(token, TokenType.DOUBLE_QUOTE_STRING):
+        return StringLiteral(token, unescape(token.value, token=token))
+
+    if is_token_type(token, TokenType.SINGLE_QUOTE_STRING):
+        return StringLiteral(
+            token, unescape(token.value.replace("\\'", "'"), token=token)
+        )
+
+    if is_path_token(token):
+        return Path(token, token.path)
+
+    raise LiquidSyntaxError(
+        f"expected a string or path, found {token.type_.name}",
         token=token,
     )
 

@@ -37,6 +37,7 @@ from .expressions import parse_identifier
 from .expressions import parse_keyword_arguments
 from .expressions import parse_primitive
 from .expressions import parse_string_or_identifier
+from .expressions import parse_string_or_path
 from .filters.array import compact
 from .filters.array import concat
 from .filters.array import first
@@ -199,6 +200,7 @@ __all__ = (
     "times",
     "TrueLiteral",
     "UnlessTag",
+    "parse_string_or_path",
 )
 
 

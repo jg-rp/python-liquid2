@@ -11,7 +11,6 @@ from contextlib import contextmanager
 from functools import partial
 from functools import reduce
 from io import StringIO
-from itertools import cycle
 from operator import mul
 from typing import TYPE_CHECKING
 from typing import Any
@@ -441,12 +440,10 @@ class RenderContext:
 
     def cycle(self, cycle_hash: int, length: int) -> int:
         """Return the index of the next item in the named cycle."""
-        namespace = self.tag_namespace["cycles"]
-        if cycle_hash not in namespace:
-            namespace[cycle_hash] = cycle(
-                range(length)
-            )  # TODO: benchmark without cycle
-        return next(namespace[cycle_hash])  # type: ignore
+        namespace: dict[int, int] = self.tag_namespace["cycles"]
+        idx = namespace.setdefault(cycle_hash, 0)
+        namespace[cycle_hash] += 1
+        return idx % length
 
     def increment(self, name: str) -> int:
         """Increment the named counter and return its value."""

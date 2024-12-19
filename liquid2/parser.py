@@ -67,7 +67,6 @@ class Parser:
                 try:
                     nodes.append(tags[token.name].parse(stream))
                 except KeyError as err:
-                    # TODO: change error message if name is "liquid"
                     raise LiquidSyntaxError(
                         f"unexpected tag '{token.name}'", token=stream.current()
                     ) from err
@@ -125,7 +124,6 @@ class Parser:
                 try:
                     nodes.append(tags[token.name].parse(stream))
                 except KeyError as err:
-                    # TODO: change error message if name is "liquid"
                     raise LiquidSyntaxError(
                         f"unexpected tag '{token.name}'", token=stream.current()
                     ) from err
@@ -143,10 +141,3 @@ class Parser:
             stream.next()
 
         return nodes
-
-
-def skip_block(stream: TokenStream, end: Container[str]) -> None:
-    """Advance the stream until we find a tag with a name in _end_."""
-    while not stream.is_one_of(end):
-        # TODO: eoi
-        stream.next()

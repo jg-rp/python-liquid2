@@ -20,6 +20,7 @@ from liquid2.builtin import Literal
 from liquid2.builtin import parse_keyword_arguments
 from liquid2.builtin import parse_primitive
 from liquid2.builtin import parse_string_or_identifier
+from liquid2.builtin import parse_string_or_path
 from liquid2.exceptions import LiquidSyntaxError
 from liquid2.exceptions import TemplateNotFoundError
 
@@ -231,9 +232,8 @@ class IncludeTag(Tag):
         tokens = TokenStream(token.expression)
 
         # The name of the template to include. Could be a string literal or a
-        # query that resolves to a string.
-        name = parse_primitive(tokens.next())
-        # TODO: raise if not Query or StringLiteral
+        # path that resolves to a string.
+        name = parse_string_or_path(tokens.next())
 
         loop = False
         var: Expression | None = None

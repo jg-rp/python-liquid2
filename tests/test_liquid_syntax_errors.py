@@ -188,6 +188,11 @@ test_cases = [
         expect_msg="missing bracket detected",
     ),
     Case(
+        description="include, target not a path or string",
+        template="{% include 42 with product['some-tags'] as foo.bar %}",
+        expect_msg="expected a string or path, found INT",
+    ),
+    Case(
         description="include, multi-segmented alias",
         template="{% include 'feature.liquid' with product['some-tags'] as foo.bar %}",
         expect_msg="expected an identifier, found PATH",
