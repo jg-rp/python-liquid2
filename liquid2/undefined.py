@@ -16,7 +16,6 @@ from typing import TypeGuard
 from .exceptions import UndefinedError
 
 if TYPE_CHECKING:
-    from .builtin.expressions import Path
     from .token import TokenT
 
 UNDEFINED = object()
@@ -32,7 +31,7 @@ class Undefined(Mapping[Any, object]):
 
     def __init__(
         self,
-        path: Path | str,
+        path: str,
         *,
         token: TokenT | None,
         obj: object = UNDEFINED,
@@ -122,7 +121,7 @@ class StrictUndefined(Undefined):
 
     def __init__(
         self,
-        path: Path | str,
+        path: str,
         *,
         token: TokenT | None,
         obj: object = UNDEFINED,

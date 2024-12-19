@@ -151,7 +151,7 @@ class BlockNode(Node):
 
     def render_to_output(self, context: RenderContext, buffer: TextIO) -> int:
         """Render the node to the output buffer."""
-        if self.blank:
+        if context.env.suppress_blank_control_flow_blocks and self.blank:
             buf = NullIO()
             for node in self.nodes:
                 node.render(context, buf)
@@ -162,7 +162,7 @@ class BlockNode(Node):
         self, context: RenderContext, buffer: TextIO
     ) -> int:
         """Render the node to the output buffer."""
-        if self.blank:
+        if context.env.suppress_blank_control_flow_blocks and self.blank:
             buf = NullIO()
             for node in self.nodes:
                 await node.render_async(context, buf)

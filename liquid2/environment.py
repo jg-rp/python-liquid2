@@ -45,6 +45,10 @@ class Environment:
     """Maximum number of bytes that can be written to a template's output stream before
     raising an `OutputStreamLimitError`."""
 
+    suppress_blank_control_flow_blocks: bool = True
+    """If True (the default), indicates that blocks rendering to whitespace only will
+    not be output."""
+
     template_class = Template
 
     def __init__(

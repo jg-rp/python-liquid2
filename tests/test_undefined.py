@@ -1,5 +1,6 @@
 """Test cases for built in _undefined_ types."""
 
+import asyncio
 import operator
 from dataclasses import dataclass
 from dataclasses import field
@@ -8,6 +9,7 @@ import pytest
 
 from liquid2 import Environment
 from liquid2 import StrictUndefined
+from liquid2 import parse
 from liquid2.exceptions import UndefinedError
 
 
@@ -99,16 +101,28 @@ default_undefined_test_cases: list[Case] = [
     ),
 ]
 
+env = Environment()
+
 
 @pytest.mark.parametrize(
     "case", default_undefined_test_cases, ids=operator.attrgetter("description")
 )
 def test_default_undefined(case: Case) -> None:
-    env = Environment()
-    assert env.from_string(case.template).render(**case.context) == case.expect
+    template = parse(case.template)
+    assert template.render(**case.context) == case.expect
 
 
-# TODO: update and test error messages
+@pytest.mark.parametrize(
+    "case", default_undefined_test_cases, ids=operator.attrgetter("description")
+)
+def test_default_undefined_async(case: Case) -> None:
+    template = parse(case.template)
+
+    async def coro() -> str:
+        return await template.render_async(**case.context)
+
+    assert asyncio.run(coro()) == case.expect
+
 
 strict_undefined_test_cases: list[Case] = [
     Case(
@@ -174,17 +188,17 @@ strict_undefined_test_cases: list[Case] = [
     Case(
         description="array index out of range",
         template=r"{% assign a = '1,2,3,4,5' | split: ',' %}{{ a[100] }}",
-        expect="list index out of range: a[100]",
+        expect="index out of range",
     ),
     Case(
         description="negative array index out of range",
         template=r"{% assign a = '1,2,3,4,5' | split: ',' %}{{ a[-100] }}",
-        expect="list index out of range: a[-100]",
+        expect="index out of range",
     ),
     Case(
         description="key error",
         template=r"{{ obj['bar'] }}",
-        expect="key error: 'bar', obj[bar]",
+        expect="obj.bar is undefined",
         context={"obj": {"foo": 1}},
     ),
 ]
@@ -199,6 +213,20 @@ def test_strict_undefined(case: Case) -> None:
 
     with pytest.raises(UndefinedError, match=case.expect):
         template.render(**case.context)
+
+
+@pytest.mark.parametrize(
+    "case", strict_undefined_test_cases, ids=operator.attrgetter("description")
+)
+def test_strict_undefined_async(case: Case) -> None:
+    env = Environment(undefined=StrictUndefined)
+    template = env.from_string(case.template)
+
+    async def coro() -> None:
+        await template.render_async(**case.context)
+
+    with pytest.raises(UndefinedError, match=case.expect):
+        asyncio.run(coro())
 
 
 def test_strict_undefined_with_default() -> None:

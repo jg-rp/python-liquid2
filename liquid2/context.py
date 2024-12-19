@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import datetime
 import itertools
+import re
 import sys
 from collections import defaultdict
 from contextlib import contextmanager
@@ -14,7 +15,6 @@ from itertools import cycle
 from operator import mul
 from typing import TYPE_CHECKING
 from typing import Any
-from typing import AsyncIterator
 from typing import Callable
 from typing import Iterator
 from typing import Mapping
@@ -113,58 +113,72 @@ class RenderContext:
 
     def get(
         self,
-        path: Iterator[object],
+        path: list[object],
         *,
-        token: TokenT,
+        token: TokenT | None,
         default: object = UNDEFINED,
     ) -> object:
         """Resolve the variable _path_ in the current namespace."""
-        root = next(path)
+        it = iter(path)
+        root = next(it)
         assert isinstance(root, str)
 
         try:
             obj = self.scope[root]
         except (KeyError, TypeError, IndexError):
             if default == UNDEFINED:
-                return self.env.undefined(root, token=token)
+                hint = f"{root!r} is undefined"
+                return self.env.undefined(root, hint=hint, token=token)
             return default
 
-        for segment in path:
+        for i, segment in enumerate(it):
             try:
                 obj = self.get_item(obj, segment)
-            except (KeyError, TypeError, IndexError):
+            except (KeyError, TypeError):
                 if default == UNDEFINED:
-                    # TODO: provide a hint for index error
-                    # TODO: hint include path up to fail
-                    return self.env.undefined(root, token=token)
+                    hint = f"{_segments_str(path[: i + 2])} is undefined"
+                    return self.env.undefined(root, hint=hint, token=token)
+                return default
+            except IndexError:
+                if default == UNDEFINED:
+                    hint = "index out of range"
+                    return self.env.undefined(root, hint=hint, token=token)
                 return default
 
         return obj
 
     async def get_async(
         self,
-        path: AsyncIterator[object],
+        path: list[object],
         *,
         token: TokenT,
         default: object = UNDEFINED,
     ) -> object:
-        """An async version of `get`."""
-        root = await anext(path)
+        """Asynchronously resolve the variable _path_ in the current namespace."""
+        it = iter(path)
+        root = next(it)
         assert isinstance(root, str)
 
         try:
             obj = self.scope[root]
         except (KeyError, TypeError, IndexError):
             if default == UNDEFINED:
-                return self.env.undefined(root, token=token)
+                hint = f"{root!r} is undefined"
+                return self.env.undefined(root, hint=hint, token=token)
             return default
 
-        async for segment in path:
+        for i, segment in enumerate(it):
             try:
                 obj = await self.get_item_async(obj, segment)
-            except (KeyError, TypeError, IndexError):
+            except (KeyError, TypeError):
                 if default == UNDEFINED:
-                    return self.env.undefined(root, token=token)
+                    hint = f"{_segments_str(path[: i + 2])} is undefined"
+                    return self.env.undefined(root, hint=hint, token=token)
+                return default
+            except IndexError:
+                if default == UNDEFINED:
+                    hint = "index out of range"
+                    return self.env.undefined(root, hint=hint, token=token)
                 return default
 
         return obj
@@ -468,3 +482,18 @@ class BuiltIn(Mapping[str, object]):
 
 
 builtin = BuiltIn()
+
+
+RE_PROPERTY = re.compile(r"[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*")
+
+
+def _segments_str(segments: list[object]) -> str:
+    it = iter(segments)
+    buf = [str(next(it))]
+    for segment in it:
+        if isinstance(segment, str):
+            if RE_PROPERTY.fullmatch(segment):
+                buf.append(f".{segment}")
+            else:
+                buf.append(f"[{segment!r}]")
+    return "".join(buf)
