@@ -5,8 +5,8 @@ Liquid templates for Python, with some extra features.
 </p>
 
 > [!WARNING]
-> This project is not yet officially released. Please consider this repository and its [documentation](https://jg-rp.github.io/python-liquid2/) a preview.
-> You can also preview the [migration quide](https://jg-rp.github.io/python-liquid2/migration/).
+> This is a preview. Some features and the [documentation](https://jg-rp.github.io/python-liquid2/) are incomplete.
+> You can preview the draft migration guide [here](https://jg-rp.github.io/python-liquid2/migration/).
 
 ---
 
