@@ -38,9 +38,9 @@ poetry add python-liquid2
 
 ## Links
 
-- Documentation: [TODO](https://jg-rp.github.io/python-liquid2/)
+- Documentation: https://jg-rp.github.io/python-liquid2/
 - Change Log: https://github.com/jg-rp/python-liquid2/blob/main/CHANGES.md
-- PyPi: [TODO](https://pypi.org/project/python-liquid2/)
+- PyPi: https://pypi.org/project/python-liquid2/
 - Source Code: https://github.com/jg-rp/python-liquid2
 - Issue Tracker: https://github.com/jg-rp/python-liquid2/issues
 
