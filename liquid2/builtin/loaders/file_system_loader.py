@@ -79,6 +79,7 @@ class FileSystemLoader(BaseLoader):
         context: RenderContext | None = None,  # noqa: ARG002
         **kwargs: object,  # noqa: ARG002
     ) -> TemplateSource:
+        """Get source information for a template."""
         source_path = self.resolve_path(template_name)
         source, mtime = self._read(source_path)
         return TemplateSource(
@@ -105,6 +106,7 @@ class FileSystemLoader(BaseLoader):
         context: RenderContext | None = None,  # noqa: ARG002
         **kwargs: object,  # noqa: ARG002
     ) -> TemplateSource:
+        """Get source information for a template."""
         loop = asyncio.get_running_loop()
         source_path = await loop.run_in_executor(None, self.resolve_path, template_name)
         source, mtime = await loop.run_in_executor(None, self._read, source_path)

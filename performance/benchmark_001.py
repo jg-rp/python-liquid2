@@ -1,4 +1,3 @@
-import sys
 import timeit
 from pathlib import Path
 
