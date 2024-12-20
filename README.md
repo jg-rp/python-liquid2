@@ -1,8 +1,11 @@
-<h1 align="center">Python Liquid2</h1>
+<h1 align="center">Python Liquid2 (unreleased)</h1>
 
 <p align="center">
 Liquid templates for Python, with some extra features.
 </p>
+
+> [!WARNING]
+> This project is not yet officially released. Please consider this repository and its [documentation](https://jg-rp.github.io/python-liquid2/) a preview.
 
 ---
 
@@ -11,7 +14,6 @@ Liquid templates for Python, with some extra features.
 - [Install](#install)
 - [Links](#links)
 - [Quick start](#quick-start)
-- [Related Projects](#related-projects)
 
 ## Install
 
@@ -35,9 +37,9 @@ poetry add python-liquid2
 
 ## Links
 
-- Documentation: TODO
+- Documentation: [TODO](https://jg-rp.github.io/python-liquid2/)
 - Change Log: https://github.com/jg-rp/python-liquid2/blob/main/CHANGES.md
-- PyPi: TODO
+- PyPi: [TODO](https://pypi.org/project/python-liquid2/)
 - Source Code: https://github.com/jg-rp/python-liquid2
 - Issue Tracker: https://github.com/jg-rp/python-liquid2/issues
 
