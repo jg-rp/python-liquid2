@@ -31,9 +31,9 @@ plugins:
 nav:
   - Home: 
     - Introduction: "index.md"
-    - Install: "install.md"
     - Quick start: "quick_start.md"
     - Liquid Syntax: "syntax.md"
+    - Terminology: "terminology.md" 
     - Migration guide: "migration.md"
   - User guide:
     - Rendering templates: "rendering_templates.md"
@@ -41,6 +41,7 @@ nav:
     - Render context data: "render_context.md"
     - Variables and drops: "variables_and_drops.md"
     - Whitespace control: "whitespace_control.md"
+    - Template inheritance: "template_inheritance.md"
     - HTML auto escape: "auto_escape.md"
     - Resource limits: "resource_limits.md"
     - Internationalization and localization: "babel.md"
@@ -61,3 +62,15 @@ nav:
     - Filters: "api/filter.md"
     - Tags: "api/tag.md"
 
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+
+watch:
+  - liquid2
