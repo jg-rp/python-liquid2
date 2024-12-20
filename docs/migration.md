@@ -1,6 +1,6 @@
 # Migration guide
 
-When compared to [Python Liquid version 1](https://github.com/jg-rp/liquid), Liquid2 changes both the Python API **and** Liquid syntax and features. Liquid2's default syntax and semantics is backwards compatible with version 1 and Shopify/Liquid, mostly.
+When compared to [Python Liquid version 1](https://github.com/jg-rp/liquid), Liquid2 changes both the Python API **and** Liquid syntax and features. Liquid2's default syntax and semantics are backwards compatible with version 1 and Shopify/Liquid, mostly.
 
 ## Approach to compatibility and stability
 
@@ -20,12 +20,21 @@ Behavioral stability is essential when application users are responsible for mai
 
 Whether shopify/Liquid compatibility is important to you or not, if you’re developing a multi-tenant application where users are responsible for maintaining templates, you should seriously consider building in an opt-in upgrade path for template authors to TODO: …
 
-## Additional built-in features
+## New features
 
+The following features are new or are now built-in where they weren't before.
+
+- More whitespace control. Along with a `default_trim` configuration option, tags and the output statement now support `+`, `-` and `~` for controlling whitespace in templates. By default, `~` will remove newlines but retain space and tab characters.
+- Logical expressions now support negation with the `not` operator and grouping terms with parentheses by default.
+- Ternary expressions are now available by default. For example, `{{ a if b else c }}` or `{{ a | upcase if b == 'foo' else c || split }}`.
+- Inline comments surrounded by `{#` and `#}` are enabled by default. Additional `#`’s can be added to comment out blocks of markup that already contain comments, as long as the number of hashes match.
+- String literals are allowed to contain markup delimiters (`{{`, `}}`, `{%`, `%}`, `{#` and `#}`) and support c-like escape sequence to allow for including quote characters.
+- Filter and tag named arguments can be separated by a `:` or `=`.
 - Template inheritance is now built-in. Previously `{% extends %}` and `{% block %}` tags were available from a separate package.
 - Internationalization and localization tags and filters are now built-in. Previously these were in a separate package.
 - Templates are now serializable. Use `str(template)` or `pickle.dump(template)`.
-- Improved error messages and Exception context info
+- Error messages have been improved and exceptions include line and column numbers.
+- A new test suite is included if you'd like to implement Liquid2 in another language.
 
 ## Features that have been removed
 
@@ -34,14 +43,6 @@ These features are not yet included in Python Liquid2, but can be if there is a 
 - Async filters have not been implemented.
 - Contextual template analysis has not been implemented.
 - Template tag analysis (analyzing tokens instead of a syntax tree) has not been implemented.
-
-## Package dependencies
-
-The following packages are dependencies of Python Liquid2.
-
-- Markupsafe>=2
-- Babel>=2
-- python-dateutil
 
 ## API changes
 
@@ -65,29 +66,16 @@ For now I recommend familiarizing yourself with the different `Token` classes ge
 
 As always, open an [issue](https://github.com/jg-rp/python-liquid2/issues) or start a discussion if you need any help with migration.
 
-### Custom filter API changes
-
-TODO
-
-### Custom tag API changes
-
-TODO
-
-### Custom loader API changes
-
-TODO
-
-## Liquid syntax changes
-
-- Comments..
-- WC
-
-### Behavioral Changes
-
-TODO
-
 ## Performance
 
 TODO:
 
 - Benchmarks show Python Liquid2 to be more JIT friendly
+
+## Package dependencies
+
+The following packages are dependencies of Python Liquid2.
+
+- Markupsafe>=2
+- Babel>=2
+- python-dateutil
