@@ -17,7 +17,7 @@ def test_load_template() -> None:
     template = env.get_template("main.html")
     assert isinstance(template, Template)
     assert template.name == "main.html"
-    assert str(template.path) == "tests/fixtures/001/main.html"
+    assert str(template.path).replace("\\", "/") == "tests/fixtures/001/main.html"
 
 
 def test_load_template_async() -> None:
@@ -29,7 +29,7 @@ def test_load_template_async() -> None:
     template = asyncio.run(coro())
     assert isinstance(template, Template)
     assert template.name == "main.html"
-    assert str(template.path) == "tests/fixtures/001/main.html"
+    assert str(template.path).replace("\\", "/") == "tests/fixtures/001/main.html"
 
 
 def test_template_not_found() -> None:
@@ -67,12 +67,15 @@ def test_list_of_search_paths() -> None:
     template = env.get_template("main.html")
     assert isinstance(template, Template)
     assert template.name == "main.html"
-    assert str(template.path) == "tests/fixtures/001/main.html"
+    assert str(template.path).replace("\\", "/") == "tests/fixtures/001/main.html"
 
     template = env.get_template("featured_content.html")
     assert isinstance(template, Template)
     assert template.name == "featured_content.html"
-    assert str(template.path) == "tests/fixtures/001/snippets/featured_content.html"
+    assert (
+        str(template.path).replace("\\", "/")
+        == "tests/fixtures/001/snippets/featured_content.html"
+    )
 
 
 def test_default_file_extension() -> None:
@@ -80,7 +83,7 @@ def test_default_file_extension() -> None:
     template = env.get_template("main.html")
     assert isinstance(template, Template)
     assert template.name == "main.html"
-    assert str(template.path) == "tests/fixtures/001/main.html"
+    assert str(template.path).replace("\\", "/") == "tests/fixtures/001/main.html"
 
     with pytest.raises(TemplateNotFoundError):
         env.get_template("main")
@@ -91,12 +94,12 @@ def test_set_default_file_extension() -> None:
     template = env.get_template("main.html")
     assert isinstance(template, Template)
     assert template.name == "main.html"
-    assert str(template.path) == "tests/fixtures/001/main.html"
+    assert str(template.path).replace("\\", "/") == "tests/fixtures/001/main.html"
 
     template = env.get_template("main")
     assert isinstance(template, Template)
     assert template.name == "main.html"
-    assert str(template.path) == "tests/fixtures/001/main.html"
+    assert str(template.path).replace("\\", "/") == "tests/fixtures/001/main.html"
 
 
 def test_stay_in_search_path() -> None:
@@ -110,7 +113,7 @@ def test_dont_cache_templates() -> None:
     template = env.get_template("main.html")
     assert isinstance(template, Template)
     assert template.name == "main.html"
-    assert str(template.path) == "tests/fixtures/001/main.html"
+    assert str(template.path).replace("\\", "/") == "tests/fixtures/001/main.html"
     assert template.is_up_to_date() is True
 
     another_template = env.get_template("main.html")
@@ -122,7 +125,7 @@ def test_cache_templates() -> None:
     template = env.get_template("main.html")
     assert isinstance(template, Template)
     assert template.name == "main.html"
-    assert str(template.path) == "tests/fixtures/001/main.html"
+    assert str(template.path).replace("\\", "/") == "tests/fixtures/001/main.html"
     assert template.is_up_to_date() is True
 
     another_template = env.get_template("main.html")
