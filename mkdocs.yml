@@ -36,6 +36,7 @@ nav:
     - Terminology: "terminology.md" 
     - Migration guide: "migration.md"
   - User guide:
+    - Liquid environments: "environment.md"
     - Rendering templates: "rendering_templates.md"
     - Loading templates: "loading_templates.md"
     - Render context data: "render_context.md"
@@ -54,6 +55,7 @@ nav:
   - Tag reference: "tag_reference.md"
   - Filter reference: "filter_reference.md"
   - API reference:
+    - Convenience functions: "api/convenience.md"
     - Environment: "api/environment.md"
     - Template: "api/template.md"
     - Loaders: "api/loaders.md"

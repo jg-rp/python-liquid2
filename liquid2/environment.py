@@ -140,13 +140,18 @@ class Environment:
         Raises:
             TemplateNotFound: If a template with the given name can not be found.
         """
-        return self.loader.load(
-            env=self,
-            name=name,
-            globals=self.make_globals(globals),
-            context=context,
-            **kwargs,
-        )
+        try:
+            return self.loader.load(
+                env=self,
+                name=name,
+                globals=self.make_globals(globals),
+                context=context,
+                **kwargs,
+            )
+        except LiquidError as err:
+            if not err.template_name:
+                err.template_name = name
+            raise
 
     async def get_template_async(
         self,
@@ -157,13 +162,18 @@ class Environment:
         **kwargs: object,
     ) -> Template:
         """An async version of `get_template()`."""
-        return await self.loader.load_async(
-            env=self,
-            name=name,
-            globals=self.make_globals(globals),
-            context=context,
-            **kwargs,
-        )
+        try:
+            return await self.loader.load_async(
+                env=self,
+                name=name,
+                globals=self.make_globals(globals),
+                context=context,
+                **kwargs,
+            )
+        except LiquidError as err:
+            if not err.template_name:
+                err.template_name = name
+            raise
 
     def make_globals(
         self,

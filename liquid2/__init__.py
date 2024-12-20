@@ -1,3 +1,4 @@
+from typing import Any
 from typing import Mapping
 
 from .token import BlockCommentToken
@@ -61,6 +62,41 @@ def parse(source: str, globals: Mapping[str, object] | None = None) -> Template:
         A new template bound to the default environment.
     """
     return DEFAULT_ENVIRONMENT.from_string(source, globals=globals)
+
+
+def render(source: str, *args: Any, **kwargs: Any) -> str:
+    """Parse and render _source_ as a Liquid template using the default environment.
+
+    Additional arguments are passed to `dict()` and will be available as template
+    variables.
+
+    Args:
+        source: Liquid template source code.
+        *args: dict-like arguments added to the template render context.
+        **kwargs: dict-like arguments added to the template render context.
+
+    Return:
+        The result of rendering _source_ as a Liquid template.
+    """
+    return DEFAULT_ENVIRONMENT.from_string(source).render(*args, **kwargs)
+
+
+async def render_async(source: str, *args: Any, **kwargs: Any) -> str:
+    """Parse and render _source_ as a Liquid template using the default environment.
+
+    Additional arguments are passed to `dict()` and will be available as template
+    variables.
+
+    Args:
+        source: Liquid template source code.
+        *args: dict-like arguments added to the template render context.
+        **kwargs: dict-like arguments added to the template render context.
+
+    Return:
+        The result of rendering _source_ as a Liquid template.
+    """
+    template = DEFAULT_ENVIRONMENT.from_string(source)
+    return await template.render_async(*args, **kwargs)
 
 
 __all__ = (
