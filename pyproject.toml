@@ -24,7 +24,7 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 
-dependencies = ["Markupsafe>=2", "python-dateutil", "Babel>=2"]
+dependencies = ["Markupsafe>=2", "python-dateutil", "Babel>=2", "pytz"]
 
 [project.urls]
 Documentation = "https://jg-rp.github.io/python-liquid2/"
@@ -55,6 +55,9 @@ dependencies = [
   "mkdocs-material",
   "mkdocs-autorefs",
   "mkdocstrings[python]",
+  "types-pytz",
+  "types-babel",
+  "types-python-dateutil",
 ]
 python = "3.12"
 
