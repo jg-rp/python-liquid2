@@ -288,10 +288,12 @@ def extract_from_template(
 
         for child in node.children(ctx, include_partials=False):
             for expr in child.expressions():
-                yield from visit_expression(expr, lineno)
+                yield from visit_expression(expr, line_number(expr.token))  # XXX:
             yield from visit(child)
 
     for node in template.nodes:
+        for expr in node.expressions():
+            yield from visit_expression(expr, line_number(expr.token))  # XXX:
         yield from visit(node)
 
 

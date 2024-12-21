@@ -27,12 +27,12 @@ from liquid2.builtin import parse_keyword_arguments
 from liquid2.builtin.content import ContentNode
 from liquid2.builtin.output import OutputNode
 from liquid2.exceptions import TranslationSyntaxError
+from liquid2.limits import to_int
 from liquid2.messages import MESSAGES
 from liquid2.messages import MessageText
 from liquid2.messages import TranslatableTag
 from liquid2.messages import Translations
 from liquid2.messages import line_number
-from liquid2.limits import to_int
 from liquid2.stringify import to_liquid_string
 
 if TYPE_CHECKING:
@@ -222,8 +222,8 @@ class TranslateNode(Node, TranslatableTag):
 
         message_context = self.args.get(self.message_context_var)
 
-        if message_context and self.plural:
-            if isinstance(message_context.value, StringLiteral):
+        if self.plural:
+            if message_context and isinstance(message_context.value, StringLiteral):
                 funcname = "npgettext"
                 message: MESSAGES = (
                     (message_context.value.value, "c"),
