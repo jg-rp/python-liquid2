@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from gettext import NullTranslations
 from typing import TYPE_CHECKING
 
 from .comment import Comment
@@ -50,6 +51,10 @@ from .filters.array import sort_natural
 from .filters.array import sum_
 from .filters.array import uniq
 from .filters.array import where
+from .filters.babel import Currency
+from .filters.babel import DateTime
+from .filters.babel import Number
+from .filters.babel import Unit
 from .filters.math import abs_
 from .filters.math import at_least
 from .filters.math import at_most
@@ -90,6 +95,11 @@ from .filters.string import truncatewords
 from .filters.string import upcase
 from .filters.string import url_decode
 from .filters.string import url_encode
+from .filters.translate import GetText
+from .filters.translate import NGetText
+from .filters.translate import NPGetText
+from .filters.translate import PGetText
+from .filters.translate import Translate
 from .loaders.caching_file_system_loader import CachingFileSystemLoader
 from .loaders.choice_loader import CachingChoiceLoader
 from .loaders.choice_loader import ChoiceLoader
@@ -115,10 +125,12 @@ from .tags.increment_tag import IncrementTag
 from .tags.liquid_tag import LiquidTag
 from .tags.raw_tag import RawTag
 from .tags.render_tag import RenderTag
+from .tags.translate_tag import TranslateTag
 from .tags.unless_tag import UnlessTag
 
 if TYPE_CHECKING:
     from ..environment import Environment  # noqa: TID252
+    from ..messages import Translations  # noqa: TID252
 
 
 __all__ = (
@@ -201,6 +213,7 @@ __all__ = (
     "TrueLiteral",
     "UnlessTag",
     "parse_string_or_path",
+    "register_translation_filters",
 )
 
 
@@ -262,6 +275,23 @@ def register_standard_tags_and_filters(env: Environment) -> None:  # noqa: PLR09
     env.filters["url_encode"] = url_encode
     env.filters["url_decode"] = url_decode
 
+    env.filters[GetText.name] = GetText()
+    env.filters[NGetText.name] = NGetText()
+    env.filters[NPGetText.name] = NPGetText()
+    env.filters[PGetText.name] = PGetText()
+    env.filters[Translate.name] = Translate()
+    env.filters["currency"] = Currency()
+    env.filters["money"] = Currency()
+    env.filters["money_with_currency"] = Currency(default_format="¤#,##0.00 ¤¤")
+    env.filters["money_without_currency"] = Currency(default_format="#,##0.00")
+    env.filters["money_without_trailing_zeros"] = Currency(
+        default_format="¤#,###",
+        currency_digits=False,
+    )
+    env.filters["datetime"] = DateTime()
+    env.filters["number"] = Number()
+    env.filters["unit"] = Unit()
+
     env.tags["__COMMENT"] = Comment(env)
     env.tags["__CONTENT"] = Content(env)
     env.tags["__OUTPUT"] = Output(env)
@@ -283,3 +313,49 @@ def register_standard_tags_and_filters(env: Environment) -> None:  # noqa: PLR09
     env.tags["__LINES"] = LiquidTag(env)
     env.tags["block"] = BlockTag(env)
     env.tags["extends"] = ExtendsTag(env)
+    env.tags["translate"] = TranslateTag(env)
+
+
+def register_translation_filters(
+    env: Environment,
+    *,
+    replace: bool = True,
+    translations_var: str = "translations",
+    default_translations: Translations | None = None,
+    message_interpolation: bool = True,
+    autoescape_message: bool = False,
+) -> None:
+    """Add gettext-style translation filters to a Liquid environment.
+
+    :param env: The liquid.Environment to add translation filters to.
+    :param replace: If True, existing filters with conflicting names will
+        be replaced. Defaults to False.
+    :param translations_var: The name of a render context variable that
+        resolves to a gettext `Translations` class. Defaults to
+        `"translations"`.
+    :param default_translations: A fallback translations class to use if
+        `translations_var` can not be resolves. Defaults to
+        `NullTranslations`.
+    :param message_interpolation: If `True` (default), perform printf-style
+        string interpolation on the translated message, using keyword arguments
+        passed to the filter function.
+    :param autoescape_message: If `True` and the current environment has
+        `autoescape` set to `True`, the filter's left value will be escaped
+        before translation. Defaults to `False`.
+    """
+    default_translations = default_translations or NullTranslations()
+    default_filters = (
+        Translate,
+        GetText,
+        NGetText,
+        PGetText,
+        NPGetText,
+    )
+    for _filter in default_filters:
+        if replace or _filter.name not in env.filters:
+            env.filters[_filter.name] = _filter(
+                translations_var=translations_var,
+                default_translations=default_translations,
+                message_interpolation=message_interpolation,
+                auto_escape_message=autoescape_message,
+            )

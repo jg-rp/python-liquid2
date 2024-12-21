@@ -43,6 +43,7 @@ These features are not yet included in Python Liquid2, but can be if there is a 
 - Async filters have not been implemented.
 - Contextual template analysis has not been implemented.
 - Template tag analysis (analyzing tokens instead of a syntax tree) has not been implemented.
+- The `@liquid_filter` decorator has been removed. Now filter implementations are expected to raise a `LiquidTypeError` in the even of an argument with an unacceptable type.
 
 ## API changes
 
@@ -79,3 +80,4 @@ The following packages are dependencies of Python Liquid2.
 - Markupsafe>=2
 - Babel>=2
 - python-dateutil
+- pytz
