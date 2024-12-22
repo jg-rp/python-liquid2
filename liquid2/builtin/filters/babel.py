@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from typing import Any
 from typing import Callable
 
-import pytz  # type: ignore
+import pytz
 from babel import Locale
 from babel import UnknownLocaleError
 from babel import dates

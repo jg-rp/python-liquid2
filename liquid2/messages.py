@@ -130,7 +130,7 @@ def extract_from_templates(
 ) -> Catalog:
     """Extract messages from one or more templates.
 
-    This function returns a single ``babel.messages.Catalog`` containing
+    This function returns a single `babel.messages.Catalog` containing
     messages from all the given templates.
 
     :param templates: templates to extract messages from.
@@ -192,38 +192,6 @@ def extract_from_templates(
             )
 
     return catalog
-
-
-# def extract_liquid(
-#     fileobj: TextIO,
-#     keywords: list[str],
-#     comment_tags: list[str] | None = None,
-# ) -> Iterator[MessageTuple]:
-#     """A babel compatible extraction method for Python Liquid templates.
-
-#     See https://babel.pocoo.org/en/latest/messages.html
-
-#     Keywords are the names of Liquid filters or tags operating on translatable
-#     strings. For a filter to contribute to message extraction, it must also
-#     appear as a child of a `FilteredExpression` and be a `TranslatableFilter`.
-#     Similarly, tags must produce a node that is a `TranslatableTag`.
-
-#     Where a Liquid comment contains a prefix in `comment_tags`, the comment
-#     will be attached to the translatable filter or tag immediately following
-#     the comment. Python Liquid's non-standard shorthand comments are not
-#     supported.
-
-#     Options are arguments passed to the `liquid.Template` constructor with the
-#     contents of `fileobj` as the template's source. Use `extract_from_template`
-#     to extract messages from an existing template bound to an existing
-#     environment.
-#     """
-#     template = parse(fileobj.read())
-#     return extract_from_template(
-#         template=template,
-#         keywords=keywords,
-#         comment_tags=comment_tags,
-#     )
 
 
 def extract_from_template(

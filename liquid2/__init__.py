@@ -1,5 +1,7 @@
 from typing import Any
+from typing import Iterator
 from typing import Mapping
+from typing import TextIO
 
 from .token import BlockCommentToken
 from .token import CommentToken
@@ -45,23 +47,31 @@ from .builtin import PackageLoader
 from .undefined import StrictUndefined
 from .undefined import Undefined
 from .exceptions import TemplateNotFoundError
+from .messages import MessageTuple
+from .messages import extract_from_template
 
 from .__about__ import __version__
 
 DEFAULT_ENVIRONMENT = Environment()
 
 
-def parse(source: str, globals: Mapping[str, object] | None = None) -> Template:
+def parse(
+    source: str,
+    *,
+    name: str = "",
+    globals: Mapping[str, object] | None = None,
+) -> Template:
     """Parse _source_ as a Liquid template using the default environment.
 
     Args:
         source: Liquid template source code.
+        name: An optional name for the template used in error messages.
         globals: Variables that will be available to the resulting template.
 
     Return:
         A new template bound to the default environment.
     """
-    return DEFAULT_ENVIRONMENT.from_string(source, globals=globals)
+    return DEFAULT_ENVIRONMENT.from_string(source, name=name, globals=globals)
 
 
 def render(source: str, *args: Any, **kwargs: Any) -> str:
@@ -99,6 +109,39 @@ async def render_async(source: str, *args: Any, **kwargs: Any) -> str:
     return await template.render_async(*args, **kwargs)
 
 
+def extract_liquid(
+    fileobj: TextIO,
+    keywords: list[str],
+    comment_tags: list[str] | None = None,
+    options: dict[object, object] | None = None,  # noqa: ARG001
+) -> Iterator[MessageTuple]:
+    """A babel compatible translation message extraction method for Liquid templates.
+
+    See https://babel.pocoo.org/en/latest/messages.html
+
+    Keywords are the names of Liquid filters or tags operating on translatable
+    strings. For a filter to contribute to message extraction, it must also
+    appear as a child of a `FilteredExpression` and be a `TranslatableFilter`.
+    Similarly, tags must produce a node that is a `TranslatableTag`.
+
+    Where a Liquid comment contains a prefix in `comment_tags`, the comment
+    will be attached to the translatable filter or tag immediately following
+    the comment. Python Liquid's non-standard shorthand comments are not
+    supported.
+
+    Options are arguments passed to the `liquid.Template` constructor with the
+    contents of `fileobj` as the template's source. Use `extract_from_template`
+    to extract messages from an existing template bound to an existing
+    environment.
+    """
+    template = parse(fileobj.read())
+    return extract_from_template(
+        template=template,
+        keywords=keywords,
+        comment_tags=comment_tags,
+    )
+
+
 __all__ = (
     "__version__",
     "BlockCommentToken",
@@ -133,6 +176,8 @@ __all__ = (
     "PathT",
     "PathToken",
     "RawToken",
+    "render_async",
+    "render",
     "RenderContext",
     "StrictUndefined",
     "Tag",
