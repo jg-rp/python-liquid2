@@ -6,8 +6,11 @@ import re
 from gettext import NullTranslations
 from typing import TYPE_CHECKING
 from typing import Iterable
+from typing import NamedTuple
 from typing import TextIO
 from typing import cast
+
+from markupsafe import Markup
 
 from liquid2 import Tag
 from liquid2 import TagToken
@@ -28,6 +31,7 @@ from liquid2.messages import MessageText
 from liquid2.messages import TranslatableTag
 from liquid2.messages import Translations
 from liquid2.messages import line_number
+from liquid2.stringify import to_liquid_string
 
 if TYPE_CHECKING:
     from liquid2 import Expression
@@ -48,15 +52,15 @@ class TranslateNode(Node, TranslatableTag):
     translations_var = "translations"
     message_count_var = "count"
     message_context_var = "context"
-    re_whitespace = re.compile(r"\s*\n\s*")
+    re_vars = re.compile(r"(?<!%)%\((\w+)\)s")
 
     def __init__(
         self,
         token: TokenT,
         *,
         args: dict[str, KeywordArgument],
-        singular_block: BlockNode,
-        plural_block: BlockNode | None,
+        singular_block: MessageBlock,
+        plural_block: MessageBlock | None,
     ):
         super().__init__(token)
         self.args = args
@@ -79,12 +83,7 @@ class TranslateNode(Node, TranslatableTag):
         )
 
         with context.extend(namespace):
-            template = context.env.from_string(
-                message_text,
-                name=context.template.name,
-                path=context.template.path,
-            )
-            return template.render_with_context(context, buffer)
+            return buffer.write(self._format_message(context, message_text))
 
     async def render_to_output_async(
         self, context: RenderContext, buffer: TextIO
@@ -104,12 +103,7 @@ class TranslateNode(Node, TranslatableTag):
         )
 
         with context.extend(namespace):
-            template = context.env.from_string(
-                message_text,
-                name=context.template.name,
-                path=context.template.path,
-            )
-            return await template.render_with_context_async(context, buffer)
+            return buffer.write(self._format_message(context, message_text))
 
     def resolve_translations(self, context: RenderContext) -> Translations:
         """Return a translations object from the current render context."""
@@ -161,22 +155,20 @@ class TranslateNode(Node, TranslatableTag):
             if message_context:
                 return translations.npgettext(
                     message_context,
-                    self.block_as_message(self.singular_block),
-                    self.block_as_message(self.plural_block),
+                    self.singular_block.text,
+                    self.plural_block.text,
                     count,
                 )
 
             return translations.ngettext(
-                self.block_as_message(self.singular_block),
-                self.block_as_message(self.plural_block),
+                self.singular_block.text,
+                self.plural_block.text,
                 count,
             )
 
         if message_context:
-            return translations.pgettext(
-                message_context, self.block_as_message(self.singular_block)
-            )
-        return translations.gettext(self.block_as_message(self.singular_block))
+            return translations.pgettext(message_context, self.singular_block.text)
+        return translations.gettext(self.singular_block.text)
 
     def children(
         self,
@@ -185,17 +177,17 @@ class TranslateNode(Node, TranslatableTag):
         include_partials: bool = True,  # noqa: ARG002
     ) -> Iterable[Node]:
         """Return this node's children."""
-        yield self.singular_block
+        yield self.singular_block.block
 
         if self.plural_block:
-            yield self.plural_block
+            yield self.plural_block.block
 
     def expressions(self) -> Iterable[Expression]:
         """Return this node's expressions."""
         yield from (arg.value for arg in self.args.values())
 
     def messages(self) -> Iterable[MessageText]:  # noqa: D102
-        if not self.singular_block.nodes:
+        if not self.singular_block.block.nodes:
             return ()
 
         message_context = self.args.get(self.message_context_var)
@@ -205,24 +197,24 @@ class TranslateNode(Node, TranslatableTag):
                 funcname = "npgettext"
                 message: MESSAGES = (
                     (message_context.value.value, "c"),
-                    self.block_as_message(self.singular_block),
-                    self.block_as_message(self.plural_block),
+                    self.singular_block.text,
+                    self.plural_block.text,
                 )
             else:
                 funcname = "ngettext"
                 message = (
-                    self.block_as_message(self.singular_block),
-                    self.block_as_message(self.plural_block),
+                    self.singular_block.text,
+                    self.plural_block.text,
                 )
         elif message_context and isinstance(message_context.value, StringLiteral):
             funcname = "pgettext"
             message = (
                 (message_context.value.value, "c"),
-                self.block_as_message(self.singular_block),
+                self.singular_block.text,
             )
         else:
             funcname = "gettext"
-            message = (self.block_as_message(self.singular_block),)
+            message = (self.singular_block.text,)
 
         return (
             MessageText(
@@ -232,9 +224,23 @@ class TranslateNode(Node, TranslatableTag):
             ),
         )
 
-    def block_as_message(self, block: BlockNode) -> str:
-        """Return _block_ as a string with normalized whitespace."""
-        return self.re_whitespace.sub(" ", str(block).strip())
+    def _format_message(
+        self,
+        context: RenderContext,
+        message_text: str,
+    ) -> str:
+        """Return the message string formatted with the given message variables."""
+        if context.env.auto_escape:
+            message_text = Markup(message_text)
+
+            _vars = {
+                k: to_liquid_string(
+                    context.resolve(k), auto_escape=context.env.auto_escape
+                )
+                for k in self.re_vars.findall(message_text)
+            }
+
+        return message_text % _vars
 
 
 class TranslateTag(Tag):
@@ -269,12 +275,13 @@ class TranslateTag(Tag):
             args = {}
 
         message_block_token = stream.current()
-        message_block = BlockNode(
-            message_block_token,
-            self.env.parser.parse_block(stream, end=(self.end, self.plural_name)),
+        message_block = self.validate_message_block(
+            BlockNode(
+                message_block_token,
+                self.env.parser.parse_block(stream, end=(self.end, self.plural_name)),
+            )
         )
-
-        self.validate_message_block(message_block)
+        assert message_block
 
         if stream.is_tag(self.plural_name):
             plural_block_token = stream.next()
@@ -296,16 +303,18 @@ class TranslateTag(Tag):
             plural_block=plural_block,
         )
 
-    def validate_message_block(self, block: BlockNode | None) -> BlockNode | None:
+    def validate_message_block(self, block: BlockNode | None) -> MessageBlock | None:
         """Check that a translation message block does not contain disallowed markup."""
         if not block:
             return None
 
+        message_text: list[str] = []
+        message_vars: list[str] = []
+
         for node in block.nodes:
             if isinstance(node, ContentNode):
-                continue
-
-            if isinstance(node, OutputNode) and isinstance(
+                message_text.append(node.text.replace("%", "%%"))
+            elif isinstance(node, OutputNode) and isinstance(
                 node.expression, FilteredExpression
             ):
                 expr = node.expression.left
@@ -315,6 +324,8 @@ class TranslateTag(Tag):
                         f"expected a translation variable, found '{expr}'",
                         token=node.token,
                     )
+
+                # TODO: catch dotted paths
 
                 var = expr.head()
 
@@ -329,10 +340,25 @@ class TranslateTag(Tag):
                         f"expected a translation variable, found '{expr}'",
                         token=node.token,
                     )
+
+                message_text.append(f"%({var})s")
+                message_vars.append(var)
             else:
                 raise TranslationSyntaxError(
                     "unexpected tag in translation text",
                     token=node.token,
                 )
 
-        return block
+        msg = "".join(message_text)
+        if self.trim_messages:
+            msg = self.re_whitespace.sub(" ", msg.strip())
+
+        return MessageBlock(block, msg, message_vars)
+
+
+class MessageBlock(NamedTuple):
+    """The AST block, text and placeholder variables representing a message block."""
+
+    block: BlockNode
+    text: str
+    vars: list[str]  # noqa: A003

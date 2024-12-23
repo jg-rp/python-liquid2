@@ -1,4 +1,4 @@
-"""A currency formatting filter for Python Liquid."""
+"""A currency, date, time, number and unit formatting filters."""
 
 from __future__ import annotations
 
@@ -56,26 +56,27 @@ def _resolve_locale(
 class Currency:
     """A Liquid filter for formatting currency values.
 
-    :param currency_code_var: The name of a render context variable that resolves
-        to the current currency code. Defaults to `"currency_code"`.
-    :param default_currency_code: A fallback currency code if `currency_code_var`
-        can not be resolved. Defaults to `"USD"`.
-    :param locale_var: The name of a render context variable that resolves to the
-        current locale. Defaults to `"locale"`.
-    :param default_locale : A fallback locale to use if `locale_var` can not be
-        resolved. Defaults to `"en_US"`.
-    :param format_var: The name of a render context variable that resolves to the
-        current currency format string. Defaults to `"currency_format"`.
-    :param default_format: A fallback currency format that is used if `format_var`
-        can not be resolved. Defaults to `None`, which means the standard format for
-        the current locale will be used.
-    :param currency_digits: Indicates if the format should override locale specific
-        trailing digit behavior. Defaults to `False`.
-    :param input_locale_var: The name of a render context variable that resolves to
-        a locale suitable for parsing input strings to decimals. Defaults to
-        `"input_locale"`.
-    :param default_input_locale: A fallback locale to use if `input_locale_var`
-        can not be resolved. Defaults to `"en_US"`.
+    Args:
+        currency_code_var: The name of a render context variable that resolves
+            to the current currency code. Defaults to `"currency_code"`.
+        default_currency_code: A fallback currency code if `currency_code_var`
+            can not be resolved. Defaults to `"USD"`.
+        locale_var: The name of a render context variable that resolves to the
+            current locale. Defaults to `"locale"`.
+        default_locale : A fallback locale to use if `locale_var` can not be
+            resolved. Defaults to `"en_US"`.
+        format_var: The name of a render context variable that resolves to the
+            current currency format string. Defaults to `"currency_format"`.
+        default_format: A fallback currency format that is used if `format_var`
+            can not be resolved. Defaults to `None`, which means the standard format for
+            the current locale will be used.
+        currency_digits: Indicates if the format should override locale specific
+            trailing digit behavior. Defaults to `False`.
+        input_locale_var: The name of a render context variable that resolves to
+            a locale suitable for parsing input strings to decimals. Defaults to
+            `"input_locale"`.
+        default_input_locale: A fallback locale to use if `input_locale_var`
+            can not be resolved. Defaults to `"en_US"`.
     """
 
     def __init__(
@@ -166,22 +167,22 @@ def _parse_decimal(val: object, locale: str | Locale) -> Decimal:
 class DateTime:
     """A Liquid filter for formatting datetime objects.
 
-    :param timezone_var: The name of a render context variable that resolves to
+    timezone_var: The name of a render context variable that resolves to
         a timezone. Defaults to `"timezone"`.
-    :param default_timezone: A fallback timezone to use if `timezone_var` can
+    default_timezone: A fallback timezone to use if `timezone_var` can
         not be resolved. Defaults to `"UTC"`.
-    :param locale_var: The name of a render context variable that resolves to the
+    locale_var: The name of a render context variable that resolves to the
         current locale. Defaults to `"locale"`.
-    :param default_locale: A fallback locale to use if `locale_var` can not be
+    default_locale: A fallback locale to use if `locale_var` can not be
         resolved. Defaults to `"en_US"`.
-    :param format_var: The name of a render context variable that resolves to the
+    format_var: The name of a render context variable that resolves to the
         current datetime format string. Defaults to `"datetime_format"`.
-    :param default_format: A fallback datetime format that is used if `format_var`
+    default_format: A fallback datetime format that is used if `format_var`
         can not be resolved. Defaults to `"medium"`.
-    :param input_timezone_var: The name of a render context variable that resolves to
+    input_timezone_var: The name of a render context variable that resolves to
         a timezone for parsing datetimes entered as strings. Defaults to
         `"input_timezone"`.
-    :param default_input_timezone: A fallback timezone to use if `input_timezone_var`
+    default_input_timezone: A fallback timezone to use if `input_timezone_var`
         can not be resolved. Defaults to `"UTC"`.
     """
 
@@ -331,24 +332,24 @@ def _parse_datetime(
 class Number:
     """A Liquid filter for formatting decimal values.
 
-    :param decimal_quantization_var: The name of a render context variable that
+    decimal_quantization_var: The name of a render context variable that
         resolves to the decimal quantization to be used. Defaults to
         `"decimal_quantization"`.
-    :param default_decimal_quantization: A fallback decimal quantization if
+    default_decimal_quantization: A fallback decimal quantization if
         `decimal_quantization_var` can not be resolved. Defaults to `False`.
-    :param locale_var: The name of a render context variable that resolves to the
+    locale_var: The name of a render context variable that resolves to the
         current locale. Defaults to `"locale"`.
-    :param default_locale: A fallback locale to use if `locale_var` can not be
+    default_locale: A fallback locale to use if `locale_var` can not be
         resolved. Defaults to `"en_US"`.
-    :param format_var: The name of a render context variable that resolves to the
+    format_var: The name of a render context variable that resolves to the
         current decimal format string. Defaults to `"decimal_format"`.
-    :param default_format: A fallback decimal format that is used if `format_var`
+    default_format: A fallback decimal format that is used if `format_var`
         can not be resolved. Defaults to `None`, which means the standard format for
         the current locale will be used.
-    :param input_locale_var: The name of a render context variable that resolves to
+    input_locale_var: The name of a render context variable that resolves to
         a locale suitable for parsing input strings to decimals. Defaults to
         `"input_locale"`.
-    :param default_input_locale: A fallback locale to use if `input_locale_var`
+    default_input_locale: A fallback locale to use if `input_locale_var`
         can not be resolved. Defaults to `"en_US"`.
     """
 
@@ -435,24 +436,24 @@ def unit_filter(_filter: FilterT) -> FilterT:
 class Unit:
     """A Liquid filter for formatting units of measurement.
 
-    :param locale_var: The name of a render context variable that resolves to the
+    locale_var: The name of a render context variable that resolves to the
         current locale. Defaults to `"locale"`.
-    :param default_locale: A fallback locale to use if `locale_var` can not be
+    default_locale: A fallback locale to use if `locale_var` can not be
         resolved. Defaults to `"en_US"`.
-    :param length_var: The name of a render context variable that resolves to a
+    length_var: The name of a render context variable that resolves to a
         unit format length. Should be one of "short", "long" or "narrow".
         Defaults to `"long"`.
-    :param default_length: A fallback format length to use if `length_var` can
+    default_length: A fallback format length to use if `length_var` can
         not be resolved.
-    :param format_var: The name of a render context variable that resolves to a
+    format_var: The name of a render context variable that resolves to a
         decimal format string. Defaults to `"unit_format"`.
-    :param default_format: A fallback decimal format to use if `format_var` can
+    default_format: A fallback decimal format to use if `format_var` can
         not be resolved. Defaults to `None`, meaning the locale's standard
         decimal format is used.
-    :param input_locale_var: The name of a render context variable that resolves to
+    input_locale_var: The name of a render context variable that resolves to
         a locale suitable for parsing input strings to decimals. Defaults to
         `"input_locale"`.
-    :param default_input_locale: A fallback locale to use if `input_locale_var`
+    default_input_locale: A fallback locale to use if `input_locale_var`
         can not be resolved. Defaults to `"en_US"`.
     """
 

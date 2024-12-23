@@ -32,14 +32,14 @@ __all__ = [
 class _BaseTranslateFilter:
     """Base class for the default translation filters.
 
-    :param translations_var: The name of a render context variable that resolves to a
+    translations_var: The name of a render context variable that resolves to a
         gettext `Translations` class. Defaults to `"translations"`.
-    :param default_translations: A fallback translations class to use if
+    default_translations: A fallback translations class to use if
         `translations_var` can not be resolves. Defaults to `NullTranslations`.
-    :param message_interpolation: If `True` (default), perform printf-style string
+    message_interpolation: If `True` (default), perform printf-style string
         interpolation on the translated message, using keyword arguments passed to the
         filter function.
-    :param auto_escape_message: If `True` and the current environment has `auto_escape`
+    auto_escape_message: If `True` and the current environment has `auto_escape`
         set to `True`, the filter's left value will be escaped before translation.
         Defaults to `False`.
     """

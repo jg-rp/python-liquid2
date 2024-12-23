@@ -432,7 +432,7 @@ def test_translate_tag_variable() -> None:
 
     assert message.lineno == 1
     assert message.funcname == "gettext"
-    assert message.message == ("Hello, {{ you }}!",)
+    assert message.message == ("Hello, %(you)s!",)
     assert message.comments == []
 
 
@@ -527,7 +527,7 @@ def test_extract_liquid() -> None:
         (3, "Hello, World!", ["Translators: some comment"], None),
         (
             5,
-            ("Hello, {{ you }}!", "Hello, all!"),
+            ("Hello, %(you)s!", "Hello, all!"),
             ["Translators: other comment"],
             None,
         ),
