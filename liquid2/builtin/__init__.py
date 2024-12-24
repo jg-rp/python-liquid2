@@ -223,6 +223,7 @@ __all__ = (
     "DataTime",
     "Number",
     "Unit",
+    "DateTime",
 )
 
 

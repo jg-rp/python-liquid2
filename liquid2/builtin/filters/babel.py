@@ -233,14 +233,13 @@ class DateTime:
         else:
             format_string = context.resolve(self.format_var)
 
-            if not isinstance(format_string, str):
+            if is_undefined(format_string):
+                _format = self.default_format
+            elif not isinstance(format_string, str):
                 raise LiquidTypeError(
                     f"expected a string argument, found {format_string}",
                     token=None,
                 )
-
-            if is_undefined(format_string):
-                _format = self.default_format
             else:
                 _format = self.formats.get(format_string, format_string)
 
