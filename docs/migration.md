@@ -44,6 +44,7 @@ These features are not yet included in Python Liquid2, but can be if there is a 
 - Contextual template analysis has not been implemented.
 - Template tag analysis (analyzing tokens instead of a syntax tree) has not been implemented.
 - The `@liquid_filter` decorator has been removed. Now filter implementations are expected to raise a `LiquidTypeError` in the even of an argument with an unacceptable type.
+- Liquid Babel used to allow simple, zero-argument filters in the arguments to the `translate` tag. The `translate` tag bundled in to Liquid2 does not allow the use of filters here.
 
 ## API changes
 

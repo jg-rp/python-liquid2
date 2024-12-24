@@ -1,7 +1,9 @@
+import asyncio
 import re
 
 from markupsafe import Markup
 
+from liquid2 import Environment
 from liquid2 import parse
 
 
@@ -146,3 +148,116 @@ def test_t_filter_npgettext() -> None:
     assert template.render() == "Hello, Worlds!"
     # Mock translation
     assert template.render(translations=MOCK_TRANSLATIONS) == "greeting::HELLO, WorldS!"
+
+
+def test_translate_tag_gettext() -> None:
+    source = """
+        {%- translate you: 'World', there: false -%}
+            Hello, {{ you }}!
+        {%- endtranslate -%}
+    """
+    template = parse(source)
+    # Default null translation
+    assert template.render() == "Hello, World!"
+    # Mock translation
+    assert template.render(translations=MOCK_TRANSLATIONS) == "HELLO, World!"
+
+    async def coro() -> str:
+        return await template.render_async(translations=MOCK_TRANSLATIONS)
+
+    assert asyncio.run(coro()) == "HELLO, World!"
+
+
+def test_translate_tag_ngettext() -> None:
+    source = """
+        {%- translate, you: 'World', count: 2 -%}
+            Hello, {{ you }}!
+        {%- plural -%}
+            Hello, {{ you }}s!
+        {%- endtranslate -%}
+    """
+    template = parse(source)
+    # Default null translation
+    assert template.render() == "Hello, Worlds!"
+    # Mock translation
+    assert template.render(translations=MOCK_TRANSLATIONS) == "HELLO, WorldS!"
+
+    async def coro() -> str:
+        return await template.render_async(translations=MOCK_TRANSLATIONS)
+
+    assert asyncio.run(coro()) == "HELLO, WorldS!"
+
+
+def test_translate_tag_pgettext() -> None:
+    source = """
+        {%- translate context: 'greeting', you: 'World' -%}
+            Hello, {{ you }}!
+        {%- endtranslate -%}
+    """
+    template = parse(source)
+    # Default null translation
+    assert template.render() == "Hello, World!"
+    # Mock translation
+    assert template.render(translations=MOCK_TRANSLATIONS) == "greeting::HELLO, World!"
+
+    async def coro() -> str:
+        return await template.render_async(translations=MOCK_TRANSLATIONS)
+
+    assert asyncio.run(coro()) == "greeting::HELLO, World!"
+
+
+def test_translate_tag_npgettext() -> None:
+    source = """
+        {%- translate, context: 'greeting', you: 'World', count: 2 -%}
+            Hello, {{ you }}!
+        {%- plural -%}
+            Hello, {{ you }}s!
+        {%- endtranslate -%}
+    """
+    template = parse(source)
+    # Default null translation
+    assert template.render() == "Hello, Worlds!"
+    # Mock translation
+    assert template.render(translations=MOCK_TRANSLATIONS) == "greeting::HELLO, WorldS!"
+
+    async def coro() -> str:
+        return await template.render_async(translations=MOCK_TRANSLATIONS)
+
+    assert asyncio.run(coro()) == "greeting::HELLO, WorldS!"
+
+
+AUTO_ESCAPE_ENV = Environment(auto_escape=True)
+
+
+def test_t_filter_auto_escape() -> None:
+    data = {"s": "<b>Hello, World!</b>"}
+    template = AUTO_ESCAPE_ENV.from_string("{{ s | t }}")
+
+    # Default null translation
+    assert template.render(**data) == "&lt;b&gt;Hello, World!&lt;/b&gt;"
+
+    # Mock translation
+    assert (
+        template.render(translations=MOCK_TRANSLATIONS, **data)
+        == "&LT;B&GT;HELLO, WORLD!&LT;/B&GT;"
+    )
+
+
+def test_translate_tag_message_trimming() -> None:
+    source = """
+        {%- translate you: 'World', there: false, other: 'foo' -%}
+            Hello, {{ you }}!
+            {{ other }}
+        {%- endtranslate -%}
+    """
+
+    template = parse(source)
+    # Default null translation
+    assert template.render() == "Hello, World! foo"
+    # Mock translation
+    assert template.render(translations=MOCK_TRANSLATIONS) == "HELLO, World! foo"
+
+    async def coro() -> str:
+        return await template.render_async(translations=MOCK_TRANSLATIONS)
+
+    assert asyncio.run(coro()) == "HELLO, World! foo"

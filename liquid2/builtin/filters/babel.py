@@ -124,7 +124,7 @@ class Currency:
 
         _format = context.resolve(self.format_var, default=self.default_format)
 
-        if not isinstance(_format, str):
+        if _format is not None and not isinstance(_format, str):
             raise LiquidTypeError(
                 f"expected a string argument, found {_format}", token=None
             )
@@ -406,7 +406,7 @@ class Number:
 
         _format = context.resolve(self.format_var, default=self.default_format)
 
-        if not isinstance(_format, str):
+        if _format is not None and not isinstance(_format, str):
             raise LiquidTypeError(
                 f"expected a string argument, found {_format}", token=None
             )

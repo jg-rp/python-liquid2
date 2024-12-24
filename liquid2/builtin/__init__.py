@@ -214,6 +214,15 @@ __all__ = (
     "UnlessTag",
     "parse_string_or_path",
     "register_translation_filters",
+    "Currency",
+    "GetText",
+    "NGetText",
+    "NPGetText",
+    "PGetText",
+    "Translate",
+    "DataTime",
+    "Number",
+    "Unit",
 )
 
 
@@ -275,11 +284,11 @@ def register_standard_tags_and_filters(env: Environment) -> None:  # noqa: PLR09
     env.filters["url_encode"] = url_encode
     env.filters["url_decode"] = url_decode
 
-    env.filters[GetText.name] = GetText()
-    env.filters[NGetText.name] = NGetText()
-    env.filters[NPGetText.name] = NPGetText()
-    env.filters[PGetText.name] = PGetText()
-    env.filters[Translate.name] = Translate()
+    env.filters[GetText.name] = GetText(auto_escape_message=env.auto_escape)
+    env.filters[NGetText.name] = NGetText(auto_escape_message=env.auto_escape)
+    env.filters[NPGetText.name] = NPGetText(auto_escape_message=env.auto_escape)
+    env.filters[PGetText.name] = PGetText(auto_escape_message=env.auto_escape)
+    env.filters[Translate.name] = Translate(auto_escape_message=env.auto_escape)
     env.filters["currency"] = Currency()
     env.filters["money"] = Currency()
     env.filters["money_with_currency"] = Currency(default_format="¤#,##0.00 ¤¤")

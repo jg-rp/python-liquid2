@@ -230,15 +230,14 @@ class TranslateNode(Node, TranslatableTag):
         message_text: str,
     ) -> str:
         """Return the message string formatted with the given message variables."""
-        if context.env.auto_escape:
+        auto_escape = context.env.auto_escape
+        if auto_escape:
             message_text = Markup(message_text)
 
-            _vars = {
-                k: to_liquid_string(
-                    context.resolve(k), auto_escape=context.env.auto_escape
-                )
-                for k in self.re_vars.findall(message_text)
-            }
+        _vars = {
+            k: to_liquid_string(context.resolve(k), auto_escape=auto_escape)
+            for k in self.re_vars.findall(message_text)
+        }
 
         return message_text % _vars
 
