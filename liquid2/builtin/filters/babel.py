@@ -20,6 +20,7 @@ from babel import units
 from dateutil import parser
 
 from liquid2.exceptions import LiquidTypeError
+from liquid2.exceptions import LiquidValueError
 from liquid2.filter import num_arg
 from liquid2.filter import with_context
 from liquid2.undefined import is_undefined
@@ -317,7 +318,7 @@ def _parse_datetime(
                 return _dt.replace(tzinfo=default_timezone)
             return _dt
         except parser.ParserError as err:
-            raise LiquidTypeError(str(err), token=None) from err
+            raise LiquidValueError(str(err), token=None) from err
 
     if not isinstance(val, (date, time, datetime, int, float)):
         raise LiquidTypeError(
@@ -331,25 +332,26 @@ def _parse_datetime(
 class Number:
     """A Liquid filter for formatting decimal values.
 
-    decimal_quantization_var: The name of a render context variable that
-        resolves to the decimal quantization to be used. Defaults to
-        `"decimal_quantization"`.
-    default_decimal_quantization: A fallback decimal quantization if
-        `decimal_quantization_var` can not be resolved. Defaults to `False`.
-    locale_var: The name of a render context variable that resolves to the
-        current locale. Defaults to `"locale"`.
-    default_locale: A fallback locale to use if `locale_var` can not be
-        resolved. Defaults to `"en_US"`.
-    format_var: The name of a render context variable that resolves to the
-        current decimal format string. Defaults to `"decimal_format"`.
-    default_format: A fallback decimal format that is used if `format_var`
-        can not be resolved. Defaults to `None`, which means the standard format for
-        the current locale will be used.
-    input_locale_var: The name of a render context variable that resolves to
-        a locale suitable for parsing input strings to decimals. Defaults to
-        `"input_locale"`.
-    default_input_locale: A fallback locale to use if `input_locale_var`
-        can not be resolved. Defaults to `"en_US"`.
+    Args:
+        decimal_quantization_var: The name of a render context variable that
+            resolves to the decimal quantization to be used. Defaults to
+            `"decimal_quantization"`.
+        default_decimal_quantization: A fallback decimal quantization if
+            `decimal_quantization_var` can not be resolved. Defaults to `False`.
+        locale_var: The name of a render context variable that resolves to the
+            current locale. Defaults to `"locale"`.
+        default_locale: A fallback locale to use if `locale_var` can not be
+            resolved. Defaults to `"en_US"`.
+        format_var: The name of a render context variable that resolves to the
+            current decimal format string. Defaults to `"decimal_format"`.
+        default_format: A fallback decimal format that is used if `format_var`
+            can not be resolved. Defaults to `None`, which means the standard format for
+            the current locale will be used.
+        input_locale_var: The name of a render context variable that resolves to
+            a locale suitable for parsing input strings to decimals. Defaults to
+            `"input_locale"`.
+        default_input_locale: A fallback locale to use if `input_locale_var`
+            can not be resolved. Defaults to `"en_US"`.
     """
 
     def __init__(

@@ -174,6 +174,7 @@ class DisabledTagError(LiquidError):
     """Exception raised when an attempt is made to render a disabled tag."""
 
 
+# TODO: rename me to FilterNotFoundError
 class NoSuchFilterFunc(LiquidError):  # noqa: N818
     """Exception raised when a filter lookup fails."""
 

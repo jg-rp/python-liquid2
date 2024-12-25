@@ -299,7 +299,7 @@ def register_standard_tags_and_filters(env: Environment) -> None:  # noqa: PLR09
         currency_digits=False,
     )
     env.filters["datetime"] = DateTime()
-    env.filters["number"] = Number()
+    env.filters["decimal"] = Number()
     env.filters["unit"] = Unit()
 
     env.tags["__COMMENT"] = Comment(env)

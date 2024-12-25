@@ -177,7 +177,7 @@ def sequence_filter(_filter: Callable[..., Any]) -> Callable[..., Any]:
 
 
 def math_filter(_filter: Callable[..., Any]) -> Callable[..., Any]:
-    """Raise a `FilterArgumentError` if the filter value can not be a number."""
+    """Raise a `LiquidTypeError` if the filter value can not be a number."""
 
     @wraps(_filter)
     def wrapper(val: object, *args: Any, **kwargs: Any) -> Any:
