@@ -428,8 +428,10 @@ def unit_filter(_filter: FilterT) -> FilterT:
     def wrapper(val: object, *args: Any, **kwargs: Any) -> Any:
         try:
             return _filter(val, *args, **kwargs)
-        except (TypeError, units.UnknownUnitError) as err:
+        except TypeError as err:
             raise LiquidTypeError(err, token=None) from err
+        except units.UnknownUnitError as err:
+            raise LiquidValueError(err, token=None) from err
 
     return wrapper
 
