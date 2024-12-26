@@ -1,10 +1,14 @@
 import asyncio
 import re
 
+import pytest
 from markupsafe import Markup
 
 from liquid2 import Environment
+from liquid2 import StrictUndefined
 from liquid2 import parse
+from liquid2.exceptions import TranslationSyntaxError
+from liquid2.exceptions import UndefinedError
 
 
 class MockTranslations:
@@ -261,3 +265,109 @@ def test_translate_tag_message_trimming() -> None:
         return await template.render_async(translations=MOCK_TRANSLATIONS)
 
     assert asyncio.run(coro()) == "HELLO, World! foo"
+
+
+def test_missing_translation_variables_are_undefined() -> None:
+    template = parse("{{ 'Hello, %(you)s!' | gettext }}")
+    assert template.render() == "Hello, !"
+
+    env = Environment(undefined=StrictUndefined)
+    template = env.from_string("{{ 'Hello, %(you)s!' | gettext }}")
+    with pytest.raises(UndefinedError):
+        template.render()
+
+
+def test_translate_bool_variable() -> None:
+    template = parse("{{ 'Hello, %(you)s!' | gettext }}")
+    assert template.render(you=True) == "Hello, true!"
+
+
+def test_translate_none_variable() -> None:
+    template = parse("{{ 'Hello, %(you)s!' | gettext }}")
+    assert template.render(you=None) == "Hello, !"
+
+
+def test_translate_list_variable() -> None:
+    template = parse("{{ 'Hello, %(you)s!' | gettext }}")
+    assert template.render(you=[1, 2, 3]) == "Hello, 123!"
+
+
+def test_translate_range() -> None:
+    template = parse("{% assign you = (1..4) %}{{ 'Hello, %(you)s!' | gettext }}")
+    assert template.render() == "Hello, 1..4!"
+
+
+def test_message_is_not_a_string() -> None:
+    template = parse("{{ true | gettext }}")
+    assert template.render() == "true"
+
+
+def test_count_defaults_to_one() -> None:
+    template = parse("{{ 'Hello, World!' | t: plural: 'Hello, Worlds!', count:'foo' }}")
+    assert template.render() == "Hello, World!"
+
+
+def test_filtered_block_translation_vars() -> None:
+    source = """
+        {%- translate you: 'World', count: 2 -%}
+            Hello, {{ you | upcase }}!
+        {%- plural -%}
+            Hello, {{ you }}s!
+        {%- endtranslate -%}
+    """
+
+    with pytest.raises(TranslationSyntaxError):
+        parse(source)
+
+
+def test_block_translation_paths() -> None:
+    source = """
+        {%- translate you: 'World', count: 2 -%}
+            Hello, {{ some.thing }}!
+        {%- plural -%}
+            Hello, {{ you }}s!
+        {%- endtranslate -%}
+    """
+
+    with pytest.raises(TranslationSyntaxError):
+        parse(source)
+
+
+def test_block_translation_literals() -> None:
+    source = """
+        {%- translate you: 'World', count: 2 -%}
+            Hello, {{ 'foo' }}!
+        {%- plural -%}
+            Hello, {{ you }}s!
+        {%- endtranslate -%}
+    """
+
+    with pytest.raises(TranslationSyntaxError):
+        parse(source)
+
+
+def test_block_translation_tags() -> None:
+    source = """
+        {%- translate -%}
+            {% if true %}
+                Hello, {{ 'foo' }}!
+            {% endif %}
+        {%- plural -%}
+            Hello, {{ you }}s!
+        {%- endtranslate -%}
+    """
+
+    with pytest.raises(TranslationSyntaxError):
+        parse(source)
+
+
+def test_block_translation_count_is_not_an_int() -> None:
+    source = """
+        {%- translate you: 'World', count: 'foo' -%}
+            Hello, {{ you }}!
+        {%- plural -%}
+            Hello, {{ you }}s!
+        {%- endtranslate -%}
+    """
+
+    assert parse(source).render() == "Hello, World!"

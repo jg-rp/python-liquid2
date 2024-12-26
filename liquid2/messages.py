@@ -8,6 +8,7 @@ from abc import abstractmethod
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import Callable
 from typing import Iterable
 from typing import Iterator
 from typing import NamedTuple
@@ -133,15 +134,16 @@ def extract_from_templates(
     This function returns a single `babel.messages.Catalog` containing
     messages from all the given templates.
 
-    :param templates: templates to extract messages from.
-    :param keywords: a Babel compatible mapping of translatable "function"
-        names to argument specs. The included translation filters and tag
-        transform their messages into typical *gettext format, regardless
-        of their names.
-    param comment_tags: a list of translator tags to search for and
-        include in extracted messages.
-    param strip_comment_tags: if `True`, remove comment tags from collected
-        message comments.
+    Args:
+        templates: templates to extract messages from.
+        keywords: a Babel compatible mapping of translatable "function"
+            names to argument specs. The included translation filters and tag
+            transform their messages into typical *gettext format, regardless
+            of their names.
+        comment_tags: a list of translator tags to search for and
+            include in extracted messages.
+        strip_comment_tags: if `True`, remove comment tags from collected
+            message comments.
     """
     keywords = keywords or DEFAULT_KEYWORDS
     comment_tags = comment_tags or DEFAULT_COMMENT_TAGS
@@ -205,6 +207,8 @@ def extract_from_template(
     _keywords = keywords or DEFAULT_KEYWORDS
     ctx = RenderContext(template)
 
+    _line_number = line_number_factory(template.nodes[0].token.source)
+
     def visit_expression(expr: Expression, lineno: int) -> Iterator[MessageTuple]:
         if isinstance(expr, (FilteredExpression, TernaryFilteredExpression)):
             for _lineno, funcname, message in _extract_from_filters(
@@ -226,7 +230,7 @@ def extract_from_template(
 
     def visit(node: Node) -> Iterator[MessageTuple]:
         token = node.token
-        lineno = line_number(token)
+        lineno = _line_number(token)
         if isinstance(node, CommentNode) and node.text is not None:
             comment_text = node.text.strip()
             for comment_tag in _comment_tags:
@@ -256,12 +260,12 @@ def extract_from_template(
 
         for child in node.children(ctx, include_partials=False):
             for expr in child.expressions():
-                yield from visit_expression(expr, line_number(expr.token))  # XXX:
+                yield from visit_expression(expr, _line_number(expr.token))
             yield from visit(child)
 
     for node in template.nodes:
         for expr in node.expressions():
-            yield from visit_expression(expr, line_number(expr.token))  # XXX:
+            yield from visit_expression(expr, _line_number(expr.token))
         yield from visit(node)
 
 
@@ -311,7 +315,6 @@ def _strip_comment_tags(comments: list[str], tags: list[str]) -> list[str]:
     return [_strip(comment) for comment in comments]
 
 
-# TODO: be more efficient when finding line numbers in the same source text
 def line_number(token: TokenT) -> int:
     """Return _token_'s line number."""
     lines = token.source.splitlines(keepends=True)
@@ -329,3 +332,26 @@ def line_number(token: TokenT) -> int:
 
     # Line number (1-based)
     return target_line_index + 1
+
+
+def line_number_factory(source: str) -> Callable[[TokenT], int]:
+    """Return a function for looking up token line numbers in _source_."""
+    lines = source.splitlines(keepends=True)
+
+    def _line_number(token: TokenT) -> int:
+        cumulative_length = 0
+        target_line_index = -1
+
+        for i, line in enumerate(lines):
+            cumulative_length += len(line)
+            if token.start < cumulative_length:
+                target_line_index = i
+                break
+
+        if target_line_index == -1:
+            raise ValueError("index is out of bounds for the given string")
+
+        # Line number (1-based)
+        return target_line_index + 1
+
+    return _line_number

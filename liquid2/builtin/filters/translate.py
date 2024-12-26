@@ -32,16 +32,17 @@ __all__ = [
 class _BaseTranslateFilter:
     """Base class for the default translation filters.
 
-    translations_var: The name of a render context variable that resolves to a
-        gettext `Translations` class. Defaults to `"translations"`.
-    default_translations: A fallback translations class to use if
-        `translations_var` can not be resolves. Defaults to `NullTranslations`.
-    message_interpolation: If `True` (default), perform printf-style string
-        interpolation on the translated message, using keyword arguments passed to the
-        filter function.
-    auto_escape_message: If `True` and the current environment has `auto_escape`
-        set to `True`, the filter's left value will be escaped before translation.
-        Defaults to `False`.
+    Args:
+        translations_var: The name of a render context variable that resolves to a
+            gettext `Translations` class. Defaults to `"translations"`.
+        default_translations: A fallback translations class to use if
+            `translations_var` can not be resolves. Defaults to `NullTranslations`.
+        message_interpolation: If `True` (default), perform printf-style string
+            interpolation on the translated message, using keyword arguments passed to
+            the filter function.
+        auto_escape_message: If `True` and the current environment has `auto_escape`
+            set to `True`, the filter's left value will be escaped before translation.
+            Defaults to `False`.
     """
 
     name = "base"
@@ -420,7 +421,6 @@ class NPGetText(_BaseTranslateFilter, TranslatableFilter):
         if len(_filter.args) < 2:  # noqa: PLR2004
             return None
 
-        # XXX: check that these are positional arguments.
         ctx = _filter.args[0].value
         plural = _filter.args[1].value
 

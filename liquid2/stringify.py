@@ -18,6 +18,8 @@ def to_liquid_string(val: Any, *, auto_escape: bool = False) -> str:
         val = str(val).lower()
     elif val is None:
         val = ""
+    elif isinstance(val, range):
+        val = f"{val.start}..{val.stop - 1}"
     elif isinstance(val, Sequence):
         if auto_escape:
             val = Markup("").join(
@@ -25,8 +27,6 @@ def to_liquid_string(val: Any, *, auto_escape: bool = False) -> str:
             )
         else:
             val = "".join(to_liquid_string(itm, auto_escape=auto_escape) for itm in val)
-    elif isinstance(val, range):
-        val = f"{val.start}..{val.stop - 1}"
     elif isinstance(val, (Empty, Blank)):
         val = ""
     else:

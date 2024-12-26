@@ -313,7 +313,7 @@
       "name": "output, range",
       "template": "{{ (1..3) }}",
       "data": {},
-      "result": "123"
+      "result": "1..3"
     },
     {
       "name": "output, path, global",
@@ -4821,7 +4821,7 @@
       "name": "tags, echo, range",
       "template": "{% echo (1..3) %}",
       "data": {},
-      "result": "123"
+      "result": "1..3"
     },
     {
       "name": "tags, echo, query, global",

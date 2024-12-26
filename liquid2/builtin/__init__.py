@@ -337,21 +337,22 @@ def register_translation_filters(
 ) -> None:
     """Add gettext-style translation filters to a Liquid environment.
 
-    :param env: The liquid.Environment to add translation filters to.
-    :param replace: If True, existing filters with conflicting names will
-        be replaced. Defaults to False.
-    :param translations_var: The name of a render context variable that
-        resolves to a gettext `Translations` class. Defaults to
-        `"translations"`.
-    :param default_translations: A fallback translations class to use if
-        `translations_var` can not be resolves. Defaults to
-        `NullTranslations`.
-    :param message_interpolation: If `True` (default), perform printf-style
-        string interpolation on the translated message, using keyword arguments
-        passed to the filter function.
-    :param autoescape_message: If `True` and the current environment has
-        `autoescape` set to `True`, the filter's left value will be escaped
-        before translation. Defaults to `False`.
+    Args:
+        env: The liquid.Environment to add translation filters to.
+        replace: If True, existing filters with conflicting names will
+            be replaced. Defaults to False.
+        translations_var: The name of a render context variable that
+            resolves to a gettext `Translations` class. Defaults to
+            `"translations"`.
+        default_translations: A fallback translations class to use if
+            `translations_var` can not be resolves. Defaults to
+            `NullTranslations`.
+        message_interpolation: If `True` (default), perform printf-style
+            string interpolation on the translated message, using keyword arguments
+            passed to the filter function.
+        autoescape_message: If `True` and the current environment has
+            `autoescape` set to `True`, the filter's left value will be escaped
+            before translation. Defaults to `False`.
     """
     default_translations = default_translations or NullTranslations()
     default_filters = (

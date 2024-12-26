@@ -46,6 +46,7 @@ class TranslateNode(Node, TranslatableTag):
         "args",
         "singular_block",
         "plural_block",
+        "end_tag_token",
     )
 
     default_translations = NullTranslations()
@@ -61,13 +62,34 @@ class TranslateNode(Node, TranslatableTag):
         args: dict[str, KeywordArgument],
         singular_block: MessageBlock,
         plural_block: MessageBlock | None,
+        end_tag_token: TagToken,
     ):
         super().__init__(token)
         self.args = args
         self.singular_block = singular_block
         self.plural_block = plural_block
+        self.end_tag_token = end_tag_token
 
-    # TODO: __str__
+    def __str__(self) -> str:
+        assert isinstance(self.token, TagToken)
+        args = (
+            " " + ", ".join(str(arg) for arg in self.args.values()) if self.args else ""
+        )
+        plural = ""
+
+        if self.plural_block:
+            token = self.plural_block.block.token
+            assert isinstance(token, TagToken)
+            plural = (
+                f"{{%{token.wc[0]} plural {token.wc[1]}%}}{self.plural_block.block}"
+            )
+
+        return (
+            f"{{%{self.token.wc[0]} translate{args} {self.token.wc[1]}%}}"
+            f"{self.singular_block.block}"
+            f"{plural}"
+            f"{{%{self.end_tag_token.wc[0]} endtranslate {self.end_tag_token.wc[1]}%}}"
+        )
 
     def render_to_output(self, context: RenderContext, buffer: TextIO) -> int:
         """Render the node to the output buffer."""
@@ -243,7 +265,7 @@ class TranslateNode(Node, TranslatableTag):
 
 
 class TranslateTag(Tag):
-    """The built-in "trans" or "translate" tag."""
+    """The built-in "translate" tag."""
 
     node_class = TranslateNode
 
@@ -265,7 +287,6 @@ class TranslateTag(Tag):
         assert isinstance(token, TagToken)
 
         if token.expression:
-            # TODO: no arg filters?
             args = {
                 arg.name: arg
                 for arg in parse_keyword_arguments(TokenStream(token.expression))
@@ -294,12 +315,15 @@ class TranslateTag(Tag):
             plural_block = None
 
         stream.expect_tag(self.end)
+        end_tag_token = stream.current()
+        assert isinstance(end_tag_token, TagToken)
 
         return self.node_class(
             token,
             args=args,
             singular_block=message_block,
             plural_block=plural_block,
+            end_tag_token=end_tag_token,
         )
 
     def validate_message_block(self, block: BlockNode | None) -> MessageBlock | None:
@@ -324,7 +348,11 @@ class TranslateTag(Tag):
                         token=node.token,
                     )
 
-                # TODO: catch dotted paths
+                if len(expr.path) > 1:
+                    raise TranslationSyntaxError(
+                        f"unexpected property access on translation variable '{expr}'",
+                        token=node.token,
+                    )
 
                 var = expr.head()
 
