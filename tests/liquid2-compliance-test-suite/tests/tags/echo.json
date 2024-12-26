@@ -58,7 +58,7 @@
       "name": "range",
       "template": "{% echo (1..3) %}",
       "data": {},
-      "result": "123"
+      "result": "1..3"
     },
     {
       "name": "query, global",

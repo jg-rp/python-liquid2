@@ -174,6 +174,7 @@ class DisabledTagError(LiquidError):
     """Exception raised when an attempt is made to render a disabled tag."""
 
 
+# TODO: rename me to FilterNotFoundError
 class NoSuchFilterFunc(LiquidError):  # noqa: N818
     """Exception raised when a filter lookup fails."""
 
@@ -242,3 +243,19 @@ class ContinueLoop(LiquidInterrupt):
 
 class CacheCapacityValueError(ValueError):
     """An exception raised when the LRU cache is given a zero or negative capacity."""
+
+
+class TranslationError(LiquidError):
+    """Base exception for translation errors."""
+
+
+class TranslationSyntaxError(LiquidSyntaxError):
+    """Exception raised when a syntax error is found within a translation block."""
+
+
+class TranslationValueError(TranslationError):
+    """Exception raised when message interpolation fails with a ValueError."""
+
+
+class TranslationKeyError(TranslationError):
+    """Exception raised when message interpolation fails with a KeyError."""

@@ -63,6 +63,7 @@ nav:
     - AST: "api/ast.md"
     - Filters: "api/filter.md"
     - Tags: "api/tag.md"
+    - Babel: "api/babel.md"
 
 markdown_extensions:
   - admonition

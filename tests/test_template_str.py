@@ -350,3 +350,31 @@ def test_block_comment_str() -> None:
 def test_block_comment_str_wc() -> None:
     template = parse("{%- comment ~%}don't render me{%~ endcomment ~%}")
     assert str(template) == "{%- comment %}don't render me{% endcomment ~%}"
+
+
+def test_translate_str() -> None:
+    source = "\n".join(
+        [
+            "{% translate x:'foo', y:'bar' %}",
+            "  Hello, {{ you }}"
+            "{% plural %}"
+            "  Hello, {{ you }}s"
+            "{% endtranslate %}",
+        ]
+    )
+    template = parse(source)
+    assert str(template) == source
+
+
+def test_translate_str_wc() -> None:
+    source = "\n".join(
+        [
+            "{%- translate x:'foo', y:'bar' ~%}",
+            "  Hello, {{ you ~}}"
+            "{%~ plural -%}"
+            "  Hello, {{ you }}s"
+            "{%~ endtranslate +%}",
+        ]
+    )
+    template = parse(source)
+    assert str(template) == source

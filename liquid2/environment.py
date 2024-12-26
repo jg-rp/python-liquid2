@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import TYPE_CHECKING
+from typing import Any
 from typing import Callable
 from typing import ClassVar
 from typing import Mapping
@@ -71,7 +72,7 @@ class Environment:
             else default_trim
         )
 
-        self.filters: dict[str, Callable[..., object]] = {}
+        self.filters: dict[str, Callable[..., Any]] = {}
         self.tags: dict[str, Tag] = {}
         self.setup_tags_and_filters()
         self.parser = Parser(self)

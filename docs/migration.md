@@ -29,6 +29,8 @@ The following features are new or are now built-in where they weren't before.
 - Ternary expressions are now available by default. For example, `{{ a if b else c }}` or `{{ a | upcase if b == 'foo' else c || split }}`.
 - Inline comments surrounded by `{#` and `#}` are enabled by default. Additional `#`’s can be added to comment out blocks of markup that already contain comments, as long as the number of hashes match.
 - String literals are allowed to contain markup delimiters (`{{`, `}}`, `{%`, `%}`, `{#` and `#}`) and support c-like escape sequence to allow for including quote characters.
+- Identifiers and paths resolving to variables can contain Unicode characters.
+- Integer and float literals can use scientific notation.
 - Filter and tag named arguments can be separated by a `:` or `=`.
 - Template inheritance is now built-in. Previously `{% extends %}` and `{% block %}` tags were available from a separate package.
 - Internationalization and localization tags and filters are now built-in. Previously these were in a separate package.
@@ -43,6 +45,8 @@ These features are not yet included in Python Liquid2, but can be if there is a 
 - Async filters have not been implemented.
 - Contextual template analysis has not been implemented.
 - Template tag analysis (analyzing tokens instead of a syntax tree) has not been implemented.
+- The `@liquid_filter` decorator has been removed. Now filter implementations are expected to raise a `LiquidTypeError` in the even of an argument with an unacceptable type.
+- Liquid Babel used to allow simple, zero-argument filters in the arguments to the `translate` tag. The `translate` tag bundled in to Liquid2 does not allow the use of filters here.
 
 ## API changes
 
@@ -55,6 +59,7 @@ These are the most notable changes. Please raise an [issue](https://github.com/j
 - The `auto_reload` and `cache_size` arguments to `Environment` have been removed. Now caching is handle by template loaders, not the environment. For example, pass a `CachingFileSystemLoader` as the `loader` argument to `Environment` instead of a `FileSystemLoader`.
 - `TemplateNotFound` has been renamed to `TemplateNotFoundError`.
 - `Context` has been renamed to `RenderContext` and now takes a mandatory `template` argument instead of `env`. All other arguments to `RenderContext` are now keyword only.
+- `FilterValueError` and `FilterArgumentError` have been removed. `LiquidValueError` and `LiquidTypeError` should be used instead. In some cases where `FilterValueError` was deliberately ignored before, `LiquidValueError` is now raised.
 
 ### Template and expression parsing
 
@@ -79,3 +84,4 @@ The following packages are dependencies of Python Liquid2.
 - Markupsafe>=2
 - Babel>=2
 - python-dateutil
+- pytz
