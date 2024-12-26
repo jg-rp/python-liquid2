@@ -192,4 +192,5 @@ __all__ = (
     "Undefined",
     "unescape",
     "WhitespaceControl",
+    "extract_liquid",
 )

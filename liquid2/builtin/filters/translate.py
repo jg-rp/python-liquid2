@@ -29,7 +29,7 @@ __all__ = [
 ]
 
 
-class _BaseTranslateFilter:
+class BaseTranslateFilter:
     """Base class for the default translation filters.
 
     Args:
@@ -86,7 +86,7 @@ class _BaseTranslateFilter:
         )
 
 
-class Translate(_BaseTranslateFilter, TranslatableFilter):
+class Translate(BaseTranslateFilter, TranslatableFilter):
     """A Liquid filter for translating strings to other languages.
 
     Depending on the keyword arguments provided when the resulting filter
@@ -205,7 +205,7 @@ class Translate(_BaseTranslateFilter, TranslatableFilter):
         )
 
 
-class GetText(_BaseTranslateFilter, TranslatableFilter):
+class GetText(BaseTranslateFilter, TranslatableFilter):
     """A Liquid filter equivalent of `gettext.gettext`."""
 
     name = "gettext"
@@ -250,7 +250,7 @@ class GetText(_BaseTranslateFilter, TranslatableFilter):
         )
 
 
-class NGetText(_BaseTranslateFilter, TranslatableFilter):
+class NGetText(BaseTranslateFilter, TranslatableFilter):
     """A Liquid filter equivalent of `gettext.ngettext`."""
 
     name = "ngettext"
@@ -310,7 +310,7 @@ class NGetText(_BaseTranslateFilter, TranslatableFilter):
         )
 
 
-class PGetText(_BaseTranslateFilter, TranslatableFilter):
+class PGetText(BaseTranslateFilter, TranslatableFilter):
     """A Liquid filter equivalent of `gettext.pgettext`."""
 
     name = "pgettext"
@@ -363,7 +363,7 @@ class PGetText(_BaseTranslateFilter, TranslatableFilter):
         )
 
 
-class NPGetText(_BaseTranslateFilter, TranslatableFilter):
+class NPGetText(BaseTranslateFilter, TranslatableFilter):
     """A Liquid filter equivalent of `gettext.npgettext`."""
 
     name = "npgettext"
