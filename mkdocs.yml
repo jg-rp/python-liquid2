@@ -8,6 +8,7 @@ theme:
     primary: black
   features:
     - navigation.tabs
+    - navigation.instant
     - content.code.copy
 
 repo_name: jg-rp/python-liquid2

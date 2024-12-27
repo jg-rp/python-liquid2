@@ -773,6 +773,20 @@ class PositionalArgument:
         return (None, await self.value.evaluate_async(context))
 
 
+class Parameter:
+    """A name, possibly with a default value."""
+
+    __slots__ = ("token", "name", "value")
+
+    def __init__(self, token: TokenT, name: str, value: Expression | None) -> None:
+        self.token = token
+        self.name = name
+        self.value = value
+
+    def __str__(self) -> str:
+        return f"{self.name}:{self.value}" if self.value else self.name
+
+
 class BooleanExpression(Expression):
     __slots__ = ("expression",)
 
@@ -1614,12 +1628,13 @@ def parse_keyword_arguments(tokens: TokenStream) -> list[KeywordArgument]:
     while True:
         token = tokens.next()
 
-        if token.type_ == TokenType.EOI:
-            break
-
         if is_token_type(token, TokenType.COMMA):
             # Leading and/or trailing commas are OK.
-            continue
+            # TODO: test for double comma
+            token = tokens.next()
+
+        if token.type_ == TokenType.EOI:
+            break
 
         if is_token_type(token, TokenType.WORD):
             tokens.expect_one_of(TokenType.COLON, TokenType.ASSIGN)
@@ -1633,6 +1648,78 @@ def parse_keyword_arguments(tokens: TokenStream) -> list[KeywordArgument]:
             )
 
     return args
+
+
+def parse_positional_and_keyword_arguments(
+    tokens: TokenStream,
+) -> tuple[list[PositionalArgument], list[KeywordArgument]]:
+    """Parse _tokens_ into a lists of keyword and positional arguments.
+
+    Argument keys and values can be separated by a colon (`:`) or an equals sign
+    (`=`).
+    """
+    args: list[PositionalArgument] = []
+    kwargs: list[KeywordArgument] = []
+
+    while True:
+        token = tokens.next()
+
+        if is_token_type(token, TokenType.COMMA):
+            # Leading and/or trailing commas are OK.
+            # TODO: test for double comma
+            token = tokens.next()
+
+        if token.type_ == TokenType.EOI:
+            break
+
+        if is_token_type(token, TokenType.WORD) and tokens.current().type_ in (
+            TokenType.COLON,
+            TokenType.ASSIGN,
+        ):
+            # A keyword argument
+            tokens.next()  # Move past ":" or "="
+            value = parse_primitive(tokens.next())
+            kwargs.append(KeywordArgument(token.value, value))
+        else:
+            # A primitive as a positional argument
+            args.append(PositionalArgument(parse_primitive(token)))
+
+    return args, kwargs
+
+
+def parse_parameters(tokens: TokenStream) -> dict[str, Parameter]:
+    """Parse _tokens_ as a list of arguments suitable for a macro definition."""
+    # TODO: catch duplicate parameters? We currently take the last of any duplicates.
+    params: dict[str, Parameter] = {}
+
+    while True:
+        token = tokens.next()
+
+        if is_token_type(token, TokenType.COMMA):
+            # Leading and/or trailing commas are OK.
+            token = tokens.next()
+
+        if token.type_ == TokenType.EOI:
+            break
+
+        if is_token_type(token, TokenType.WORD):
+            if tokens.current().type_ in (
+                TokenType.COLON,
+                TokenType.ASSIGN,
+            ):
+                # A parameter with a default value
+                tokens.next()  # Move past ":" or "="
+                value = parse_primitive(tokens.next())
+                params[token.value] = Parameter(token, token.value, value)
+            else:
+                params[token.value] = Parameter(token, token.value, None)
+        else:
+            raise LiquidSyntaxError(
+                f"expected a parameter list, found {token.type_.name}",
+                token=token,
+            )
+
+    return params
 
 
 def is_truthy(obj: object) -> bool:
