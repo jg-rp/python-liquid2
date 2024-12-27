@@ -218,6 +218,36 @@
       "template": "{{ 'b' if true else 'c' || upcase }}",
       "data": {},
       "result": "B"
+    },
+    {
+      "name": "variable that starts with a reserved word",
+      "template": "{{ andrew }}",
+      "data": { "andrew": "a" },
+      "result": "a"
+    },
+    {
+      "name": "variable that start with a reserved word",
+      "template": "{{ andrew }}",
+      "data": { "andrew": "a" },
+      "result": "a"
+    },
+    {
+      "name": "variable that match a reserved word exactly",
+      "template": "{{ and }}",
+      "data": { "and": "a" },
+      "invalid": true
+    },
+    {
+      "name": "paths that start with a reserved word",
+      "template": "{{ and.or }}",
+      "data": { "and": { "or": "a" } },
+      "result": "a"
+    },
+    {
+      "name": "bracketed notation with variable that match a reserved word exactly",
+      "template": "{{ ['and'] }}",
+      "data": { "and": "a" },
+      "result": "a"
     }
   ]
 }

@@ -529,6 +529,48 @@
       "result": "B"
     },
     {
+      "name": "output, variable that starts with a reserved word",
+      "template": "{{ andrew }}",
+      "data": {
+        "andrew": "a"
+      },
+      "result": "a"
+    },
+    {
+      "name": "output, variable that start with a reserved word",
+      "template": "{{ andrew }}",
+      "data": {
+        "andrew": "a"
+      },
+      "result": "a"
+    },
+    {
+      "name": "output, variable that match a reserved word exactly",
+      "template": "{{ and }}",
+      "data": {
+        "and": "a"
+      },
+      "invalid": true
+    },
+    {
+      "name": "output, paths that start with a reserved word",
+      "template": "{{ and.or }}",
+      "data": {
+        "and": {
+          "or": "a"
+        }
+      },
+      "result": "a"
+    },
+    {
+      "name": "output, bracketed notation with variable that match a reserved word exactly",
+      "template": "{{ ['and'] }}",
+      "data": {
+        "and": "a"
+      },
+      "result": "a"
+    },
+    {
       "name": "special, first of an array",
       "template": "{{ a.first }}",
       "data": {
