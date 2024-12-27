@@ -1,10 +1,10 @@
 """Replace escape sequences replaced with their Unicode equivalents."""
 
 from .exceptions import LiquidSyntaxError
-from .token import Token
+from .token import TokenT
 
 
-def unescape(value: str, token: Token) -> str:
+def unescape(value: str, token: TokenT) -> str:
     """Return _value_ with escape sequences replaced with their Unicode equivalents."""
     unescaped: list[str] = []
     index = 0
@@ -19,11 +19,12 @@ def unescape(value: str, token: Token) -> str:
             _string_from_code_point(ord(ch), token)
             unescaped.append(ch)
         index += 1
+
     return "".join(unescaped)
 
 
 def _decode_escape_sequence(  # noqa: PLR0911
-    value: str, index: int, token: Token
+    value: str, index: int, token: TokenT
 ) -> tuple[str, int]:
     ch = value[index]
     if ch == '"':
@@ -47,17 +48,17 @@ def _decode_escape_sequence(  # noqa: PLR0911
         return _string_from_code_point(code_point, token), index
 
     raise LiquidSyntaxError(
-        f"unknown escape sequence at index {token.index + index - 1}",
+        f"unknown escape sequence at index {token.start + index - 1}",
         token=token,
     )
 
 
-def _decode_hex_char(value: str, index: int, token: Token) -> tuple[int, int]:
+def _decode_hex_char(value: str, index: int, token: TokenT) -> tuple[int, int]:
     length = len(value)
 
     if index + 4 >= length:
         raise LiquidSyntaxError(
-            f"incomplete escape sequence at index {token.index + index - 1}",
+            f"incomplete escape sequence at index {token.start + index - 1}",
             token=token,
         )
 
@@ -66,7 +67,7 @@ def _decode_hex_char(value: str, index: int, token: Token) -> tuple[int, int]:
 
     if _is_low_surrogate(code_point):
         raise LiquidSyntaxError(
-            f"unexpected low surrogate at index {token.index + index - 1}",
+            f"unexpected low surrogate at index {token.start + index - 1}",
             token=token,
         )
 
@@ -76,7 +77,7 @@ def _decode_hex_char(value: str, index: int, token: Token) -> tuple[int, int]:
             index + 9 < length and value[index + 4] == "\\" and value[index + 5] == "u"
         ):
             raise LiquidSyntaxError(
-                f"incomplete escape sequence at index {token.index + index - 2}",
+                f"incomplete escape sequence at index {token.start + index - 2}",
                 token=token,
             )
 
@@ -84,7 +85,7 @@ def _decode_hex_char(value: str, index: int, token: Token) -> tuple[int, int]:
 
         if not _is_low_surrogate(low_surrogate):
             raise LiquidSyntaxError(
-                f"unexpected code_point at index {token.index + index + 4}",
+                f"unexpected code_point at index {token.start + index + 4}",
                 token=token,
             )
 
@@ -97,7 +98,7 @@ def _decode_hex_char(value: str, index: int, token: Token) -> tuple[int, int]:
     return (code_point, index + 3)
 
 
-def _parse_hex_digits(digits: str, token: Token) -> int:
+def _parse_hex_digits(digits: str, token: TokenT) -> int:
     code_point = 0
     for digit in digits.encode():
         code_point <<= 4
@@ -115,7 +116,7 @@ def _parse_hex_digits(digits: str, token: Token) -> int:
     return code_point
 
 
-def _string_from_code_point(code_point: int, token: Token) -> str:
+def _string_from_code_point(code_point: int, token: TokenT) -> str:
     if code_point < 8:  # TODO:
         raise LiquidSyntaxError("invalid character", token=token)
     return chr(code_point)

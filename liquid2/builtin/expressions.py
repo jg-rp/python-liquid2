@@ -309,7 +309,14 @@ class Path(Expression):
 
     def __init__(self, token: TokenT, path: PathT) -> None:
         super().__init__(token=token)
-        self.path = [Path(p, p.path) if isinstance(p, PathToken) else p for p in path]
+        self.path: list[Path | int | str] = []
+        for segment in path:
+            if isinstance(segment, PathToken):
+                self.path.append(Path(segment, segment.path))
+            elif isinstance(segment, str):
+                self.path.append(unescape(segment, token))
+            else:
+                self.path.append(segment)
 
         if isinstance(self.path[0], Path):
             # Flatten root segment
