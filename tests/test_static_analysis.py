@@ -852,3 +852,32 @@ def test_analyze_super() -> None:
             "upcase": [Span("base", 35, 41)],
         },
     )
+
+
+def test_analyze_macro_and_call(env: Environment) -> None:
+    source = (
+        r"{% macro 'foo', you: 'World', arg: n %}"
+        r"Hello, {{ you }}!"
+        r"{% endmacro %}"
+        r"{% call 'foo' %}"
+        r"{% assign x = 'you' %}"
+        r"{% call 'foo', you: x %}"
+    )
+
+    n = [Variable(["n"], Span("", 35, 36))]
+    you = [Variable(["you"], Span("", 49, 52))]
+
+    _assert(
+        env.from_string(source),
+        locals={"x": [Variable(["x"], Span("", 96, 97))]},
+        globals={"n": n},
+        variables={"n": n, "you": you, "x": [Variable(["x"], Span("", 128, 129))]},
+        tags={
+            "macro": [Span("", 0, 39)],
+            "call": [Span("", 70, 86), Span("", 108, 132)],
+            "assign": [Span("", 86, 108)],
+        },
+    )
+
+
+# TODO: test analyse babel

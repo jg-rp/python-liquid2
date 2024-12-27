@@ -25,6 +25,7 @@ from .expressions import LogicalNotExpression
 from .expressions import LogicalOrExpression
 from .expressions import LoopExpression
 from .expressions import Null
+from .expressions import Parameter
 from .expressions import Path
 from .expressions import PositionalArgument
 from .expressions import RangeLiteral
@@ -36,6 +37,8 @@ from .expressions import is_empty
 from .expressions import is_truthy
 from .expressions import parse_identifier
 from .expressions import parse_keyword_arguments
+from .expressions import parse_parameters
+from .expressions import parse_positional_and_keyword_arguments
 from .expressions import parse_primitive
 from .expressions import parse_string_or_identifier
 from .expressions import parse_string_or_path
@@ -123,6 +126,8 @@ from .tags.if_tag import IfTag
 from .tags.include_tag import IncludeTag
 from .tags.increment_tag import IncrementTag
 from .tags.liquid_tag import LiquidTag
+from .tags.macro_tag import CallTag
+from .tags.macro_tag import MacroTag
 from .tags.raw_tag import RawTag
 from .tags.render_tag import RenderTag
 from .tags.translate_tag import TranslateTag
@@ -195,6 +200,7 @@ __all__ = (
     "PackageLoader",
     "parse_identifier",
     "parse_keyword_arguments",
+    "parse_positional_and_keyword_arguments",
     "parse_primitive",
     "parse_string_or_identifier",
     "Path",
@@ -224,6 +230,8 @@ __all__ = (
     "Number",
     "Unit",
     "DateTime",
+    "parse_parameters",
+    "Parameter",
 )
 
 
@@ -324,6 +332,8 @@ def register_standard_tags_and_filters(env: Environment) -> None:  # noqa: PLR09
     env.tags["block"] = BlockTag(env)
     env.tags["extends"] = ExtendsTag(env)
     env.tags["translate"] = TranslateTag(env)
+    env.tags["macro"] = MacroTag(env)
+    env.tags["call"] = CallTag(env)
 
 
 def register_translation_filters(

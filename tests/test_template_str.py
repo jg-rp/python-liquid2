@@ -378,3 +378,31 @@ def test_translate_str_wc() -> None:
     )
     template = parse(source)
     assert str(template) == source
+
+
+def test_macro_and_call_str() -> None:
+    source = "\n".join(
+        [
+            "{% macro func greeting, you:a.b %}",
+            "  {{ greeting }}, {{ you }}!",
+            "{% endmacro %}",
+            "{% call func 'Hello' %}",
+            "{% call func 'Goodbye', you:'Liquid' %}",
+        ]
+    )
+    template = parse(source)
+    assert str(template) == source
+
+
+def test_macro_and_call_str_wc() -> None:
+    source = "\n".join(
+        [
+            "{%- macro func greeting, you:a.b ~%}",
+            "  {{ greeting }}, {{ you }}!",
+            "{%+ endmacro %}",
+            "{%+ call func 'Hello' +%}",
+            "{%- call func 'Goodbye', you:'Liquid' ~%}",
+        ]
+    )
+    template = parse(source)
+    assert str(template) == source
