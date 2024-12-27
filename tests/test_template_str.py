@@ -406,3 +406,27 @@ def test_macro_and_call_str_wc() -> None:
     )
     template = parse(source)
     assert str(template) == source
+
+
+def test_with_str() -> None:
+    source = "\n".join(
+        [
+            "{% with a:1, b:3.4 %}",
+            "  {{ a }} + {{ b }} = {{ a | plus: b }}",
+            "{% endwith %}",
+        ]
+    )
+    template = parse(source)
+    assert str(template) == source
+
+
+def test_with_str_wc() -> None:
+    source = "\n".join(
+        [
+            "{%- with a:1, b:3.4 +%}",
+            "  {{ a }} + {{ b }} = {{ a | plus: b }}",
+            "{%+ endwith ~%}",
+        ]
+    )
+    template = parse(source)
+    assert str(template) == source

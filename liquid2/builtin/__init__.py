@@ -132,6 +132,7 @@ from .tags.raw_tag import RawTag
 from .tags.render_tag import RenderTag
 from .tags.translate_tag import TranslateTag
 from .tags.unless_tag import UnlessTag
+from .tags.with_tag import WithTag
 
 if TYPE_CHECKING:
     from ..environment import Environment  # noqa: TID252
@@ -232,6 +233,7 @@ __all__ = (
     "DateTime",
     "parse_parameters",
     "Parameter",
+    "WithTag",
 )
 
 
@@ -334,6 +336,7 @@ def register_standard_tags_and_filters(env: Environment) -> None:  # noqa: PLR09
     env.tags["translate"] = TranslateTag(env)
     env.tags["macro"] = MacroTag(env)
     env.tags["call"] = CallTag(env)
+    env.tags["with"] = WithTag(env)
 
 
 def register_translation_filters(
