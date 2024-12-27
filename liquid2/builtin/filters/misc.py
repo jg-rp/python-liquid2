@@ -5,14 +5,17 @@ from __future__ import annotations
 import datetime
 import decimal
 import functools
+import json
 from typing import TYPE_CHECKING
 from typing import Any
+from typing import Callable
 
 from dateutil import parser
 from markupsafe import Markup
 
 from liquid2.builtin import is_empty
 from liquid2.exceptions import LiquidTypeError
+from liquid2.filter import int_arg
 from liquid2.filter import with_environment
 from liquid2.undefined import is_undefined
 
@@ -110,3 +113,30 @@ def date(  # noqa: PLR0912 PLR0911
     if environment.auto_escape and isinstance(fmt, Markup):
         return Markup(rv)
     return rv
+
+
+class JSON:
+    """Serialize an object to a JSON formatted string.
+
+    Args:
+        default: A function passed to `json.dumps`. This function is called
+            in the event that the JSONEncoder does not know how to serialize an
+            object. Defaults to `None`.
+    """
+
+    name = "json"
+
+    def __init__(self, default: Callable[[Any], Any] | None = None):
+        self.default = default
+
+    def __call__(
+        self,
+        left: object,
+        indent: object | None = None,
+    ) -> str:
+        """Apply this filter to _left_ and return the result."""
+        indent = int_arg(indent) if indent else None
+        try:
+            return json.dumps(left, default=self.default, indent=indent)
+        except TypeError as err:
+            raise LiquidTypeError(str(err), token=None) from err

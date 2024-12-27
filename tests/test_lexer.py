@@ -181,5 +181,4 @@ TEST_CASES = [
 
 @pytest.mark.parametrize("case", TEST_CASES, ids=operator.attrgetter("name"))
 def test_lexer(case: Case) -> None:
-    """Test the Rust parser."""
     assert "".join(str(t) for t in tokenize(case.source)) == case.want

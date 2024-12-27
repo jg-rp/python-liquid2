@@ -51,6 +51,7 @@ from .filters.array import map_
 from .filters.array import reverse
 from .filters.array import sort
 from .filters.array import sort_natural
+from .filters.array import sort_numeric
 from .filters.array import sum_
 from .filters.array import uniq
 from .filters.array import where
@@ -69,6 +70,7 @@ from .filters.math import modulo
 from .filters.math import plus
 from .filters.math import round_
 from .filters.math import times
+from .filters.misc import JSON
 from .filters.misc import date
 from .filters.misc import default
 from .filters.misc import size
@@ -234,6 +236,7 @@ __all__ = (
     "parse_parameters",
     "Parameter",
     "WithTag",
+    "JSON",
 )
 
 
@@ -247,6 +250,7 @@ def register_standard_tags_and_filters(env: Environment) -> None:  # noqa: PLR09
     env.filters["reverse"] = reverse
     env.filters["sort"] = sort
     env.filters["sort_natural"] = sort_natural
+    env.filters["sort_numeric"] = sort_numeric
     env.filters["sum"] = sum_
     env.filters["where"] = where
     env.filters["uniq"] = uniq
@@ -267,6 +271,7 @@ def register_standard_tags_and_filters(env: Environment) -> None:  # noqa: PLR09
     env.filters["date"] = date
     env.filters["default"] = default
     env.filters["size"] = size
+    env.filters["json"] = JSON()
 
     env.filters["capitalize"] = capitalize
     env.filters["append"] = append
