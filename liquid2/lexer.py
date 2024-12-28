@@ -322,7 +322,14 @@ class Lexer:
                     quote = self.next()
                     self.ignore()
                     self.accept_string(quote=quote)
-                    self.path_stack[-1].path.append(self.source[self.start : self.pos])
+                    if quote == '"':
+                        self.path_stack[-1].path.append(
+                            self.source[self.start : self.pos]
+                        )
+                    else:
+                        self.path_stack[-1].path.append(
+                            self.source[self.start : self.pos].replace("\\'", "'")
+                        )
                     self.next()
                     self.ignore()  # skip closing quote
 
