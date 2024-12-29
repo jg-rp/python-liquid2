@@ -2,7 +2,7 @@
 
 TODO:
 
-## extend
+## extends
 
 TODO:
 

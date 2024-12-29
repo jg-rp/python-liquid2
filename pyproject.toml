@@ -53,7 +53,6 @@ dependencies = [
   "types-jsonschema",
   "types-python-dateutil",
   "mkdocs-material",
-  "mkdocs-autorefs",
   "mkdocstrings[python]",
   "types-pytz",
   "types-babel",

@@ -13,6 +13,8 @@ from typing import TypeAlias
 from typing import TypeGuard
 from typing import Union
 
+# TODO: doc comments
+
 
 @dataclass(kw_only=True, slots=True)
 class TokenT(ABC):

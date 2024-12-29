@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
-from typing import Container
 from typing import Sequence
 
 from .exceptions import LiquidSyntaxError
@@ -69,15 +68,6 @@ class TokenStream:
                 token=token,
             )
 
-    def expect_peek(self, typ: TokenType) -> None:
-        """Raise a _LiquidSyntaxError_ if the next token type does not match _typ_."""
-        token = self.peek()
-        if token.type_ != typ:
-            raise LiquidSyntaxError(
-                f"expected {typ.name}, found {token.type_.name}",
-                token=token,
-            )
-
     def expect_tag(self, tag_name: str) -> None:
         """Raise a syntax error if the current token is not a tag with _tag_name_."""
         token = self.current()
@@ -107,34 +97,6 @@ class TokenStream:
         token = self.current()
         if is_tag_token(token):
             return token.name == tag_name
-        return False
-
-    def is_word(self, value: str) -> bool:
-        """Return _True_ if the current token is a word with value equal to _value_."""
-        token = self.current()
-        if is_token_type(token, TokenType.WORD):
-            return token.value == value
-        return False
-
-    def peek_word(self, value: str) -> bool:
-        """Return _True_ if the next token is a word with value equal to _value_."""
-        token = self.peek()
-        if is_token_type(token, TokenType.WORD):
-            return token.value == value
-        return False
-
-    def is_one_of(self, tag_names: Container[str]) -> bool:
-        """Return _True_ if the current token is a tag with a name in _tag_names_."""
-        token = self.current()
-        if isinstance(token, TagToken):
-            return token.name in tag_names
-        return False
-
-    def peek_one_of(self, tag_names: Container[str]) -> bool:
-        """Return _True_ if the next token is a tag with a name in _tag_names_."""
-        peeked = self.peek()
-        if isinstance(peeked, TagToken):
-            return peeked.name in tag_names
         return False
 
     def into_inner(self) -> TokenStream:

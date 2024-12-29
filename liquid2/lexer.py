@@ -31,131 +31,8 @@ from .token import is_token_type
 if TYPE_CHECKING:
     from .token import TokenT
 
-RE_LINE_COMMENT = re.compile(r"\#(.*?)(?=(\n|[\-+~]?%\}))")
-RE_REST_OF_LINE = re.compile(r"(.*?)(?=(\n|[\-+~]?%\}))")
-RE_OUTPUT_END = re.compile(r"([+\-~]?)\}\}")
-RE_TAG_END = re.compile(r"([+\-~]?)%\}")
-RE_WHITESPACE_CONTROL = re.compile(r"[+\-~]")
 
-RE_TAG_NAME = re.compile(r"[a-z][a-z_0-9]*\b")
-
-RE_WHITESPACE = re.compile(r"[ \n\r\t]+")
-RE_LINE_SPACE = re.compile(r"[ \t]+")
-RE_LINE_TERM = re.compile(r"\r?\n")
-
-RE_COMMENT_TAG_CHUNK = re.compile(
-    r"(.*?)\{%(?:[\-+~]?)\s*"
-    r"(?P<COMMENT_CHUNK_END>comment|endcomment|raw|endraw)"
-    r".*?(?P<COMMENT_WC_END>[+\-~]?)%\}",
-    re.DOTALL,
-)
-
-RE_PROPERTY = re.compile(r"[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*")
-RE_INDEX = re.compile(r"-?[0-9]+")
-ESCAPES = frozenset(["b", "f", "n", "r", "t", "u", "/", "\\"])
-
-SYMBOLS: dict[str, str] = {
-    "GE": r">=",
-    "LE": r"<=",
-    "EQ": r"==",
-    "NE": r"!=",
-    "LG": r"<>",
-    "GT": r">",
-    "LT": r"<",
-    "DOUBLE_DOT": r"\.\.",
-    "DOUBLE_PIPE": r"\|\|",
-    "ASSIGN": r"=",
-    "ROOT": r"\$",
-    "LPAREN": r"\(",
-    "RPAREN": r"\)",
-    "SINGLE_QUOTE_STRING": r"'",
-    "DOUBLE_QUOTE_STRING": r"\"",
-    "COLON": r":",
-    "COMMA": r",",
-    "PIPE": r"\|",
-    "LBRACKET": r"\[",
-}
-
-NUMBERS: dict[str, str] = {
-    "FLOAT": r"(?:-?[0-9]+\.[0-9]+(?:[eE][+-]?[0-9]+)?)|(-?[0-9]+[eE]-[0-9]+)",
-    "INT": r"-?[0-9]+(?:[eE]\+?[0-9]+)?",
-}
-
-WORD: dict[str, str] = {
-    "WORD": r"[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*",
-}
-
-KEYWORD_MAP: dict[str, TokenType] = {
-    "true": TokenType.TRUE,
-    "false": TokenType.FALSE,
-    "and": TokenType.AND_WORD,
-    "or": TokenType.OR_WORD,
-    "in": TokenType.IN,
-    "not": TokenType.NOT_WORD,
-    "contains": TokenType.CONTAINS,
-    "nil": TokenType.NULL,
-    "null": TokenType.NULL,
-    "if": TokenType.IF,
-    "else": TokenType.ELSE,
-    "with": TokenType.WITH,
-    "required": TokenType.REQUIRED,
-    "as": TokenType.AS,
-    "for": TokenType.FOR,
-}
-
-TOKEN_MAP: dict[str, TokenType] = {
-    **KEYWORD_MAP,
-    "FLOAT": TokenType.FLOAT,
-    "INT": TokenType.INT,
-    "GE": TokenType.GE,
-    "LE": TokenType.LE,
-    "EQ": TokenType.EQ,
-    "NE": TokenType.NE,
-    "LG": TokenType.NE,
-    "GT": TokenType.GT,
-    "LT": TokenType.LT,
-    "DOUBLE_DOT": TokenType.DOUBLE_DOT,
-    "DOUBLE_PIPE": TokenType.DOUBLE_PIPE,
-    "ASSIGN": TokenType.ASSIGN,
-    "LPAREN": TokenType.LPAREN,
-    "RPAREN": TokenType.RPAREN,
-    "COLON": TokenType.COLON,
-    "COMMA": TokenType.COMMA,
-    "PIPE": TokenType.PIPE,
-}
-
-MARKUP: dict[str, str] = {
-    "RAW": (
-        r"\{%(?P<RAW_WC0>[\-+~]?)\s*raw\s*(?P<RAW_WC1>[\-+~]?)%\}"
-        r"(?P<RAW_TEXT>.*?)"
-        r"\{%(?P<RAW_WC2>[\-+~]?)\s*endraw\s*(?P<RAW_WC3>[\-+~]?)%\}"
-    ),
-    # old style `{% comment %} some comment {% endcomment %}`
-    "COMMENT_TAG": r"\{%(?P<CT_WC>[\-+~]?)\s*comment\b.*?%\}",
-    "OUTPUT": r"\{\{(?P<OUT_WC>[\-+~]?)\s*",
-    "TAG": r"\{%(?P<TAG_WC>[\-+~]?)\s*(?P<TAG_NAME>[a-z][a-z_0-9]*)",
-    "COMMENT": (  # new style `{# some comment #}`
-        r"\{(?P<HASHES>#+)(?P<COMMENT_WC0>[\-+~]?)"
-        r"(?P<COMMENT_TEXT>.*?)"
-        r"(?P<COMMENT_WC1>[\-+~]?)(?P=HASHES)\}"
-    ),
-    "INLINE_COMMENT": (  # shopify style `{% # some comment %}`
-        r"\{%(?P<ILC_WC0>[\-+~]?)\s*#(?P<ILC_TEXT>.*?)(?P<ILC_WC1>[\-+~]?)%\}"
-    ),
-    "CONTENT": r".+?(?=(\{\{|\{%|\{#+|$))",
-}
-
-WC_MAP = {
-    None: WhitespaceControl.DEFAULT,
-    "": WhitespaceControl.DEFAULT,
-    "-": WhitespaceControl.MINUS,
-    "+": WhitespaceControl.PLUS,
-    "~": WhitespaceControl.TILDE,
-}
-
-WC_DEFAULT = (WhitespaceControl.DEFAULT, WhitespaceControl.DEFAULT)
-
-StateFn = Callable[["Lexer"], Optional["StateFn"]]
+StateFn = Callable[[], Optional["StateFn"]]
 
 
 def _compile(*rules: dict[str, str], flags: int = 0) -> Pattern[str]:
@@ -164,12 +41,135 @@ def _compile(*rules: dict[str, str], flags: int = 0) -> Pattern[str]:
     return re.compile(pattern, flags)
 
 
-MARKUP_RULES = _compile(MARKUP, flags=re.DOTALL)
-TOKEN_RULES = _compile(NUMBERS, SYMBOLS, WORD)
-
-
 class Lexer:
     """Liquid template lexical scanner."""
+
+    RE_LINE_COMMENT = re.compile(r"\#(.*?)(?=(\n|[\-+~]?%\}))")
+    RE_REST_OF_LINE = re.compile(r"(.*?)(?=(\n|[\-+~]?%\}))")
+    RE_OUTPUT_END = re.compile(r"([+\-~]?)\}\}")
+    RE_TAG_END = re.compile(r"([+\-~]?)%\}")
+    RE_WHITESPACE_CONTROL = re.compile(r"[+\-~]")
+
+    RE_TAG_NAME = re.compile(r"[a-z][a-z_0-9]*\b")
+
+    RE_WHITESPACE = re.compile(r"[ \n\r\t]+")
+    RE_LINE_SPACE = re.compile(r"[ \t]+")
+    RE_LINE_TERM = re.compile(r"\r?\n")
+
+    RE_COMMENT_TAG_CHUNK = re.compile(
+        r"(.*?)\{%(?:[\-+~]?)\s*"
+        r"(?P<COMMENT_CHUNK_END>comment|endcomment|raw|endraw)"
+        r".*?(?P<COMMENT_WC_END>[+\-~]?)%\}",
+        re.DOTALL,
+    )
+
+    RE_PROPERTY = re.compile(r"[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*")
+    RE_INDEX = re.compile(r"-?[0-9]+")
+    ESCAPES = frozenset(["b", "f", "n", "r", "t", "u", "/", "\\"])
+
+    SYMBOLS: dict[str, str] = {
+        "GE": r">=",
+        "LE": r"<=",
+        "EQ": r"==",
+        "NE": r"!=",
+        "LG": r"<>",
+        "GT": r">",
+        "LT": r"<",
+        "DOUBLE_DOT": r"\.\.",
+        "DOUBLE_PIPE": r"\|\|",
+        "ASSIGN": r"=",
+        "ROOT": r"\$",
+        "LPAREN": r"\(",
+        "RPAREN": r"\)",
+        "SINGLE_QUOTE_STRING": r"'",
+        "DOUBLE_QUOTE_STRING": r"\"",
+        "COLON": r":",
+        "COMMA": r",",
+        "PIPE": r"\|",
+        "LBRACKET": r"\[",
+    }
+
+    NUMBERS: dict[str, str] = {
+        "FLOAT": r"(?:-?[0-9]+\.[0-9]+(?:[eE][+-]?[0-9]+)?)|(-?[0-9]+[eE]-[0-9]+)",
+        "INT": r"-?[0-9]+(?:[eE]\+?[0-9]+)?",
+    }
+
+    WORD: dict[str, str] = {
+        "WORD": r"[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*",
+    }
+
+    KEYWORD_MAP: dict[str, TokenType] = {
+        "true": TokenType.TRUE,
+        "false": TokenType.FALSE,
+        "and": TokenType.AND_WORD,
+        "or": TokenType.OR_WORD,
+        "in": TokenType.IN,
+        "not": TokenType.NOT_WORD,
+        "contains": TokenType.CONTAINS,
+        "nil": TokenType.NULL,
+        "null": TokenType.NULL,
+        "if": TokenType.IF,
+        "else": TokenType.ELSE,
+        "with": TokenType.WITH,
+        "required": TokenType.REQUIRED,
+        "as": TokenType.AS,
+        "for": TokenType.FOR,
+    }
+
+    TOKEN_MAP: dict[str, TokenType] = {
+        **KEYWORD_MAP,
+        "FLOAT": TokenType.FLOAT,
+        "INT": TokenType.INT,
+        "GE": TokenType.GE,
+        "LE": TokenType.LE,
+        "EQ": TokenType.EQ,
+        "NE": TokenType.NE,
+        "LG": TokenType.NE,
+        "GT": TokenType.GT,
+        "LT": TokenType.LT,
+        "DOUBLE_DOT": TokenType.DOUBLE_DOT,
+        "DOUBLE_PIPE": TokenType.DOUBLE_PIPE,
+        "ASSIGN": TokenType.ASSIGN,
+        "LPAREN": TokenType.LPAREN,
+        "RPAREN": TokenType.RPAREN,
+        "COLON": TokenType.COLON,
+        "COMMA": TokenType.COMMA,
+        "PIPE": TokenType.PIPE,
+    }
+
+    MARKUP: dict[str, str] = {
+        "RAW": (
+            r"\{%(?P<RAW_WC0>[\-+~]?)\s*raw\s*(?P<RAW_WC1>[\-+~]?)%\}"
+            r"(?P<RAW_TEXT>.*?)"
+            r"\{%(?P<RAW_WC2>[\-+~]?)\s*endraw\s*(?P<RAW_WC3>[\-+~]?)%\}"
+        ),
+        # old style `{% comment %} some comment {% endcomment %}`
+        "COMMENT_TAG": r"\{%(?P<CT_WC>[\-+~]?)\s*comment\b.*?%\}",
+        "OUTPUT": r"\{\{(?P<OUT_WC>[\-+~]?)\s*",
+        "TAG": r"\{%(?P<TAG_WC>[\-+~]?)\s*(?P<TAG_NAME>[a-z][a-z_0-9]*)",
+        "COMMENT": (  # new style `{# some comment #}`
+            r"\{(?P<HASHES>#+)(?P<COMMENT_WC0>[\-+~]?)"
+            r"(?P<COMMENT_TEXT>.*?)"
+            r"(?P<COMMENT_WC1>[\-+~]?)(?P=HASHES)\}"
+        ),
+        "INLINE_COMMENT": (  # shopify style `{% # some comment %}`
+            r"\{%(?P<ILC_WC0>[\-+~]?)\s*#(?P<ILC_TEXT>.*?)(?P<ILC_WC1>[\-+~]?)%\}"
+        ),
+        "CONTENT": r".+?(?=(\{\{|\{%|\{#+|$))",
+    }
+
+    WC_MAP = {
+        None: WhitespaceControl.DEFAULT,
+        "": WhitespaceControl.DEFAULT,
+        "-": WhitespaceControl.MINUS,
+        "+": WhitespaceControl.PLUS,
+        "~": WhitespaceControl.TILDE,
+    }
+
+    WC_DEFAULT = (WhitespaceControl.DEFAULT, WhitespaceControl.DEFAULT)
+
+    MARKUP_RULES = _compile(MARKUP, flags=re.DOTALL)
+    TOKEN_RULES = _compile(NUMBERS, SYMBOLS, WORD)
 
     __slots__ = (
         "in_range",
@@ -229,9 +229,9 @@ class Lexer:
 
     def run(self) -> None:
         """Populate _self.tokens_."""
-        state: Optional[StateFn] = lex_markup
+        state: Optional[StateFn] = self.lex_markup
         while state is not None:
-            state = state(self)
+            state = state()
 
     def next(self) -> str:
         """Return the next character, or the empty string if no more characters."""
@@ -295,7 +295,7 @@ class Lexer:
             if c == ".":
                 self.ignore()
                 self.ignore_whitespace()
-                if match := RE_PROPERTY.match(self.source, self.pos):
+                if match := self.RE_PROPERTY.match(self.source, self.pos):
                     self.path_stack[-1].path.append(match.group())
                     self.pos += match.end() - match.start()
                     self.start = self.pos
@@ -336,7 +336,7 @@ class Lexer:
                     if self.peek() != "]":
                         self.error("invalid selector")
 
-                elif match := RE_INDEX.match(self.source, self.pos):
+                elif match := self.RE_INDEX.match(self.source, self.pos):
                     self.path_stack[-1].path.append(int(match.group()))
                     self.pos += match.end() - match.start()
                     self.start = self.pos
@@ -344,7 +344,7 @@ class Lexer:
                     if self.peek() != "]":
                         self.error("invalid selector")
 
-                elif match := RE_PROPERTY.match(self.source, self.pos):
+                elif match := self.RE_PROPERTY.match(self.source, self.pos):
                     # A nested path
                     self.path_stack.append(
                         PathToken(
@@ -373,7 +373,7 @@ class Lexer:
 
             if c == "\\":
                 peeked = self.peek()
-                if peeked in ESCAPES or peeked == quote:
+                if peeked in self.ESCAPES or peeked == quote:
                     self.next()
                 else:
                     raise LiquidSyntaxError(
@@ -460,7 +460,7 @@ class Lexer:
         )
 
     def accept_token(self) -> bool:
-        match = TOKEN_RULES.match(self.source, pos=self.pos)
+        match = self.TOKEN_RULES.match(self.source, pos=self.pos)
 
         if not match:
             return False
@@ -511,7 +511,7 @@ class Lexer:
                 self.accept_path(carry=True)
                 self.expression.append(self.path_stack.pop())
 
-            elif token_type := KEYWORD_MAP.get(value):
+            elif token_type := self.KEYWORD_MAP.get(value):
                 self.expression.append(
                     Token(
                         type_=token_type,
@@ -532,7 +532,7 @@ class Lexer:
 
             self.start = self.pos
 
-        elif token_type := TOKEN_MAP.get(kind):
+        elif token_type := self.TOKEN_MAP.get(kind):
             self.expression.append(
                 Token(
                     type_=token_type,
@@ -576,8 +576,7 @@ class Lexer:
             )
             raise Exception(msg)
 
-        match = RE_WHITESPACE.match(self.source, self.pos)
-        if match:
+        if match := self.RE_WHITESPACE.match(self.source, self.pos):
             self.pos += match.end() - match.start()
             self.start = self.pos
             return True
@@ -592,8 +591,7 @@ class Lexer:
             )
             raise Exception(msg)
 
-        match = RE_WHITESPACE.match(self.source, self.pos)
-        if match:
+        if match := self.RE_WHITESPACE.match(self.source, self.pos):
             whitespace = match.group()
             self.pos += len(whitespace)
             self.start = self.pos
@@ -609,8 +607,7 @@ class Lexer:
             )
             raise Exception(msg)
 
-        match = RE_LINE_SPACE.match(self.source, self.pos)
-        if match:
+        if match := self.RE_LINE_SPACE.match(self.source, self.pos):
             whitespace = match.group()
             self.pos += len(whitespace)
             self.start = self.pos
@@ -646,384 +643,387 @@ class Lexer:
             ),
         )
 
+    def lex_markup(self) -> StateFn | None:
+        while True:
+            match = self.MARKUP_RULES.match(self.source, pos=self.pos)
 
-def lex_markup(l: Lexer) -> StateFn | None:
-    while True:
-        match = MARKUP_RULES.match(l.source, pos=l.pos)
+            if not match:
+                assert self.pos == len(
+                    self.source
+                ), f"{self.pos}:{self.source[self.pos: 10]!r}.."
+                return None
 
-        if not match:
-            assert l.pos == len(l.source), f"{l.pos}:{l.source[l.pos: 10]!r}.."
-            return None
+            kind = match.lastgroup
+            value = match.group()
+            self.pos += len(value)
 
-        kind = match.lastgroup
-        value = match.group()
-        l.pos += len(value)
+            if kind == "CONTENT":
+                self.markup.append(
+                    ContentToken(
+                        type_=TokenType.CONTENT,
+                        start=self.start,
+                        stop=self.pos,
+                        text=value,
+                        source=self.source,
+                    )
+                )
+                self.start = self.pos
+                continue
 
-        if kind == "CONTENT":
-            l.markup.append(
-                ContentToken(
-                    type_=TokenType.CONTENT,
-                    start=l.start,
-                    stop=l.pos,
-                    text=value,
-                    source=l.source,
+            if kind == "OUTPUT":
+                self.markup_start = self.start
+                self.wc.append(self.WC_MAP[match.group("OUT_WC")])
+                self.ignore()
+                return self.lex_inside_output_statement
+
+            if kind == "TAG":
+                self.markup_start = self.start
+                self.wc.append(self.WC_MAP[match.group("TAG_WC")])
+                tag_name = match.group("TAG_NAME")
+                self.tag_name = tag_name
+                self.ignore()
+                return (
+                    self.lex_inside_liquid_tag
+                    if tag_name == "liquid"
+                    else self.lex_inside_tag
+                )
+
+            if kind == "COMMENT":
+                self.markup.append(
+                    CommentToken(
+                        type_=TokenType.COMMENT,
+                        start=self.start,
+                        stop=self.pos,
+                        wc=(
+                            self.WC_MAP[match.group("COMMENT_WC0")],
+                            self.WC_MAP[match.group("COMMENT_WC1")],
+                        ),
+                        text=match.group("COMMENT_TEXT"),
+                        hashes=match.group("HASHES"),
+                        source=self.source,
+                    )
+                )
+                continue
+
+            if kind == "RAW":
+                self.markup.append(
+                    RawToken(
+                        type_=TokenType.RAW,
+                        start=self.start,
+                        stop=self.pos,
+                        wc=(
+                            self.WC_MAP[match.group("RAW_WC0")],
+                            self.WC_MAP[match.group("RAW_WC1")],
+                            self.WC_MAP[match.group("RAW_WC2")],
+                            self.WC_MAP[match.group("RAW_WC3")],
+                        ),
+                        text=match.group("RAW_TEXT"),
+                        source=self.source,
+                    )
+                )
+                self.start = self.pos
+                continue
+
+            if kind == "INLINE_COMMENT":
+                self.markup.append(
+                    InlineCommentToken(
+                        type_=TokenType.COMMENT,
+                        start=self.start,
+                        stop=self.pos,
+                        wc=(
+                            self.WC_MAP[match.group("ILC_WC0")],
+                            self.WC_MAP[match.group("ILC_WC1")],
+                        ),
+                        text=match.group("ILC_TEXT"),
+                        hashes="",
+                        source=self.source,
+                    )
+                )
+                continue
+
+            if kind == "COMMENT_TAG":
+                self.markup_start = self.start
+                self.wc.append(self.WC_MAP[match.group("CT_WC")])
+                self.tag_name = "comment"
+                self.ignore()
+                return self.lex_inside_block_comment
+
+            self.error("unreachable")
+
+    def lex_inside_output_statement(
+        self,
+    ) -> StateFn | None:  # noqa: PLR0911, PLR0912, PLR0915
+        while True:
+            self.ignore_whitespace()
+            if not self.accept_token():
+                if match := self.RE_OUTPUT_END.match(self.source, self.pos):
+                    self.wc.append(self.WC_MAP[match.group(1)])
+                    self.pos += match.end() - match.start()
+
+                    self.markup.append(
+                        OutputToken(
+                            type_=TokenType.OUTPUT,
+                            start=self.markup_start,
+                            stop=self.pos,
+                            wc=(self.wc[0], self.wc[1]),
+                            expression=self.expression,
+                            source=self.source,
+                        )
+                    )
+
+                    self.wc.clear()
+                    self.expression = []
+                    self.ignore()
+                    return self.lex_markup
+
+                ch = self.peek()
+                if ch == "}":
+                    self.error("missing bracket detected")
+                self.error(f"unexpected {ch!r}")
+
+    def lex_inside_tag(self) -> StateFn | None:
+        while True:
+            self.ignore_whitespace()
+            if not self.accept_token():
+                if match := self.RE_TAG_END.match(self.source, self.pos):
+                    self.wc.append(self.WC_MAP[match.group(1)])
+                    self.pos += match.end() - match.start()
+                    self.markup.append(
+                        TagToken(
+                            type_=TokenType.TAG,
+                            start=self.markup_start,
+                            stop=self.pos,
+                            wc=(self.wc[0], self.wc[1]),
+                            name=self.tag_name,
+                            expression=self.expression,
+                            source=self.source,
+                        )
+                    )
+                    self.wc.clear()
+                    self.tag_name = ""
+                    self.expression = []
+                    self.ignore()
+                    return self.lex_markup
+
+                ch = self.peek()
+                if ch == "}":
+                    self.error("missing percent detected")
+                if ch == "%":
+                    self.error("missing bracket detected")
+                self.error(f"unexpected {ch!r}")
+
+    def lex_inside_liquid_tag(self) -> StateFn | None:
+        self.line_space.append(self.consume_whitespace())
+
+        if match := self.RE_TAG_END.match(self.source, self.pos):
+            self.wc.append(self.WC_MAP[match.group(1)])
+            self.pos += match.end() - match.start()
+            self.markup.append(
+                LinesToken(
+                    type_=TokenType.LINES,
+                    start=self.markup_start,
+                    stop=self.pos,
+                    wc=(self.wc[0], self.wc[1]),
+                    name="liquid",
+                    statements=self.line_statements,
+                    whitespace=self.line_space,
+                    source=self.source,
                 )
             )
-            l.start = l.pos
-            continue
 
-        if kind == "OUTPUT":
-            l.markup_start = l.start
-            l.wc.append(WC_MAP[match.group("OUT_WC")])
-            l.ignore()
-            return lex_inside_output_statement
+            self.wc.clear()
+            self.tag_name = ""
+            self.line_statements = []
+            self.line_space = []
+            self.expression = []
+            self.ignore()
+            return self.lex_markup
 
-        if kind == "TAG":
-            l.markup_start = l.start
-            l.wc.append(WC_MAP[match.group("TAG_WC")])
-            tag_name = match.group("TAG_NAME")
-            l.tag_name = tag_name
-            l.ignore()
-            return lex_inside_liquid_tag if tag_name == "liquid" else lex_inside_tag
+        if self.accept(self.RE_TAG_NAME):
+            self.tag_name = self.source[self.start : self.pos]
+            self.line_start = self.start
+            self.ignore()
+            return (
+                self.lex_inside_liquid_block_comment
+                if self.tag_name == "comment"
+                else self.lex_inside_line_statement
+            )
 
-        if kind == "COMMENT":
-            l.markup.append(
+        if match := self.RE_LINE_COMMENT.match(self.source, self.pos):
+            self.pos += match.end() - match.start()
+            self.line_statements.append(
                 CommentToken(
                     type_=TokenType.COMMENT,
-                    start=l.start,
-                    stop=l.pos,
-                    wc=(
-                        WC_MAP[match.group("COMMENT_WC0")],
-                        WC_MAP[match.group("COMMENT_WC1")],
-                    ),
-                    text=match.group("COMMENT_TEXT"),
-                    hashes=match.group("HASHES"),
-                    source=l.source,
+                    start=self.start,
+                    stop=self.pos,
+                    wc=self.WC_DEFAULT,
+                    text=match.group(1),
+                    hashes="#",
+                    source=self.source,
                 )
             )
-            continue
+            self.start = self.pos
+            # Line comments don't consume their trailing newline, but
+            # lex_inside_line_statement does.
+            if self.peek() == "\n":
+                self.next()
+                self.ignore()
+            return self.lex_inside_liquid_tag
 
-        if kind == "RAW":
-            l.markup.append(
-                RawToken(
-                    type_=TokenType.RAW,
-                    start=l.start,
-                    stop=l.pos,
-                    wc=(
-                        WC_MAP[match.group("RAW_WC0")],
-                        WC_MAP[match.group("RAW_WC1")],
-                        WC_MAP[match.group("RAW_WC2")],
-                        WC_MAP[match.group("RAW_WC3")],
-                    ),
-                    text=match.group("RAW_TEXT"),
-                    source=l.source,
-                )
-            )
-            l.start = l.pos
-            continue
+        self.next()
+        return self.error("expected a tag name")
 
-        if kind == "INLINE_COMMENT":
-            l.markup.append(
-                InlineCommentToken(
-                    type_=TokenType.COMMENT,
-                    start=l.start,
-                    stop=l.pos,
-                    wc=(
-                        WC_MAP[match.group("ILC_WC0")],
-                        WC_MAP[match.group("ILC_WC1")],
-                    ),
-                    text=match.group("ILC_TEXT"),
-                    hashes="",
-                    source=l.source,
-                )
-            )
-            continue
+    def lex_inside_line_statement(self) -> StateFn | None:
+        while True:
+            self.ignore_line_space()
 
-        if kind == "COMMENT_TAG":
-            l.markup_start = l.start
-            l.wc.append(WC_MAP[match.group("CT_WC")])
-            l.tag_name = "comment"
-            l.ignore()
-            return lex_inside_block_comment
-
-        l.error("unreachable")
-
-
-def lex_inside_output_statement(
-    l: Lexer,
-) -> StateFn | None:  # noqa: PLR0911, PLR0912, PLR0915
-    while True:
-        l.ignore_whitespace()
-        if not l.accept_token():
-            if match := RE_OUTPUT_END.match(l.source, l.pos):
-                l.wc.append(WC_MAP[match.group(1)])
-                l.pos += match.end() - match.start()
-
-                l.markup.append(
-                    OutputToken(
-                        type_=TokenType.OUTPUT,
-                        start=l.markup_start,
-                        stop=l.pos,
-                        wc=(l.wc[0], l.wc[1]),
-                        expression=l.expression,
-                        source=l.source,
-                    )
-                )
-
-                l.wc.clear()
-                l.expression = []
-                l.ignore()
-                return lex_markup
-
-            ch = l.peek()
-            if ch == "}":
-                l.error("missing bracket detected")
-            l.error(f"unexpected {ch!r}")
-
-
-def lex_inside_tag(l: Lexer) -> StateFn | None:
-    while True:
-        l.ignore_whitespace()
-        if not l.accept_token():
-            if match := RE_TAG_END.match(l.source, l.pos):
-                l.wc.append(WC_MAP[match.group(1)])
-                l.pos += match.end() - match.start()
-                l.markup.append(
+            if self.accept(self.RE_LINE_TERM):
+                self.line_statements.append(
                     TagToken(
                         type_=TokenType.TAG,
-                        start=l.markup_start,
-                        stop=l.pos,
-                        wc=(l.wc[0], l.wc[1]),
-                        name=l.tag_name,
-                        expression=l.expression,
-                        source=l.source,
+                        start=self.line_start,
+                        stop=self.start,
+                        wc=self.WC_DEFAULT,
+                        name=self.tag_name,
+                        expression=self.expression,
+                        source=self.source,
                     )
                 )
-                l.wc.clear()
-                l.tag_name = ""
-                l.expression = []
-                l.ignore()
-                return lex_markup
+                self.ignore()
+                self.tag_name = ""
+                self.expression = []
+                return self.lex_inside_liquid_tag
 
-            ch = l.peek()
-            if ch == "}":
-                l.error("missing percent detected")
-            if ch == "%":
-                l.error("missing bracket detected")
-            l.error(f"unexpected {ch!r}")
-
-
-def lex_inside_liquid_tag(l: Lexer) -> StateFn | None:
-    l.line_space.append(l.consume_whitespace())
-
-    if match := RE_TAG_END.match(l.source, l.pos):
-        l.wc.append(WC_MAP[match.group(1)])
-        l.pos += match.end() - match.start()
-        l.markup.append(
-            LinesToken(
-                type_=TokenType.LINES,
-                start=l.markup_start,
-                stop=l.pos,
-                wc=(l.wc[0], l.wc[1]),
-                name="liquid",
-                statements=l.line_statements,
-                whitespace=l.line_space,
-                source=l.source,
-            )
-        )
-
-        l.wc.clear()
-        l.tag_name = ""
-        l.line_statements = []
-        l.line_space = []
-        l.expression = []
-        l.ignore()
-        return lex_markup
-
-    if l.accept(RE_TAG_NAME):
-        l.tag_name = l.source[l.start : l.pos]
-        l.line_start = l.start
-        l.ignore()
-        return (
-            lex_inside_liquid_block_comment
-            if l.tag_name == "comment"
-            else lex_inside_line_statement
-        )
-
-    if match := RE_LINE_COMMENT.match(l.source, l.pos):
-        l.pos += match.end() - match.start()
-        l.line_statements.append(
-            CommentToken(
-                type_=TokenType.COMMENT,
-                start=l.start,
-                stop=l.pos,
-                wc=WC_DEFAULT,
-                text=match.group(1),
-                hashes="#",
-                source=l.source,
-            )
-        )
-        l.start = l.pos
-        # Line comments don't consume their trailing newline, but
-        # lex_inside_line_statement does.
-        if l.peek() == "\n":
-            l.next()
-            l.ignore()
-        return lex_inside_liquid_tag
-
-    l.next()
-    return l.error("expected a tag name")
-
-
-def lex_inside_line_statement(l: Lexer) -> StateFn | None:
-    while True:
-        l.ignore_line_space()
-
-        if l.accept(RE_LINE_TERM):
-            l.line_statements.append(
-                TagToken(
-                    type_=TokenType.TAG,
-                    start=l.line_start,
-                    stop=l.start,
-                    wc=WC_DEFAULT,
-                    name=l.tag_name,
-                    expression=l.expression,
-                    source=l.source,
-                )
-            )
-            l.ignore()
-            l.tag_name = ""
-            l.expression = []
-            return lex_inside_liquid_tag
-
-        if not l.accept_token():
-            if match := RE_TAG_END.match(l.source, l.pos):
-                l.wc.append(WC_MAP[match.group(1)])
-                l.pos += match.end() - match.start()
-                l.ignore()
-                l.line_statements.append(
-                    TagToken(
-                        type_=TokenType.TAG,
-                        start=l.line_start,
-                        stop=l.pos,
-                        wc=WC_DEFAULT,
-                        name=l.tag_name,
-                        expression=l.expression,
-                        source=l.source,
-                    )
-                )
-
-                l.markup.append(
-                    LinesToken(
-                        type_=TokenType.LINES,
-                        start=l.markup_start,
-                        stop=l.pos,
-                        wc=(l.wc[0], l.wc[1]),
-                        name="liquid",
-                        statements=l.line_statements,
-                        whitespace=l.line_space,
-                        source=l.source,
-                    )
-                )
-
-                l.wc = []
-                l.tag_name = ""
-                l.line_statements = []
-                l.line_space = []
-                l.expression = []
-                l.ignore()
-                return lex_markup
-
-            l.error(f"unknown symbol '{l.next()}'")
-
-
-def lex_inside_block_comment(l: Lexer) -> StateFn | None:
-    comment_depth = 1
-    raw_depth = 0
-
-    while True:
-        # Read comment text up to the next {% comment %}, {% endcomment %} or {% raw %}
-        if match := RE_COMMENT_TAG_CHUNK.match(l.source, l.pos):
-            l.pos += match.end() - match.start()
-            tag_name = match.group("COMMENT_CHUNK_END")
-
-            if tag_name == "comment":
-                comment_depth += 1
-            elif tag_name == "endcomment":
-                if raw_depth:
-                    continue
-                comment_depth -= 1
-                if comment_depth == 0:
-                    l.markup.append(
-                        BlockCommentToken(
-                            type_=TokenType.COMMENT,
-                            start=l.markup_start,
-                            stop=l.pos,
-                            wc=(l.wc[0], WC_MAP[match.group("COMMENT_WC_END")]),
-                            text=l.source[
-                                l.start : match.start() + len(match.group(1))
-                            ],
-                            hashes="",
-                            source=l.source,
+            if not self.accept_token():
+                if match := self.RE_TAG_END.match(self.source, self.pos):
+                    self.wc.append(self.WC_MAP[match.group(1)])
+                    self.pos += match.end() - match.start()
+                    self.ignore()
+                    self.line_statements.append(
+                        TagToken(
+                            type_=TokenType.TAG,
+                            start=self.line_start,
+                            stop=self.pos,
+                            wc=self.WC_DEFAULT,
+                            name=self.tag_name,
+                            expression=self.expression,
+                            source=self.source,
                         )
                     )
-                    l.wc.clear()
-                    l.tag_name = ""
-                    break
-            elif tag_name == "raw":
-                raw_depth += 1
-            elif tag_name == "endraw" and raw_depth > 0:
-                raw_depth -= 1
-        else:
-            l.error("unclosed comment block detected")
 
-    if raw_depth > 0:
-        l.error("unclosed raw block detected")
-
-    return lex_markup
-
-
-def lex_inside_liquid_block_comment(l: Lexer) -> StateFn | None:
-    l.ignore_whitespace()
-    comment_depth = 1
-
-    while True:
-        if match := RE_TAG_NAME.match(l.source, l.pos):
-            tag_name = match.group()
-            l.pos += match.end() - match.start()
-            if tag_name == "endcomment":
-                text_end_pos = l.pos - len(tag_name)
-                comment_depth -= 1
-                if comment_depth == 0:
-                    l.accept(RE_REST_OF_LINE)
-                    l.accept(RE_LINE_TERM)
-                    l.line_statements.append(
-                        BlockCommentToken(
-                            type_=TokenType.COMMENT,
-                            start=l.line_start,
-                            stop=l.pos,
-                            wc=WC_DEFAULT,
-                            text=l.source[l.start : text_end_pos],
-                            hashes="",
-                            source=l.source,
+                    self.markup.append(
+                        LinesToken(
+                            type_=TokenType.LINES,
+                            start=self.markup_start,
+                            stop=self.pos,
+                            wc=(self.wc[0], self.wc[1]),
+                            name="liquid",
+                            statements=self.line_statements,
+                            whitespace=self.line_space,
+                            source=self.source,
                         )
                     )
-                    l.start = l.pos
-                    break
-            elif tag_name == "comment":
-                comment_depth += 1
 
-            l.accept(RE_REST_OF_LINE)
-            l.accept(RE_LINE_TERM)
+                    self.wc = []
+                    self.tag_name = ""
+                    self.line_statements = []
+                    self.line_space = []
+                    self.expression = []
+                    self.ignore()
+                    return self.lex_markup
 
-        elif match := RE_LINE_COMMENT.match(l.source, l.pos):
-            l.pos += match.end() - match.start()
-            l.accept(RE_LINE_TERM)
+                self.error(f"unknown symbol '{self.next()}'")
 
-        else:
-            l.error("unclosed comment block detected")
+    def lex_inside_block_comment(self) -> StateFn | None:
+        comment_depth = 1
+        raw_depth = 0
 
-    return lex_inside_liquid_tag
+        while True:
+            # Read comment text up to the next {% comment %}, {% endcomment %},
+            # {% raw %}, {% endraw %}, so we can count how many nested tags there are.
+            if match := self.RE_COMMENT_TAG_CHUNK.match(self.source, self.pos):
+                self.pos += match.end() - match.start()
+                tag_name = match.group("COMMENT_CHUNK_END")
+
+                if tag_name == "comment":
+                    comment_depth += 1
+                elif tag_name == "endcomment":
+                    if raw_depth:
+                        continue
+                    comment_depth -= 1
+                    if comment_depth == 0:
+                        self.markup.append(
+                            BlockCommentToken(
+                                type_=TokenType.COMMENT,
+                                start=self.markup_start,
+                                stop=self.pos,
+                                wc=(
+                                    self.wc[0],
+                                    self.WC_MAP[match.group("COMMENT_WC_END")],
+                                ),
+                                text=self.source[
+                                    self.start : match.start() + len(match.group(1))
+                                ],
+                                hashes="",
+                                source=self.source,
+                            )
+                        )
+                        self.wc.clear()
+                        self.tag_name = ""
+                        break
+                elif tag_name == "raw":
+                    raw_depth += 1
+                elif tag_name == "endraw" and raw_depth > 0:
+                    raw_depth -= 1
+            else:
+                self.error("unclosed comment block detected")
+
+        if raw_depth > 0:
+            self.error("unclosed raw block detected")
+
+        return self.lex_markup
+
+    def lex_inside_liquid_block_comment(self) -> StateFn | None:
+        self.ignore_whitespace()
+        comment_depth = 1
+
+        while True:
+            if match := self.RE_TAG_NAME.match(self.source, self.pos):
+                tag_name = match.group()
+                self.pos += match.end() - match.start()
+                if tag_name == "endcomment":
+                    text_end_pos = self.pos - len(tag_name)
+                    comment_depth -= 1
+                    if comment_depth == 0:
+                        self.accept(self.RE_REST_OF_LINE)
+                        self.accept(self.RE_LINE_TERM)
+                        self.line_statements.append(
+                            BlockCommentToken(
+                                type_=TokenType.COMMENT,
+                                start=self.line_start,
+                                stop=self.pos,
+                                wc=self.WC_DEFAULT,
+                                text=self.source[self.start : text_end_pos],
+                                hashes="",
+                                source=self.source,
+                            )
+                        )
+                        self.start = self.pos
+                        break
+                elif tag_name == "comment":
+                    comment_depth += 1
+
+                self.accept(self.RE_REST_OF_LINE)
+                self.accept(self.RE_LINE_TERM)
+
+            elif match := self.RE_LINE_COMMENT.match(self.source, self.pos):
+                self.pos += match.end() - match.start()
+                self.accept(self.RE_LINE_TERM)
+
+            else:
+                self.error("unclosed comment block detected")
+
+        return self.lex_inside_liquid_tag
 
 
 def tokenize(source: str) -> list[TokenT]:

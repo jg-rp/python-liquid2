@@ -27,7 +27,6 @@ plugins:
             show_root_heading: true
             separate_signature: true
             docstring_section_style: "spacy"
-  - autorefs
 
 nav:
   - Home: 
@@ -36,6 +35,7 @@ nav:
     - Liquid Syntax: "syntax.md"
     - Terminology: "terminology.md" 
     - Migration guide: "migration.md"
+    - Known issues: "known_issues.md"
   - User guide:
     - Liquid environments: "environment.md"
     - Rendering templates: "rendering_templates.md"
@@ -64,7 +64,9 @@ nav:
     - AST: "api/ast.md"
     - Filters: "api/filter.md"
     - Tags: "api/tag.md"
+    - Undefined: "api/undefined.md"
     - Babel: "api/babel.md"
+    - Tokens: "api/tokens.md"
 
 markdown_extensions:
   - admonition

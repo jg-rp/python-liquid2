@@ -1,4 +1,4 @@
-"""Replace escape sequences replaced with their Unicode equivalents."""
+"""Replace escape sequences with their Unicode equivalents."""
 
 from .exceptions import LiquidSyntaxError
 from .token import TokenT
@@ -117,7 +117,7 @@ def _parse_hex_digits(digits: str, token: TokenT) -> int:
 
 
 def _string_from_code_point(code_point: int, token: TokenT) -> str:
-    if code_point < 8:  # TODO:
+    if code_point < 8:
         raise LiquidSyntaxError("invalid character", token=token)
     return chr(code_point)
 

@@ -13,7 +13,7 @@ from typing import Type
 from .builtin import DictLoader
 from .builtin import register_standard_tags_and_filters
 from .exceptions import LiquidError
-from .lexer import tokenize
+from .lexer import Lexer
 from .parser import Parser
 from .template import Template
 from .token import WhitespaceControl
@@ -24,10 +24,31 @@ if TYPE_CHECKING:
     from .context import RenderContext
     from .loader import BaseLoader
     from .tag import Tag
+    from .token import TokenT
 
 
 class Environment:
-    """Template parsing and rendering configuration."""
+    """Template parsing and rendering configuration.
+
+    An `Environment` is where you might register custom tags and filters, or store
+    global context variables that should be included with every template.
+
+    Args:
+        loader: A template loader from which template source text will be read when
+            calling [get_template][liquid2.Environment.get_template] or when rendering
+            with the built-in `{% include %}` and `{% render %}`, among others. If
+            `None`, the environment will be configured with an empty
+            [DictLoader][liquid2.DictLoader].
+        globals: An optional mapping of template variables that will be added to the
+            render context of all templates rendered from the environment.
+        auto_escape: If `True`, automatically escape HTML text upon output, unless the
+            text is explicitly marked as "safe".
+        undefined: The [Undefined][liquid2.Undefined] type used to represent template
+            variables that don't exist.
+        default_trim: The automatic whitespace stripping mode to use. This mode can then
+            be overridden by template authors per Liquid tag using whitespace control
+            symbols (`-`, `+`, `~`).
+    """
 
     context_depth_limit: ClassVar[int] = 30
     """Maximum number of times a render context can be extended or wrapped before
@@ -50,7 +71,11 @@ class Environment:
     """If True (the default), indicates that blocks rendering to whitespace only will
     not be output."""
 
+    lexer_class = Lexer
+    """The lexer class to use when scanning template source text."""
+
     template_class = Template
+    """The template class to use after parsing source text."""
 
     def __init__(
         self,
@@ -85,9 +110,15 @@ class Environment:
         """
         register_standard_tags_and_filters(self)
 
+    def tokenize(self, source: str) -> list[TokenT]:
+        """Scan Liquid template _source_ and return a list of Markup objects."""
+        lexer = self.lexer_class(source)
+        lexer.run()
+        return lexer.markup
+
     def parse(self, source: str) -> list[Node]:
         """Compile template source text and return an abstract syntax tree."""
-        return self.parser.parse(tokenize(source))
+        return self.parser.parse(self.tokenize(source))
 
     def from_string(
         self,
