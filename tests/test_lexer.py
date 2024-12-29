@@ -1,5 +1,3 @@
-"""Test the Rust lexer."""
-
 import operator
 from dataclasses import dataclass
 
@@ -10,8 +8,6 @@ from liquid2 import tokenize
 
 @dataclass
 class Case:
-    """Test case helper."""
-
     name: str
     source: str
     want: str

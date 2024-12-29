@@ -200,7 +200,7 @@ test_cases = [
     Case(
         description="chained keyword identifier",
         template="{% include 'product.liquid', foo.bar: 'hello' %}",
-        expect_msg="expected a list of keyword arguments, found PATH",
+        expect_msg="expected an argument name, found PATH",
     ),
     Case(
         description="unexpected identifier character",
@@ -216,6 +216,16 @@ test_cases = [
         description="unexpected capture path",
         template=r"{% capture foo.bar %}{% endcapture %}",
         expect_msg="expected an identifier, found PATH",
+    ),
+    Case(
+        description="consecutive commas in keyword argument list",
+        template=r"{% with you='world',, some='thing' %}Hello, {{ you }}!{% endwith %}",
+        expect_msg="expected an argument name, found COMMA",
+    ),
+    Case(
+        description="consecutive commas in positional argument list",
+        template=r"{% call macro a,, b %}",
+        expect_msg="expected a primitive expression, found COMMA",
     ),
 ]
 

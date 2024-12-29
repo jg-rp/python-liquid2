@@ -28,8 +28,6 @@ class LiquidError(Exception):
         self.template_name = template_name
 
     def __str__(self) -> str:
-        # TODO: env var to disable detailed messages
-        # TODO: include line and col in short messages
         return self.detailed_message()
 
     def detailed_message(self) -> str:
@@ -174,8 +172,7 @@ class DisabledTagError(LiquidError):
     """Exception raised when an attempt is made to render a disabled tag."""
 
 
-# TODO: rename me to FilterNotFoundError
-class NoSuchFilterFunc(LiquidError):  # noqa: N818
+class UnknownFilterError(LiquidError):  # noqa: N818
     """Exception raised when a filter lookup fails."""
 
 

@@ -13,11 +13,11 @@ from typing import TypeAlias
 from typing import TypeGuard
 from typing import Union
 
-# TODO: doc comments
-
 
 @dataclass(kw_only=True, slots=True)
 class TokenT(ABC):
+    """The base class for all tokens."""
+
     type_: TokenType
     source: str
 
@@ -29,7 +29,7 @@ class TokenT(ABC):
     @property
     @abstractmethod
     def start(self) -> int:
-        """The end position of this token."""
+        """The start position of this token."""
 
 
 Markup: TypeAlias = Union[
@@ -43,6 +43,8 @@ Markup: TypeAlias = Union[
 
 @dataclass(kw_only=True, slots=True)
 class ContentToken(TokenT):
+    """A token representing template text content that is not markup."""
+
     start: int
     stop: int
     text: str
@@ -53,6 +55,8 @@ class ContentToken(TokenT):
 
 @dataclass(kw_only=True, slots=True)
 class RawToken(TokenT):
+    """A token representing raw content that should be treated as plain text."""
+
     start: int
     stop: int
     wc: tuple[
@@ -73,6 +77,8 @@ class RawToken(TokenT):
 
 @dataclass(kw_only=True, slots=True)
 class CommentToken(TokenT):
+    """A token representing a comment."""
+
     start: int
     stop: int
     wc: tuple[WhitespaceControl, WhitespaceControl]
@@ -85,18 +91,30 @@ class CommentToken(TokenT):
 
 @dataclass(kw_only=True, slots=True)
 class BlockCommentToken(CommentToken):
+    """A token representing a block comment.
+
+    That's one with a start and end tag.
+    """
+
     def __str__(self) -> str:
         return f"{{%{self.wc[0]} comment %}}{self.text}{{% endcomment {self.wc[1]}%}}"
 
 
 @dataclass(kw_only=True, slots=True)
 class InlineCommentToken(CommentToken):
+    """A token representing an inline comment tag.
+
+    That's one with `#` as the tag name. Like `{% # some comment %}`.
+    """
+
     def __str__(self) -> str:
         return f"{{%{self.wc[0]} #{self.text}{self.wc[1]}%}}"
 
 
 @dataclass(kw_only=True, slots=True)
 class OutputToken(TokenT):
+    """A token representing an output statement."""
+
     start: int
     stop: int
     wc: tuple[WhitespaceControl, WhitespaceControl]
@@ -112,6 +130,11 @@ class OutputToken(TokenT):
 
 @dataclass(kw_only=True, slots=True)
 class TagToken(TokenT):
+    """A token representing a tag.
+
+    This could be an inline tag, or the start or end of a block tag.
+    """
+
     start: int
     stop: int
     wc: tuple[WhitespaceControl, WhitespaceControl]
@@ -130,6 +153,11 @@ class TagToken(TokenT):
 
 @dataclass(kw_only=True, slots=True)
 class LinesToken(TokenT):
+    """A token representing line statements, where each line is a tag expression.
+
+    The built-in `{% liquid %}` tag is an example of a tag that uses line statements.
+    """
+
     start: int
     stop: int
     wc: tuple[WhitespaceControl, WhitespaceControl]
@@ -175,6 +203,8 @@ def _tag_as_line_statement(markup: TagToken | CommentToken) -> str:
 
 @dataclass(kw_only=True, slots=True)
 class Token(TokenT):
+    """A liquid expression token."""
+
     value: str
     index: int
     source: str = field(repr=False)
@@ -197,6 +227,8 @@ RE_PROPERTY = re.compile(r"[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*")
 
 @dataclass(kw_only=True, slots=True)
 class PathToken(TokenT):
+    """A token representing the path to a variable."""
+
     path: PathT
     start: int
     stop: int
@@ -220,6 +252,11 @@ class PathToken(TokenT):
 
 @dataclass(kw_only=True, slots=True)
 class RangeToken(TokenT):
+    """A token representing a range expression.
+
+    For example, `(1..3)`.
+    """
+
     range_start: TokenT
     range_stop: TokenT
     start: int
@@ -229,6 +266,8 @@ class RangeToken(TokenT):
 
 @dataclass(kw_only=True, slots=True)
 class ErrorToken(TokenT):
+    """A token representing a syntax error found by the lexer."""
+
     index: int
     value: str
     markup_start: int
@@ -251,47 +290,47 @@ class ErrorToken(TokenT):
 
 
 def is_content_token(token: TokenT) -> TypeGuard[ContentToken]:
-    """A _ContentToken_ type guard."""
+    """A [ContentToken][liquid2.token.ContentToken] type guard."""
     return token.type_ == TokenType.CONTENT
 
 
 def is_comment_token(token: TokenT) -> TypeGuard[CommentToken]:
-    """A _CommentToken_ type guard."""
+    """A [CommentToken][liquid2.token.CommentToken] type guard."""
     return token.type_ == TokenType.COMMENT
 
 
 def is_tag_token(token: TokenT) -> TypeGuard[TagToken]:
-    """A _TagToken_ type guard."""
+    """A [TagToken][liquid2.token.TagToken] type guard."""
     return token.type_ == TokenType.TAG
 
 
 def is_output_token(token: TokenT) -> TypeGuard[OutputToken]:
-    """An _OutputToken_ type guard."""
+    """An [OutputToken][liquid2.token.OutputToken] type guard."""
     return token.type_ == TokenType.OUTPUT
 
 
 def is_raw_token(token: TokenT) -> TypeGuard[RawToken]:
-    """A _RawToken_ type guard."""
+    """A [RawToken][liquid2.token.RawToken] type guard."""
     return token.type_ == TokenType.RAW
 
 
 def is_lines_token(token: TokenT) -> TypeGuard[LinesToken]:
-    """A _LinesToken_ type guard."""
+    """A [LinesToken][liquid2.token.LinesToken] type guard."""
     return token.type_ == TokenType.LINES
 
 
 def is_path_token(token: TokenT) -> TypeGuard[PathToken]:
-    """A _PathToken_ type guard."""
+    """A [PathToken][liquid2.token.PathToken] type guard."""
     return token.type_ == TokenType.PATH
 
 
 def is_range_token(token: TokenT) -> TypeGuard[RangeToken]:
-    """A _RangeToken_ type guard."""
+    """A [RangeToken][liquid2.token.RangeToken] type guard."""
     return token.type_ == TokenType.RANGE
 
 
 def is_token_type(token: TokenT, t: TokenType) -> TypeGuard[Token]:
-    """A _Token_ type guard."""
+    """A [Token][liquid2.token.Token] type guard."""
     return token.type_ == t
 
 

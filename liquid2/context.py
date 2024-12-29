@@ -26,7 +26,7 @@ from markupsafe import Markup
 from .exceptions import ContextDepthError
 from .exceptions import LocalNamespaceLimitError
 from .exceptions import LoopIterationLimitError
-from .exceptions import NoSuchFilterFunc
+from .exceptions import UnknownFilterError
 from .output import LimitedStringIO
 from .undefined import UNDEFINED
 from .utils import ReadOnlyChainMap
@@ -268,7 +268,7 @@ class RenderContext:
         try:
             filter_func = self.env.filters[name]
         except KeyError as err:
-            raise NoSuchFilterFunc(f"unknown filter '{name}'", token=token) from err
+            raise UnknownFilterError(f"unknown filter '{name}'", token=token) from err
 
         kwargs: dict[str, Any] = {}
 

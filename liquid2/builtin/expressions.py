@@ -1637,7 +1637,6 @@ def parse_keyword_arguments(tokens: TokenStream) -> list[KeywordArgument]:
 
         if is_token_type(token, TokenType.COMMA):
             # Leading and/or trailing commas are OK.
-            # TODO: test for double comma
             token = tokens.next()
 
         if token.type_ == TokenType.EOI:
@@ -1650,7 +1649,7 @@ def parse_keyword_arguments(tokens: TokenStream) -> list[KeywordArgument]:
             args.append(KeywordArgument(token.value, value))
         else:
             raise LiquidSyntaxError(
-                f"expected a list of keyword arguments, found {token.type_.name}",
+                f"expected an argument name, found {token.type_.name}",
                 token=token,
             )
 
@@ -1673,7 +1672,6 @@ def parse_positional_and_keyword_arguments(
 
         if is_token_type(token, TokenType.COMMA):
             # Leading and/or trailing commas are OK.
-            # TODO: test for double comma
             token = tokens.next()
 
         if token.type_ == TokenType.EOI:
@@ -1696,7 +1694,6 @@ def parse_positional_and_keyword_arguments(
 
 def parse_parameters(tokens: TokenStream) -> dict[str, Parameter]:
     """Parse _tokens_ as a list of arguments suitable for a macro definition."""
-    # TODO: catch duplicate parameters? We currently take the last of any duplicates.
     params: dict[str, Parameter] = {}
 
     while True:

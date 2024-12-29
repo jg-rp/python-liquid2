@@ -880,4 +880,29 @@ def test_analyze_macro_and_call(env: Environment) -> None:
     )
 
 
-# TODO: test analyse babel
+def test_analyze_translate(env: Environment) -> None:
+    source = (
+        "{%- translate, context: 'greeting', you: someone, count: 2 -%}"
+        "    Hello, {{ you }}!"
+        "{%- plural -%}"
+        "    Hello, {{ you }}s!"
+        "{%- endtranslate -%}"
+    )
+
+    someone = [Variable(["someone"], Span("", 41, 48))]
+
+    _assert(
+        env.from_string(source),
+        locals={},
+        globals={"someone": someone},
+        variables={
+            "someone": someone,
+            "you": [
+                Variable(["you"], Span("", 76, 79)),
+                Variable(["you"], Span("", 111, 114)),
+            ],
+        },
+        tags={
+            "translate": [Span("", 0, 62)],
+        },
+    )

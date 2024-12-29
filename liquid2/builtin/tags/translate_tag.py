@@ -18,6 +18,7 @@ from liquid2 import TokenStream
 from liquid2.ast import BlockNode
 from liquid2.ast import Node
 from liquid2.builtin import FilteredExpression
+from liquid2.builtin import Identifier
 from liquid2.builtin import KeywordArgument
 from liquid2.builtin import Path
 from liquid2.builtin import StringLiteral
@@ -203,6 +204,10 @@ class TranslateNode(Node, TranslatableTag):
 
         if self.plural_block:
             yield self.plural_block.block
+
+    def block_scope(self) -> Iterable[Identifier]:
+        """Return variables this node adds to the node's block scope."""
+        yield from (Identifier(p.name, token=p.token) for p in self.args.values())
 
     def expressions(self) -> Iterable[Expression]:
         """Return this node's expressions."""

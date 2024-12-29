@@ -57,9 +57,11 @@ These are the most notable changes. Please raise an [issue](https://github.com/j
 - `FileSystemLoader` now takes an optional default file extension to use when looking for files that don't already have an extension. Previously there was a separate `FileExtensionLoader`.
 - `AwareBoundTemplate` (a template with a built-in `template` drop) has been removed, but can be added as a feature later if there is a demand.
 - The `auto_reload` and `cache_size` arguments to `Environment` have been removed. Now caching is handle by template loaders, not the environment. For example, pass a `CachingFileSystemLoader` as the `loader` argument to `Environment` instead of a `FileSystemLoader`.
+- The `strict_filters` argument to `Environment` has been removed. Unknown filters now always raise ab `UnknownFilterError`.
 - `TemplateNotFound` has been renamed to `TemplateNotFoundError`.
 - `Context` has been renamed to `RenderContext` and now takes a mandatory `template` argument instead of `env`. All other arguments to `RenderContext` are now keyword only.
 - `FilterValueError` and `FilterArgumentError` have been removed. `LiquidValueError` and `LiquidTypeError` should be used instead. In some cases where `FilterValueError` was deliberately ignored before, `LiquidValueError` is now raised.
+- The exception `NoSuchFilterFunc`, raised when rendering a template that uses a filter that is not defined in `Environment.filters`, has been renamed to `UnknownFilterError`.
 
 ### Template and expression parsing
 
