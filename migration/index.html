@@ -16,7 +16,7 @@
         <link rel="prev" href="../terminology/">
       
       
-        <link rel="next" href="../environment/">
+        <link rel="next" href="../known_issues/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -588,6 +588,27 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../known_issues/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Known issues
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -1227,6 +1248,69 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/undefined/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Undefined
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/babel/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Babel
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/tokens/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Tokens
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1360,16 +1444,16 @@
 
 
 <h1 id="migration-guide">Migration guide</h1>
-<p>When compared to <a href="https://github.com/jg-rp/liquid">Python Liquid version 1</a>, Liquid2 changes both the Python API <strong>and</strong> Liquid syntax and features. Liquid2's default syntax and semantics are backwards compatible with version 1 and Shopify/Liquid, mostly.</p>
+<p>Liquid2 changes Liquid syntax and features <strong>and</strong> the template engine's Python API. Liquid2's default syntax and semantics are mostly backwards compatible with version 1 and, by extension, Shopify/Liquid.</p>
 <h2 id="approach-to-compatibility-and-stability">Approach to compatibility and stability</h2>
-<p>With Python Liquid version 1, our primary objectives were render behavior stability and Shopify/Liquid compatibility, in that order. Later we introduced <code>liquid.future.Environment</code>, which sacrificed some stability for greater Shopify/Liquid compatibility as Shopify/Liquid and our understanding of it changed.</p>
+<p>With <a href="https://github.com/jg-rp/liquid">Python Liquid version 1</a>, our primary objectives were render behavior stability and Shopify/Liquid compatibility, in that order. Later we introduced <code>liquid.future.Environment</code>, which sacrificed some stability for greater Shopify/Liquid compatibility as Shopify/Liquid and our understanding of it changed.</p>
 <p>Now, with Python Liquid version 2, render behavior stability is still the top priority, but the default environment deliberately deviates from Shopify/Liquid in several ways, "fixing" and adding often requested features that Shopify can't due to their large user base and the technical debt that comes with it.</p>
 <p>In most cases these fixes and features are backwards compatible with Shopify/Liquid, requiring little or no modification to legacy Liquid templates. To ease transition from legacy templates to Liquid2 templates we include a <code>liquid2.shopify.Environment</code>, which is configured to include some legacy tags that didn't make it in to the default environment.</p>
 <h3 id="why-is-render-stability-so-important">Why is render stability so important?</h3>
 <p>When developing a conventional website, for example, templates are developed along side application code. Template authors and application developers might be different people or different teams, but templates are known at deployment time, and all templates can probably be parsed upfront and held in memory. In this scenario it's a pain if your template render engine introduces behavioral changes, but it's manageable.</p>
 <p>Python Liquid caters for situations where templates change and grow with an application's user base. Not only can templates change after the application is deployed, but the number of templates could be huge, far more than can be expected to fit in memory at one time.</p>
-<p>Behavioral stability is essential when application users are responsible for maintaining templates. It is impractical or unreasonable to expect authors to update their templates TODO: …</p>
-<p>Whether shopify/Liquid compatibility is important to you or not, if you’re developing a multi-tenant application where users are responsible for maintaining templates, you should seriously consider building in an opt-in upgrade path for template authors to TODO: …</p>
+<p>Behavioral stability is essential when application users are responsible for maintaining templates. It is impractical or unreasonable to expect authors to update their templates on demand.</p>
+<p>Whether shopify/Liquid compatibility is important to you or not, if you’re developing a multi-tenant application where users are responsible for maintaining templates, you should seriously consider building in an opt-in upgrade path for template authors to transition to updated syntax and features.</p>
 <h2 id="new-features">New features</h2>
 <p>The following features are new or are now built-in where they weren't before.</p>
 <ul>
@@ -1378,11 +1462,13 @@
 <li>Ternary expressions are now available by default. For example, <code>{{ a if b else c }}</code> or <code>{{ a | upcase if b == 'foo' else c || split }}</code>.</li>
 <li>Inline comments surrounded by <code>{#</code> and <code>#}</code> are enabled by default. Additional <code>#</code>’s can be added to comment out blocks of markup that already contain comments, as long as the number of hashes match.</li>
 <li>String literals are allowed to contain markup delimiters (<code>{{</code>, <code>}}</code>, <code>{%</code>, <code>%}</code>, <code>{#</code> and <code>#}</code>) and support c-like escape sequence to allow for including quote characters.</li>
+<li>Identifiers and paths resolving to variables can contain Unicode characters.</li>
+<li>Integer and float literals can use scientific notation, like <code>1.2e10</code>.</li>
 <li>Filter and tag named arguments can be separated by a <code>:</code> or <code>=</code>.</li>
 <li>Template inheritance is now built-in. Previously <code>{% extends %}</code> and <code>{% block %}</code> tags were available from a separate package.</li>
 <li>Internationalization and localization tags and filters are now built-in. Previously these were in a separate package.</li>
 <li>Templates are now serializable. Use <code>str(template)</code> or <code>pickle.dump(template)</code>.</li>
-<li>Error messages have been improved and exceptions include line and column numbers.</li>
+<li>Error messages have been improved and exceptions expose line and column numbers.</li>
 <li>A new test suite is included if you'd like to implement Liquid2 in another language.</li>
 </ul>
 <h2 id="features-that-have-been-removed">Features that have been removed</h2>
@@ -1391,6 +1477,8 @@
 <li>Async filters have not been implemented.</li>
 <li>Contextual template analysis has not been implemented.</li>
 <li>Template tag analysis (analyzing tokens instead of a syntax tree) has not been implemented.</li>
+<li>The <code>@liquid_filter</code> decorator has been removed. Now filter implementations are expected to raise a <code>LiquidTypeError</code> in the even of an argument with an unacceptable type.</li>
+<li>Liquid Babel used to allow simple, zero-argument filters in the arguments to the <code>translate</code> tag. The <code>translate</code> tag bundled in to Liquid2 does not allow the use of filters here.</li>
 </ul>
 <h2 id="api-changes">API changes</h2>
 <p>These are the most notable changes. Please raise an <a href="https://github.com/jg-rp/python-liquid2/issues">issue</a> or start a discussion if I've missed anything or you need help with migration.</p>
@@ -1402,11 +1490,12 @@
 <li>The <code>auto_reload</code> and <code>cache_size</code> arguments to <code>Environment</code> have been removed. Now caching is handle by template loaders, not the environment. For example, pass a <code>CachingFileSystemLoader</code> as the <code>loader</code> argument to <code>Environment</code> instead of a <code>FileSystemLoader</code>.</li>
 <li><code>TemplateNotFound</code> has been renamed to <code>TemplateNotFoundError</code>.</li>
 <li><code>Context</code> has been renamed to <code>RenderContext</code> and now takes a mandatory <code>template</code> argument instead of <code>env</code>. All other arguments to <code>RenderContext</code> are now keyword only.</li>
+<li><code>FilterValueError</code> and <code>FilterArgumentError</code> have been removed. <code>LiquidValueError</code> and <code>LiquidTypeError</code> should be used instead. In some cases where <code>FilterValueError</code> was deliberately ignored before, <code>LiquidValueError</code> is now raised.</li>
 </ul>
 <h3 id="template-and-expression-parsing">Template and expression parsing</h3>
 <p>The lexer has been completely rewritten and the token's it produces bare little resemblance to those produced by any of the several parsing functions from Python Liquid version 1. Now we have a single lexer that scans source text content, tags, statements and expressions in a single pass, and a parser that delegates the parsing of those tokens to classes implementing <code>Tag</code>.</p>
 <p>As before, <code>Tag</code> instances are responsible for returning <code>Node</code>s from <code>Tag.parse()</code>. And nodes still have the familiar <code>render_to_output()</code> abstract method.</p>
-<p>For now I recommend familiarizing yourself with the different <code>Token</code> classes generated by the lexer, and refer to built-in tag implementations for examples of using various <code>Expression.parse()</code> static methods to parse expressions.</p>
+<p>For now I recommend familiarizing yourself with the different <a class="autorefs autorefs-internal" href="../api/tokens/#liquid2.token.TokenT">tokens</a> generated by the lexer, and refer to built-in tag implementations for examples of using various <code>Expression.parse()</code> static methods to parse expressions.</p>
 <p>As always, open an <a href="https://github.com/jg-rp/python-liquid2/issues">issue</a> or start a discussion if you need any help with migration.</p>
 <h2 id="performance">Performance</h2>
 <p>TODO:</p>
@@ -1419,6 +1508,7 @@
 <li>Markupsafe&gt;=2</li>
 <li>Babel&gt;=2</li>
 <li>python-dateutil</li>
+<li>pytz</li>
 </ul>
 
 
@@ -1466,7 +1556,7 @@
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "content.code.copy"], "search": "../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.instant", "content.code.copy"], "search": "../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
       <script src="../assets/javascripts/bundle.88dd0f4e.min.js"></script>

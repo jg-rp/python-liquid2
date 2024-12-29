@@ -464,6 +464,27 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../known_issues/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Known issues
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1024,6 +1045,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#liquid2.Environment.lexer_class" class="md-nav__link">
+    <span class="md-ellipsis">
+      lexer_class
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#liquid2.Environment.local_namespace_limit" class="md-nav__link">
     <span class="md-ellipsis">
       local_namespace_limit
@@ -1054,6 +1084,15 @@
   <a href="#liquid2.Environment.suppress_blank_control_flow_blocks" class="md-nav__link">
     <span class="md-ellipsis">
       suppress_blank_control_flow_blocks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Environment.template_class" class="md-nav__link">
+    <span class="md-ellipsis">
+      template_class
     </span>
   </a>
   
@@ -1108,6 +1147,15 @@
   <a href="#liquid2.Environment.setup_tags_and_filters" class="md-nav__link">
     <span class="md-ellipsis">
       setup_tags_and_filters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Environment.tokenize" class="md-nav__link">
+    <span class="md-ellipsis">
+      tokenize
     </span>
   </a>
   
@@ -1262,6 +1310,69 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../undefined/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Undefined
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../babel/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Babel
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tokens/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Tokens
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1313,6 +1424,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#liquid2.Environment.lexer_class" class="md-nav__link">
+    <span class="md-ellipsis">
+      lexer_class
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#liquid2.Environment.local_namespace_limit" class="md-nav__link">
     <span class="md-ellipsis">
       local_namespace_limit
@@ -1343,6 +1463,15 @@
   <a href="#liquid2.Environment.suppress_blank_control_flow_blocks" class="md-nav__link">
     <span class="md-ellipsis">
       suppress_blank_control_flow_blocks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Environment.template_class" class="md-nav__link">
+    <span class="md-ellipsis">
+      template_class
     </span>
   </a>
   
@@ -1403,6 +1532,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#liquid2.Environment.tokenize" class="md-nav__link">
+    <span class="md-ellipsis">
+      tokenize
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#liquid2.Environment.trim" class="md-nav__link">
     <span class="md-ellipsis">
       trim
@@ -1448,6 +1586,129 @@
 
 
         <p>Template parsing and rendering configuration.</p>
+<p>An <code>Environment</code> is where you might register custom tags and filters, or store
+global context variables that should be included with every template.</p>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">PARAMETER</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>loader</code>
+            </td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>A template loader from which template source text will be read when
+calling <a class="autorefs autorefs-internal" href="#liquid2.Environment.get_template">get_template</a> or when rendering
+with the built-in <code>{% include %}</code> and <code>{% render %}</code>, among others. If
+<code>None</code>, the environment will be configured with an empty
+<a class="autorefs autorefs-internal" href="../loaders/#liquid2.DictLoader">DictLoader</a>.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code><a class="autorefs autorefs-internal" title="liquid2.loader.BaseLoader" href="../loaders/#liquid2.loader.BaseLoader">BaseLoader</a> | None</code>
+                  </span>
+                  <span class="doc-param-default">
+                    <b>DEFAULT:</b>
+                      <code>None</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>globals</code>
+            </td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>An optional mapping of template variables that will be added to the
+render context of all templates rendered from the environment.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code><span title="typing.Mapping">Mapping</span>[str, object] | None</code>
+                  </span>
+                  <span class="doc-param-default">
+                    <b>DEFAULT:</b>
+                      <code>None</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>auto_escape</code>
+            </td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>If <code>True</code>, automatically escape HTML text upon output, unless the
+text is explicitly marked as "safe".</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code>bool</code>
+                  </span>
+                  <span class="doc-param-default">
+                    <b>DEFAULT:</b>
+                      <code>False</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>undefined</code>
+            </td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>The <a class="autorefs autorefs-internal" href="../undefined/#liquid2.undefined.Undefined">Undefined</a> type used to represent template
+variables that don't exist.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code><span title="typing.Type">Type</span>[<a class="autorefs autorefs-internal" title="liquid2.undefined.Undefined" href="../undefined/#liquid2.undefined.Undefined">Undefined</a>]</code>
+                  </span>
+                  <span class="doc-param-default">
+                    <b>DEFAULT:</b>
+                      <code><a class="autorefs autorefs-internal" title="liquid2.undefined.Undefined" href="../undefined/#liquid2.undefined.Undefined">Undefined</a></code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>default_trim</code>
+            </td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>The automatic whitespace stripping mode to use. This mode can then
+be overridden by template authors per Liquid tag using whitespace control
+symbols (<code>-</code>, <code>+</code>, <code>~</code>).</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code><span title="liquid2.token.WhitespaceControl">WhitespaceControl</span></code>
+                  </span>
+                  <span class="doc-param-default">
+                    <b>DEFAULT:</b>
+                      <code><span title="liquid2.token.WhitespaceControl.PLUS">PLUS</span></code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
 
 
 
@@ -1485,6 +1746,30 @@
 
         <p>Maximum number of times a render context can be extended or wrapped before
 raising a <code>ContextDepthError</code>.</p>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="liquid2.Environment.lexer_class" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">lexer_class</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">lexer_class</span> <span class="o">=</span> <span class="n">Lexer</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>The lexer class to use when scanning template source text.</p>
     </div>
 
 </div>
@@ -1583,6 +1868,30 @@ raising an <code>OutputStreamLimitError</code>.</p>
 
         <p>If True (the default), indicates that blocks rendering to whitespace only will
 not be output.</p>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="liquid2.Environment.template_class" class="doc doc-heading">
+            <span class="doc doc-object-name doc-attribute-name">template_class</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">template_class</span> <span class="o">=</span> <span class="n">Template</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>The template class to use after parsing source text.</p>
     </div>
 
 </div>
@@ -1849,6 +2158,25 @@ in your custom environments.</p>
 <div class="doc doc-object doc-function">
 
 
+<h3 id="liquid2.Environment.tokenize" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">tokenize</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">tokenize</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">TokenT</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Scan Liquid template <em>source</em> and return a list of Markup objects.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
 <h3 id="liquid2.Environment.trim" class="doc doc-heading">
             <span class="doc doc-object-name doc-function-name">trim</span>
 
@@ -1922,7 +2250,7 @@ in your custom environments.</p>
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "content.code.copy"], "search": "../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.instant", "content.code.copy"], "search": "../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.88dd0f4e.min.js"></script>
