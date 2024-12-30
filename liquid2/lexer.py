@@ -23,6 +23,7 @@ from .token import PathToken
 from .token import RangeToken
 from .token import RawToken
 from .token import TagToken
+from .token import TemplateStringToken
 from .token import Token
 from .token import TokenType
 from .token import WhitespaceControl
@@ -65,7 +66,7 @@ class Lexer:
 
     RE_PROPERTY = re.compile(r"[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*")
     RE_INDEX = re.compile(r"-?[0-9]+")
-    ESCAPES = frozenset(["b", "f", "n", "r", "t", "u", "/", "\\"])
+    ESCAPES = frozenset(["b", "f", "n", "r", "t", "u", "/", "\\", "$"])
 
     SYMBOLS: dict[str, str] = {
         "GE": r">=",
@@ -185,6 +186,7 @@ class Lexer:
         "expression",
         "wc",
         "path_stack",
+        "template_string_stack",
     )
 
     def __init__(self, source: str) -> None:
@@ -202,6 +204,9 @@ class Lexer:
 
         self.path_stack: list[PathToken] = []
         """Current path/query/variable, possibly with nested paths."""
+
+        self.template_string_stack: list[TemplateStringToken]
+        """Current, possibly nested, interpolated string."""
 
         self.start = 0
         """Pointer to the start of the current token."""
@@ -301,17 +306,15 @@ class Lexer:
                     self.start = self.pos
                     self.path_stack[-1].stop = self.pos
 
-            elif c == "]":  # TODO: handle empty brackets
+            elif c == "]":
                 if len(self.path_stack) == 1:
-                    self.ignore()
-                    self.path_stack[0].stop = self.start
+                    self.backup()
+                    self.error("unbalanced brackets")
                 else:
                     path = self.path_stack.pop()
                     path.stop = self.start
                     self.ignore()
-                    self.path_stack[-1].path.append(
-                        path
-                    )  # TODO: handle unbalanced brackets
+                    self.path_stack[-1].path.append(path)
                     self.path_stack[-1].stop = self.pos
 
             elif c == "[":
@@ -333,16 +336,24 @@ class Lexer:
                     self.next()
                     self.ignore()  # skip closing quote
 
-                    if self.peek() != "]":
-                        self.error("invalid selector")
+                    if self.next() != "]":
+                        self.backup()
+                        self.error("invalid variable path")
+                    else:
+                        self.ignore()
+                        self.path_stack[-1].stop = self.start
 
                 elif match := self.RE_INDEX.match(self.source, self.pos):
                     self.path_stack[-1].path.append(int(match.group()))
                     self.pos += match.end() - match.start()
                     self.start = self.pos
 
-                    if self.peek() != "]":
-                        self.error("invalid selector")
+                    if self.next() != "]":
+                        self.backup()
+                        self.error("invalid variable path")
+                    else:
+                        self.ignore()
+                        self.path_stack[-1].stop = self.start
 
                 elif match := self.RE_PROPERTY.match(self.source, self.pos):
                     # A nested path
@@ -357,6 +368,10 @@ class Lexer:
                     )
                     self.pos += match.end() - match.start()
                     self.start = self.pos
+                elif self.peek() == "]":
+                    self.error("empty bracketed segment")
+                else:
+                    self.error("expected a string, index or property name")
             else:
                 self.backup()
                 return
@@ -404,6 +419,144 @@ class Lexer:
                         markup_stop=self.pos,
                         source=self.source,
                         message="unclosed string literal",
+                    ),
+                )
+
+    def accept_template_string(self, *, quote: str, expression: list[TokenT]) -> None:
+        _type = (
+            TokenType.SINGLE_QUOTE_STRING
+            if quote == "'"
+            else TokenType.DOUBLE_QUOTE_STRING
+        )
+
+        # Assumes the opening quote has been consumed.
+        if self.peek() == quote:
+            # an empty string
+            self.next()  # Move past the closing quote.
+            expression.append(
+                Token(
+                    type_=_type,
+                    source=self.source,
+                    value="",
+                    index=self.start,
+                )
+            )
+            self.start = self.pos
+            return
+
+        # String token or output token
+        # The output token could contain more template strings
+        start = self.start
+        template_string: list[Token | OutputToken] = []
+
+        while True:
+            c = self.next()
+
+            if c == "\\":
+                peeked = self.peek()
+                if peeked in self.ESCAPES or peeked == quote:
+                    self.next()
+                else:
+                    raise LiquidSyntaxError(
+                        "invalid escape sequence",
+                        token=ErrorToken(
+                            type_=TokenType.ERROR,
+                            index=self.pos,
+                            value=peeked,
+                            markup_start=self.markup_start,
+                            markup_stop=self.pos,
+                            source=self.source,
+                            message="invalid escape sequence",
+                        ),
+                    )
+
+            if c == "$" and self.peek() == "{":
+                # `${` could be at the start of the string
+                if self.pos - 1 > self.start:
+                    template_string.append(
+                        Token(
+                            type_=_type,
+                            source=self.source,
+                            value=self.source[self.start : self.pos - 1],
+                            index=self.start,
+                        )
+                    )
+
+                self.start = self.pos - 1
+                self.next()  # Move past "{"
+                self.ignore()
+                sub_expression: list[TokenT] = []
+                sub_expression_start = self.start
+
+                while True:
+                    self.ignore_whitespace()
+                    if not self.accept_token(sub_expression):
+                        if self.peek() == "}":
+                            template_string.append(
+                                OutputToken(
+                                    type_=TokenType.OUTPUT,
+                                    start=sub_expression_start,
+                                    stop=self.pos,
+                                    wc=(
+                                        WhitespaceControl.DEFAULT,
+                                        WhitespaceControl.DEFAULT,
+                                    ),
+                                    expression=sub_expression,
+                                    source=self.source,
+                                )
+                            )
+                            self.next()
+                            self.ignore()
+                            self.start = self.pos
+                            break
+
+                        self.error(
+                            "unexpected end of template string expression, "
+                            f"{self.peek()!r}"
+                        )
+
+            if c == quote:
+                # template string expression could be at the end of the string
+                if self.pos - 1 > self.start:
+                    template_string.append(
+                        Token(
+                            type_=_type,
+                            source=self.source,
+                            value=self.source[self.start : self.pos - 1],
+                            index=self.start,
+                        )
+                    )
+
+                if len(template_string) == 1 and isinstance(template_string[0], Token):
+                    # Just a plain string
+                    expression.append(template_string[0])
+                else:
+                    expression.append(
+                        TemplateStringToken(
+                            type_=TokenType.SINGLE_QUOTE_TEMPLATE_STRING
+                            if quote == "'"
+                            else TokenType.DOUBLE_QUOTE_TEMPLATE_STRING,
+                            source=self.source,
+                            template=template_string,
+                            start=start,
+                            stop=self.pos,
+                        )
+                    )
+
+                self.start = self.pos
+                return
+
+            if not c:
+                raise LiquidSyntaxError(
+                    "unclosed string or template string expression",
+                    token=ErrorToken(
+                        type_=TokenType.ERROR,
+                        index=self.start,
+                        value=self.source[self.start],
+                        markup_start=self.markup_start,
+                        markup_stop=self.pos,
+                        source=self.source,
+                        message="unclosed string or template string expression",
                     ),
                 )
 
@@ -459,7 +612,7 @@ class Lexer:
             )
         )
 
-    def accept_token(self) -> bool:
+    def accept_token(self, expression: list[TokenT]) -> bool:
         match = self.TOKEN_RULES.match(self.source, pos=self.pos)
 
         if not match:
@@ -473,46 +626,48 @@ class Lexer:
 
         if kind == "SINGLE_QUOTE_STRING":
             self.ignore()
-            self.accept_string(quote="'")
-            self.expression.append(
-                Token(
-                    type_=TokenType.SINGLE_QUOTE_STRING,
-                    value=self.source[self.start : self.pos],
-                    index=self.start,
-                    source=self.source,
-                )
-            )
-            self.start = self.pos
-            assert self.next() == "'"
-            self.ignore()
+            # self.accept_string(quote="'")
+            # expression.append(
+            #     Token(
+            #         type_=TokenType.SINGLE_QUOTE_STRING,
+            #         value=self.source[self.start : self.pos],
+            #         index=self.start,
+            #         source=self.source,
+            #     )
+            # )
+            # self.start = self.pos
+            # assert self.next() == "'"
+            # self.ignore()
+            self.accept_template_string(quote="'", expression=expression)
 
         elif kind == "DOUBLE_QUOTE_STRING":
             self.ignore()
-            self.accept_string(quote='"')
-            self.expression.append(
-                Token(
-                    type_=TokenType.DOUBLE_QUOTE_STRING,
-                    value=self.source[self.start : self.pos],
-                    index=self.start,
-                    source=self.source,
-                )
-            )
-            self.start = self.pos
-            assert self.next() == '"'
-            self.ignore()
+            # self.accept_string(quote='"')
+            # expression.append(
+            #     Token(
+            #         type_=TokenType.DOUBLE_QUOTE_STRING,
+            #         value=self.source[self.start : self.pos],
+            #         index=self.start,
+            #         source=self.source,
+            #     )
+            # )
+            # self.start = self.pos
+            # assert self.next() == '"'
+            # self.ignore()
+            self.accept_template_string(quote='"', expression=expression)
 
         elif kind == "LBRACKET":
             self.backup()
             self.accept_path()
-            self.expression.append(self.path_stack.pop())
+            expression.append(self.path_stack.pop())
 
         elif kind == "WORD":
             if self.peek() in (".", "["):
                 self.accept_path(carry=True)
-                self.expression.append(self.path_stack.pop())
+                expression.append(self.path_stack.pop())
 
             elif token_type := self.KEYWORD_MAP.get(value):
-                self.expression.append(
+                expression.append(
                     Token(
                         type_=token_type,
                         value=value,
@@ -521,7 +676,7 @@ class Lexer:
                     )
                 )
             else:
-                self.expression.append(
+                expression.append(
                     Token(
                         type_=TokenType.WORD,
                         value=value,
@@ -533,7 +688,7 @@ class Lexer:
             self.start = self.pos
 
         elif token_type := self.TOKEN_MAP.get(kind):
-            self.expression.append(
+            expression.append(
                 Token(
                     type_=token_type,
                     value=value,
@@ -755,7 +910,7 @@ class Lexer:
     ) -> StateFn | None:  # noqa: PLR0911, PLR0912, PLR0915
         while True:
             self.ignore_whitespace()
-            if not self.accept_token():
+            if not self.accept_token(self.expression):
                 if match := self.RE_OUTPUT_END.match(self.source, self.pos):
                     self.wc.append(self.WC_MAP[match.group(1)])
                     self.pos += match.end() - match.start()
@@ -784,7 +939,7 @@ class Lexer:
     def lex_inside_tag(self) -> StateFn | None:
         while True:
             self.ignore_whitespace()
-            if not self.accept_token():
+            if not self.accept_token(self.expression):
                 if match := self.RE_TAG_END.match(self.source, self.pos):
                     self.wc.append(self.WC_MAP[match.group(1)])
                     self.pos += match.end() - match.start()
@@ -894,7 +1049,7 @@ class Lexer:
                 self.expression = []
                 return self.lex_inside_liquid_tag
 
-            if not self.accept_token():
+            if not self.accept_token(self.expression):
                 if match := self.RE_TAG_END.match(self.source, self.pos):
                     self.wc.append(self.WC_MAP[match.group(1)])
                     self.pos += match.end() - match.start()

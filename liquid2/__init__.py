@@ -26,6 +26,7 @@ from .token import is_range_token
 from .token import is_raw_token
 from .token import is_tag_token
 from .token import is_token_type
+from .token import is_template_string_token
 from .stream import TokenStream
 from .expression import Expression
 from .tag import Tag
@@ -167,6 +168,7 @@ __all__ = (
     "is_range_token",
     "is_raw_token",
     "is_tag_token",
+    "is_template_string_token",
     "is_token_type",
     "LinesToken",
     "Node",

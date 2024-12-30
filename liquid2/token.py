@@ -251,6 +251,31 @@ class PathToken(TokenT):
 
 
 @dataclass(kw_only=True, slots=True)
+class TemplateStringToken(TokenT):
+    """A token representing a string with interpolated expressions."""
+
+    template: list[Token | OutputToken]
+    start: int
+    stop: int
+    source: str = field(repr=False)
+
+    def __str__(self) -> str:
+        quote = "'" if self.type_ == TokenType.SINGLE_QUOTE_TEMPLATE_STRING else '"'
+        buf: list[str] = []
+        for token in self.template:
+            if is_token_type(token, TokenType.SINGLE_QUOTE_STRING) or is_token_type(
+                token, TokenType.DOUBLE_QUOTE_STRING
+            ):
+                buf.append(token.value)
+            elif is_output_token(token):
+                buf.append(f"${{{_expression_as_string(token.expression)}}}")
+            else:
+                buf.append(str(token))
+
+        return f"{quote}{''.join(buf)}{quote}"
+
+
+@dataclass(kw_only=True, slots=True)
 class RangeToken(TokenT):
     """A token representing a range expression.
 
@@ -324,6 +349,14 @@ def is_path_token(token: TokenT) -> TypeGuard[PathToken]:
     return token.type_ == TokenType.PATH
 
 
+def is_template_string_token(token: TokenT) -> TypeGuard[TemplateStringToken]:
+    """A [TemplateStringToken][liquid2.token.TemplateStringToken] type guard."""
+    return token.type_ in (
+        TokenType.SINGLE_QUOTE_TEMPLATE_STRING,
+        TokenType.DOUBLE_QUOTE_TEMPLATE_STRING,
+    )
+
+
 def is_range_token(token: TokenT) -> TypeGuard[RangeToken]:
     """A [RangeToken][liquid2.token.RangeToken] type guard."""
     return token.type_ == TokenType.RANGE
@@ -374,6 +407,7 @@ class TokenType(Enum):
     DOUBLE_DOT = auto()
     DOUBLE_PIPE = auto()
     DOUBLE_QUOTE_STRING = auto()
+    DOUBLE_QUOTE_TEMPLATE_STRING = auto()
     ELSE = auto()
     EQ = auto()
     FALSE = auto()
@@ -395,6 +429,7 @@ class TokenType(Enum):
     REQUIRED = auto()
     RPAREN = auto()
     SINGLE_QUOTE_STRING = auto()
+    SINGLE_QUOTE_TEMPLATE_STRING = auto()
     TRUE = auto()
     WITH = auto()
     WORD = auto()

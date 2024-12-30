@@ -19,13 +19,17 @@ from typing import Union
 from typing import cast
 
 from markupsafe import Markup
+from markupsafe import escape
 
 from liquid2 import PathToken
 from liquid2 import RenderContext
 from liquid2 import Token
+from liquid2 import TokenStream
 from liquid2 import TokenType
+from liquid2 import is_output_token
 from liquid2 import is_path_token
 from liquid2 import is_range_token
+from liquid2 import is_template_string_token
 from liquid2 import is_token_type
 from liquid2.exceptions import LiquidSyntaxError
 from liquid2.exceptions import LiquidTypeError
@@ -34,9 +38,9 @@ from liquid2.limits import to_int
 from liquid2.unescape import unescape
 
 if TYPE_CHECKING:
+    from liquid2 import OutputToken
     from liquid2 import PathT
     from liquid2 import RenderContext
-    from liquid2 import TokenStream
     from liquid2 import TokenT
 
 
@@ -300,6 +304,67 @@ class RangeLiteral(Expression):
         return [self.start, self.stop]
 
 
+class TemplateString(Expression):
+    __slots__ = ("template",)
+
+    def __init__(self, token: TokenT, template: list[Token | OutputToken]):
+        super().__init__(token)
+        self.template: list[Expression] = []
+
+        for _token in template:
+            if is_token_type(_token, TokenType.SINGLE_QUOTE_STRING):
+                self.template.append(
+                    StringLiteral(
+                        _token, unescape(_token.value.replace("\\'", "'"), token=_token)
+                    )
+                )
+            elif is_token_type(_token, TokenType.DOUBLE_QUOTE_STRING):
+                self.template.append(
+                    StringLiteral(_token, unescape(_token.value, token=_token))
+                )
+            elif is_output_token(_token):
+                self.template.append(
+                    FilteredExpression.parse(TokenStream(_token.expression))
+                )
+            else:
+                raise LiquidSyntaxError(
+                    "unexpected token in template string", token=_token
+                )
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, TemplateString) and self.template == other.template
+
+    def __str__(self) -> str:
+        return repr(
+            "".join(
+                e.value if isinstance(e, StringLiteral) else f"${{{e}}}"
+                for e in self.template
+            )
+        )
+
+    def __hash__(self) -> int:
+        return hash(tuple(self.template))
+
+    def __sizeof__(self) -> int:
+        return sum(sys.getsizeof(expr) for expr in self.template)
+
+    def evaluate(self, context: RenderContext) -> str:
+        return "".join(
+            _to_liquid_string(expr.evaluate(context)) for expr in self.template
+        )
+
+    async def evaluate_async(self, context: RenderContext) -> object:
+        return "".join(
+            [
+                _to_liquid_string(await expr.evaluate_async(context))
+                for expr in self.template
+            ]
+        )
+
+    def children(self) -> list[Expression]:
+        return self.template
+
+
 RE_PROPERTY = re.compile(r"[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*")
 Segments: TypeAlias = tuple[Union[str, int, "Segments"], ...]
 
@@ -474,6 +539,9 @@ def parse_primitive(token: TokenT) -> Expression:  # noqa: PLR0911
         return StringLiteral(
             token, unescape(token.value.replace("\\'", "'"), token=token)
         )
+
+    if is_template_string_token(token):
+        return TemplateString(token, token.template)
 
     if is_path_token(token):
         return Path(token, token.path)
@@ -713,6 +781,10 @@ class Filter:
                             filter_arguments.append(
                                 PositionalArgument(Path(token, [token.value]))
                             )
+                    elif is_template_string_token(token):
+                        filter_arguments.append(
+                            PositionalArgument(TemplateString(token, token.template))
+                        )
                     elif is_path_token(token):
                         filter_arguments.append(
                             PositionalArgument(Path(token, token.path))
@@ -914,6 +986,8 @@ def parse_boolean_primitive(  # noqa: PLR0912
         left = StringLiteral(
             token, unescape(token.value.replace("\\'", "'"), token=token)
         )
+    elif is_template_string_token(token):
+        left = TemplateString(token, token.template)
     elif is_path_token(token):
         left = Path(token, token.path)
     elif is_range_token(token):
@@ -1584,7 +1658,10 @@ def parse_identifier(token: TokenT) -> Identifier:
 
 
 def parse_string_or_identifier(token: TokenT) -> Identifier:
-    """Parse _token_ as an identifier or a string literal."""
+    """Parse _token_ as an identifier or a string literal.
+
+    Excludes template strings.
+    """
     if is_token_type(token, TokenType.DOUBLE_QUOTE_STRING):
         return Identifier(unescape(token.value, token=token), token=token)
 
@@ -1603,7 +1680,10 @@ def parse_string_or_identifier(token: TokenT) -> Identifier:
 
 
 def parse_string_or_path(token: TokenT) -> StringLiteral | Path:
-    """Parse _token_ as a string literal or a path."""
+    """Parse _token_ as a string literal or a path.
+
+    Excludes template strings.
+    """
     if is_token_type(token, TokenType.WORD):
         return Path(token, [token.value])
 
@@ -1789,3 +1869,35 @@ def _contains(token: TokenT, left: object, right: object) -> bool:
         f"and '{right.__class__.__name__}'",
         token=token,
     )
+
+
+# XXX: copied to avoid import issues
+def _to_liquid_string(val: Any, *, auto_escape: bool = False) -> str:
+    """Stringify a Python object ready for output in a Liquid template."""
+    if isinstance(val, str) or (auto_escape and hasattr(val, "__html__")):
+        pass
+    elif isinstance(val, bool):
+        val = str(val).lower()
+    elif val is None:
+        val = ""
+    elif isinstance(val, range):
+        val = f"{val.start}..{val.stop - 1}"
+    elif isinstance(val, Sequence):
+        if auto_escape:
+            val = Markup("").join(
+                _to_liquid_string(itm, auto_escape=auto_escape) for itm in val
+            )
+        else:
+            val = "".join(
+                _to_liquid_string(itm, auto_escape=auto_escape) for itm in val
+            )
+    elif isinstance(val, (Empty, Blank)):
+        val = ""
+    else:
+        val = str(val)
+
+    if auto_escape:
+        val = escape(val)
+
+    assert isinstance(val, str)
+    return val

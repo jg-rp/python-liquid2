@@ -29,6 +29,9 @@ def _decode_escape_sequence(  # noqa: PLR0911
     ch = value[index]
     if ch == '"':
         return '"', index
+    if ch == "$":
+        # For escaping string interpolation.
+        return "$", index
     if ch == "\\":
         return "\\", index
     if ch == "/":

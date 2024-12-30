@@ -9,6 +9,8 @@ from markupsafe import escape
 from liquid2.builtin import Blank
 from liquid2.builtin import Empty
 
+# NOTE: liquid2.builtin.expressions has a version of this too.
+
 
 def to_liquid_string(val: Any, *, auto_escape: bool = False) -> str:
     """Stringify a Python object ready for output in a Liquid template."""

@@ -430,3 +430,9 @@ def test_with_str_wc() -> None:
     )
     template = parse(source)
     assert str(template) == source
+
+
+def test_template_string_str() -> None:
+    source = "{{ 'Hello' if not you else 'Hello there, ${you}!' }}"
+    template = parse(source)
+    assert str(template) == source
