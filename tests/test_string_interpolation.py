@@ -30,6 +30,24 @@ TEST_CASES: list[Case] = [
         expect="Hello, World!",
     ),
     Case(
+        description="output, path",
+        template='{{ "Hello, ${you.there}!" }}',
+        context={"you": {"there": "World"}},
+        expect="Hello, World!",
+    ),
+    Case(
+        description="output, path with double quoted property",
+        template='{{ "Hello, ${you["there"]}!" }}',
+        context={"you": {"there": "World"}},
+        expect="Hello, World!",
+    ),
+    Case(
+        description="output, path with single quoted property",
+        template="{{ \"Hello, ${you['there']}!\" }}",
+        context={"you": {"there": "World"}},
+        expect="Hello, World!",
+    ),
+    Case(
         description="output, expression at end",
         template='{{ "Hello, ${you}" }}',
         context={"you": "World"},

@@ -25,6 +25,7 @@ Whether shopify/Liquid compatibility is important to you or not, if you’re dev
 The following features are new or are now built-in where they weren't before.
 
 - More whitespace control. Along with a `default_trim` configuration option, tags and the output statement now support `+`, `-` and `~` for controlling whitespace in templates. By default, `~` will remove newlines but retain space and tab characters.
+- String literals support interpolation using `${` and `}` as delimiters. For example, `{% echo 'Hello, ${you | capitalize}' %}`.
 - Logical expressions now support negation with the `not` operator and grouping terms with parentheses by default.
 - Ternary expressions are now available by default. For example, `{{ a if b else c }}` or `{{ a | upcase if b == 'foo' else c || split }}`.
 - Inline comments surrounded by `{#` and `#}` are enabled by default. Additional `#`’s can be added to comment out blocks of markup that already contain comments, as long as the number of hashes match.
@@ -83,7 +84,7 @@ TODO:
 
 The following packages are dependencies of Python Liquid2.
 
-- Markupsafe>=2
+- Markupsafe>=3
 - Babel>=2
 - python-dateutil
 - pytz

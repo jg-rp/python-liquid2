@@ -87,7 +87,7 @@ test_cases = [
     Case(
         description="invalid subscript identifier",
         template="{{ foo[1.2] }}",
-        expect_msg="invalid selector",
+        expect_msg="invalid variable path",
     ),
     Case(
         description="minus string",
@@ -227,9 +227,32 @@ test_cases = [
         template=r"{% call macro a,, b %}",
         expect_msg="expected a primitive expression, found COMMA",
     ),
+    Case(
+        description="template string, unbalanced quotes",
+        template=r'{{ "Hello, ${you["there]}!" }}',
+        expect_msg="invalid variable path",
+    ),
+    Case(
+        description="template string, missing closing bracket",
+        template=r'{{ "Hello, ${you" }}',
+        expect_msg="unclosed string or template string expression",
+    ),
+    Case(
+        description="template string, missing closing quote",
+        template=r'{{ "Hello, ${you} }}',
+        expect_msg="unclosed string or template string expression",
+    ),
+    Case(
+        description="path, empty brackets",
+        template=r"{{ a.b[] }}",
+        expect_msg="empty bracketed segment",
+    ),
+    Case(
+        description="path, unbalanced brackets",
+        template=r"{{ a.b['foo']] }}",
+        expect_msg="unbalanced brackets",
+    ),
 ]
-
-# TODO: template strings
 
 
 @pytest.mark.parametrize("case", test_cases, ids=operator.attrgetter("description"))

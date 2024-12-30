@@ -306,17 +306,15 @@ class Lexer:
                     self.start = self.pos
                     self.path_stack[-1].stop = self.pos
 
-            elif c == "]":  # TODO: handle empty brackets
+            elif c == "]":
                 if len(self.path_stack) == 1:
-                    self.ignore()
-                    self.path_stack[0].stop = self.start
+                    self.backup()
+                    self.error("unbalanced brackets")
                 else:
                     path = self.path_stack.pop()
                     path.stop = self.start
                     self.ignore()
-                    self.path_stack[-1].path.append(
-                        path
-                    )  # TODO: handle unbalanced brackets
+                    self.path_stack[-1].path.append(path)
                     self.path_stack[-1].stop = self.pos
 
             elif c == "[":
@@ -338,16 +336,24 @@ class Lexer:
                     self.next()
                     self.ignore()  # skip closing quote
 
-                    if self.peek() != "]":
-                        self.error("invalid selector")
+                    if self.next() != "]":
+                        self.backup()
+                        self.error("invalid variable path")
+                    else:
+                        self.ignore()
+                        self.path_stack[-1].stop = self.start
 
                 elif match := self.RE_INDEX.match(self.source, self.pos):
                     self.path_stack[-1].path.append(int(match.group()))
                     self.pos += match.end() - match.start()
                     self.start = self.pos
 
-                    if self.peek() != "]":
-                        self.error("invalid selector")
+                    if self.next() != "]":
+                        self.backup()
+                        self.error("invalid variable path")
+                    else:
+                        self.ignore()
+                        self.path_stack[-1].stop = self.start
 
                 elif match := self.RE_PROPERTY.match(self.source, self.pos):
                     # A nested path
@@ -362,6 +368,10 @@ class Lexer:
                     )
                     self.pos += match.end() - match.start()
                     self.start = self.pos
+                elif self.peek() == "]":
+                    self.error("empty bracketed segment")
+                else:
+                    self.error("expected a string, index or property name")
             else:
                 self.backup()
                 return
@@ -462,7 +472,7 @@ class Lexer:
 
             if c == "$" and self.peek() == "{":
                 # `${` could be at the start of the string
-                if self.pos - 1 > self.start:  # TODO: check me
+                if self.pos - 1 > self.start:
                     template_string.append(
                         Token(
                             type_=_type,
@@ -507,7 +517,7 @@ class Lexer:
 
             if c == quote:
                 # template string expression could be at the end of the string
-                if self.pos - 1 > self.start:  # TODO: check me
+                if self.pos - 1 > self.start:
                     template_string.append(
                         Token(
                             type_=_type,
@@ -538,7 +548,7 @@ class Lexer:
 
             if not c:
                 raise LiquidSyntaxError(
-                    "unclosed string literal or template string expression",
+                    "unclosed string or template string expression",
                     token=ErrorToken(
                         type_=TokenType.ERROR,
                         index=self.start,
@@ -546,7 +556,7 @@ class Lexer:
                         markup_start=self.markup_start,
                         markup_stop=self.pos,
                         source=self.source,
-                        message="unclosed string literal",
+                        message="unclosed string or template string expression",
                     ),
                 )
 

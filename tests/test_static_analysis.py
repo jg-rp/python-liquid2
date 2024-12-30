@@ -906,3 +906,13 @@ def test_analyze_translate(env: Environment) -> None:
             "translate": [Span("", 0, 62)],
         },
     )
+
+
+def test_analyze_template_strings(env: Environment) -> None:
+    source = "{{ 'Hello, ${some.thing}' }}"
+
+    _assert(
+        env.from_string(source),
+        locals={},
+        globals={"some": [Variable(["some", "thing"], Span("", 13, 23))]},
+    )
