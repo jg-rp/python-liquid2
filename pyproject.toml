@@ -24,7 +24,13 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 
-dependencies = ["Markupsafe>=3", "python-dateutil", "Babel>=2", "pytz"]
+dependencies = [
+  "Markupsafe>=3",
+  "python-dateutil",
+  "Babel>=2",
+  "pytz",
+  "typing-extensions",
+]
 
 [project.urls]
 Documentation = "https://jg-rp.github.io/python-liquid2/"
