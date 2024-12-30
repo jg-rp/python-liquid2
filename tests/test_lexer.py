@@ -172,6 +172,31 @@ TEST_CASES = [
         source="{% liquid break %}",
         want="{% liquid break %}",
     ),
+    Case(
+        name="template string, single quote",
+        source="{{ 'Hello, ${you}!' }}",
+        want="{{ 'Hello, ${you}!' }}",
+    ),
+    Case(
+        name="template string, double quote",
+        source='{{ "Hello, ${you}!" }}',
+        want='{{ "Hello, ${you}!" }}',
+    ),
+    Case(
+        name="template string, with filter",
+        source='{{ "Hello, ${you | upcase}!" }}',
+        want='{{ "Hello, ${you | upcase}!" }}',
+    ),
+    Case(
+        name="template string, with ternary expression",
+        source='{{ "Hello, ${you if a else b}!" }}',
+        want='{{ "Hello, ${you if a else b}!" }}',
+    ),
+    Case(
+        name="template string, just a placeholder",
+        source='{{ "${you}" }}',
+        want='{{ "${you}" }}',
+    ),
 ]
 
 

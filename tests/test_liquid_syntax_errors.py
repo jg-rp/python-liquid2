@@ -229,6 +229,8 @@ test_cases = [
     ),
 ]
 
+# TODO: template strings
+
 
 @pytest.mark.parametrize("case", test_cases, ids=operator.attrgetter("description"))
 def test_syntax_errors(case: Case) -> None:
