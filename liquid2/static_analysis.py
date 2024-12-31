@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 from dataclasses import dataclass
+from dataclasses import field
 from typing import TYPE_CHECKING
 from typing import Iterable
 from typing import TypeAlias
@@ -42,12 +43,15 @@ class Span:
 Segments: TypeAlias = list[Union[int, str, "Segments"]]
 
 
-@dataclass(slots=True)
+@dataclass(slots=True, frozen=True)
 class Variable:
-    """A variable as sequence of segments that make up its path and its location."""
+    """A variable as sequence of segments that make up its path and its location.
+
+    Variables with the same segments compare equal, regardless of span.
+    """
 
     segments: Segments
-    span: Span
+    span: Span = field(hash=False, compare=False)
 
     def __str__(self) -> str:
         return self._segments_str(self.segments)
@@ -67,6 +71,9 @@ class Variable:
             else:
                 buf.append(f"[{segment}]")
         return "".join(buf)
+
+    def __hash__(self) -> int:
+        return hash(str(self))
 
 
 class _StaticScope:

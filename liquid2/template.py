@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from io import StringIO
+from itertools import chain
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Any
@@ -16,6 +17,7 @@ from .exceptions import LiquidInterrupt
 from .exceptions import LiquidSyntaxError
 from .exceptions import StopRender
 from .output import LimitedStringIO
+from .static_analysis import Segments
 from .static_analysis import _analyze
 from .static_analysis import _analyze_async
 from .utils import ReadOnlyChainMap
@@ -28,7 +30,12 @@ if TYPE_CHECKING:
 
 
 class Template:
-    """A parsed template ready to be rendered."""
+    """A parsed template ready to be rendered.
+
+    Don't try to instantiate `Template` directly. Use [`parse()`][liquid2.parse],
+    [`Environment.from_string()`][liquid2.Environment.from_string] or
+    [`Environment.get_template()`][liquid2.Environment.get_template] instead.
+    """
 
     __slots__ = (
         "env",
@@ -69,7 +76,10 @@ class Template:
         return self.name
 
     def render(self, *args: Any, **kwargs: Any) -> str:
-        """Render this template with _args_ and _kwargs_."""
+        """Render this template with _args_ and _kwargs_ added to the render context.
+
+        _args_ and _kwargs_ are passed to `dict()`.
+        """
         buf = self._get_buffer()
         context = RenderContext(
             self,
@@ -79,7 +89,10 @@ class Template:
         return buf.getvalue()
 
     async def render_async(self, *args: Any, **kwargs: Any) -> str:
-        """Render this template with _args_ and _kwargs_."""
+        """Render this template with _args_ and _kwargs_ added to the render context.
+
+        _args_ and _kwargs_ are passed to `dict()`.
+        """
         buf = self._get_buffer()
         context = RenderContext(
             self,
@@ -205,3 +218,255 @@ class Template:
         if self.env.output_stream_limit is None:
             return StringIO()
         return LimitedStringIO(limit=self.env.output_stream_limit)
+
+    def variables(self, *, include_partials: bool = True) -> list[str]:
+        """Return a list of variables used in this template without path segments.
+
+        Includes variables that are _local_ to the template, like those crated with
+        `{% assign %}` and `{% capture %}`.
+
+        See also [global_variables][liquid2.Template.global_variables].
+
+        Args:
+            include_partials: If `True`, will try to load and find variables in
+                included/rendered templates too.
+
+        Returns:
+            A list of distinct _root segments_ for variables in this template.
+        """
+        return list(self.analyze(include_partials=include_partials).variables)
+
+    async def variables_async(self, *, include_partials: bool = True) -> list[str]:
+        """Return a list of variables used in this template without path segments.
+
+        Includes variables that are _local_ to the template, like those crated with
+        `{% assign %}` and `{% capture %}`.
+
+        See also [global_variables][liquid2.Template.global_variables].
+
+        Args:
+            include_partials: If `True`, will try to load and find variables in
+                included/rendered templates too.
+
+        Returns:
+            A list of distinct _root segments_ for variables in this template.
+        """
+        return list(
+            (await self.analyze_async(include_partials=include_partials)).variables
+        )
+
+    def variable_paths(self, *, include_partials: bool = True) -> list[str]:
+        """Return a list of variables used in this template including all path segments.
+
+        Includes variables that are _local_ to the template, like those crated with
+        `{% assign %}` and `{% capture %}`.
+
+        See also [global_variable_paths][liquid2.Template.global_variable_paths].
+
+        Args:
+            include_partials: If `True`, will try to load and find variables in
+                included/rendered templates too.
+
+        Returns:
+            A list of distinct paths for variables in this template.
+        """
+        analysis = self.analyze(include_partials=include_partials)
+        return list(
+            {str(v) for v in chain.from_iterable(list(analysis.variables.values()))}
+        )
+
+    async def variable_paths_async(self, *, include_partials: bool = True) -> list[str]:
+        """Return a list of variables used in this template including all path segments.
+
+        Includes variables that are _local_ to the template, like those crated with
+        `{% assign %}` and `{% capture %}`.
+
+        See also [global_variable_paths][liquid2.Template.global_variable_paths].
+
+        Args:
+            include_partials: If `True`, will try to load and find variables in
+                included/rendered templates too.
+
+        Returns:
+            A list of distinct paths for variables in this template.
+        """
+        analysis = await self.analyze_async(include_partials=include_partials)
+        return list(
+            {str(v) for v in chain.from_iterable(list(analysis.variables.values()))}
+        )
+
+    def variable_segments(self, *, include_partials: bool = True) -> list[Segments]:
+        """Return a list of variables used in this template, each as a list of segments.
+
+        Includes variables that are _local_ to the template, like those crated with
+        `{% assign %}` and `{% capture %}`.
+
+        See also [global_variable_segments][liquid2.Template.global_variable_segments].
+
+        Args:
+            include_partials: If `True`, will try to load and find variables in
+                included/rendered templates too.
+
+        Returns:
+            A list of distinct paths for variables in this template.
+        """
+        analysis = self.analyze(include_partials=include_partials)
+        return [
+            v.segments
+            for v in set(chain.from_iterable(list(analysis.variables.values())))
+        ]
+
+    async def variable_segments_async(
+        self, *, include_partials: bool = True
+    ) -> list[Segments]:
+        """Return a list of variables used in this template, each as a list of segments.
+
+        Includes variables that are _local_ to the template, like those crated with
+        `{% assign %}` and `{% capture %}`.
+
+        See also [global_variable_segments][liquid2.Template.global_variable_segments].
+
+        Args:
+            include_partials: If `True`, will try to load and find variables in
+                included/rendered templates too.
+
+        Returns:
+            A list of distinct paths for variables in this template.
+        """
+        analysis = await self.analyze_async(include_partials=include_partials)
+        return [
+            v.segments
+            for v in set(chain.from_iterable(list(analysis.variables.values())))
+        ]
+
+    def global_variables(self, *, include_partials: bool = True) -> list[str]:
+        """Return a list of variables used in this template without path segments.
+
+        Excludes variables that are _local_ to the template, like those crated with
+        `{% assign %}` and `{% capture %}`.
+
+        Args:
+            include_partials: If `True`, will try to load and find variables in
+                included/rendered templates too.
+
+        Returns:
+            A list of distinct _root segments_ for variables in this template.
+        """
+        return list(self.analyze(include_partials=include_partials).globals)
+
+    async def global_variables_async(
+        self, *, include_partials: bool = True
+    ) -> list[str]:
+        """Return a list of variables used in this template without path segments.
+
+        Excludes variables that are _local_ to the template, like those crated with
+        `{% assign %}` and `{% capture %}`.
+
+        Args:
+            include_partials: If `True`, will try to load and find variables in
+                included/rendered templates too.
+
+        Returns:
+            A list of distinct _root segments_ for variables in this template.
+        """
+        return list(
+            (await self.analyze_async(include_partials=include_partials)).globals
+        )
+
+    def global_variable_paths(self, *, include_partials: bool = True) -> list[str]:
+        """Return a list of variables used in this template including all path segments.
+
+        Excludes variables that are _local_ to the template, like those crated with
+        `{% assign %}` and `{% capture %}`.
+
+        Args:
+            include_partials: If `True`, will try to load and find variables in
+                included/rendered templates too.
+
+        Returns:
+            A list of distinct paths for variables in this template.
+        """
+        analysis = self.analyze(include_partials=include_partials)
+        return list(
+            {str(v) for v in chain.from_iterable(list(analysis.globals.values()))}
+        )
+
+    async def global_variable_paths_async(
+        self, *, include_partials: bool = True
+    ) -> list[str]:
+        """Return a list of variables used in this template including all path segments.
+
+        Excludes variables that are _local_ to the template, like those crated with
+        `{% assign %}` and `{% capture %}`.
+
+        Args:
+            include_partials: If `True`, will try to load and find variables in
+                included/rendered templates too.
+
+        Returns:
+            A list of distinct paths for variables in this template.
+        """
+        analysis = await self.analyze_async(include_partials=include_partials)
+        return list(
+            {str(v) for v in chain.from_iterable(list(analysis.globals.values()))}
+        )
+
+    def global_variable_segments(
+        self, *, include_partials: bool = True
+    ) -> list[Segments]:
+        """Return a list of variables used in this template, each as a list of segments.
+
+        Excludes variables that are _local_ to the template, like those crated with
+        `{% assign %}` and `{% capture %}`.
+
+        Args:
+            include_partials: If `True`, will try to load and find variables in
+                included/rendered templates too.
+
+        Returns:
+            A list of distinct paths for variables in this template.
+        """
+        analysis = self.analyze(include_partials=include_partials)
+        return [
+            v.segments
+            for v in set(chain.from_iterable(list(analysis.globals.values())))
+        ]
+
+    async def global_variable_segments_async(
+        self, *, include_partials: bool = True
+    ) -> list[Segments]:
+        """Return a list of variables used in this template, each as a list of segments.
+
+        Excludes variables that are _local_ to the template, like those crated with
+        `{% assign %}` and `{% capture %}`.
+
+        Args:
+            include_partials: If `True`, will try to load and find variables in
+                included/rendered templates too.
+
+        Returns:
+            A list of distinct paths for variables in this template.
+        """
+        analysis = await self.analyze_async(include_partials=include_partials)
+        return [
+            v.segments
+            for v in set(chain.from_iterable(list(analysis.globals.values())))
+        ]
+
+    def filter_names(self, *, include_partials: bool = True) -> list[str]:
+        """Return a list of filter names used in this template."""
+        return list(self.analyze(include_partials=include_partials).filters)
+
+    async def filter_names_async(self, *, include_partials: bool = True) -> list[str]:
+        """Return a list of filter names used in this template."""
+        return list(
+            (await self.analyze_async(include_partials=include_partials)).filters
+        )
+
+    def tag_names(self, *, include_partials: bool = True) -> list[str]:
+        """Return a list of tag names used in this template."""
+        return list(self.analyze(include_partials=include_partials).tags)
+
+    async def tag_names_async(self, *, include_partials: bool = True) -> list[str]:
+        """Return a list of tag names used in this template."""
+        return list((await self.analyze_async(include_partials=include_partials)).tags)
