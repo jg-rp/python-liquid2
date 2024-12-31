@@ -10,6 +10,7 @@ import itertools
 import json
 import os
 import sys
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -45,12 +46,21 @@ def load_tests(path: Path) -> list[dict[str, Any]]:
 
     sys.stderr.write(f"Loading {relative_path} with prefix '{prefix}'{os.linesep}")
 
-    # TODO: check for duplicate test names
-
     with open(path, encoding="utf8") as fd:
         tests = json.load(fd)
 
     validate(instance=tests, schema=SCHEMA)
+
+    # check for duplicate test names
+    name_counter = Counter(t["name"] for t in tests["tests"])
+    dupes = {name: count for name, count in name_counter.items() if count > 1}
+    if dupes:
+        buf = []
+        for name, count in dupes.items():
+            plural = "s" if count != 1 else ""
+            buf.append(f"{name!r} appears {count} time{plural} in {relative_path}")
+        raise Exception(os.linesep.join(buf))
+
     return [add_prefix(prefix, test) for test in tests["tests"]]
 
 

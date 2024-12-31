@@ -142,7 +142,7 @@
       "result": "#}"
     },
     {
-      "name": "string literal, start tag delimiter",
+      "name": "string literal, start comment delimiter",
       "template": "{{ '{#' }}",
       "data": {},
       "result": "{#"
@@ -162,6 +162,12 @@
     {
       "name": "path, bracket notation",
       "template": "{{ a['b c'] }}",
+      "data": { "a": { "b c": "d" } },
+      "result": "d"
+    },
+    {
+      "name": "path, bracket notation with extra whitespace",
+      "template": "{{ a[ 'b c'\t] }}",
       "data": { "a": { "b c": "d" } },
       "result": "d"
     },

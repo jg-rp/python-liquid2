@@ -70,6 +70,7 @@ class TranslateNode(Node, TranslatableTag):
         self.singular_block = singular_block
         self.plural_block = plural_block
         self.end_tag_token = end_tag_token
+        self.blank = False
 
     def __str__(self) -> str:
         assert isinstance(self.token, TagToken)

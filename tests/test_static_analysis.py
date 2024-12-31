@@ -114,7 +114,8 @@ def test_nested_root_query(env: Environment) -> None:
         env.from_string(source),
         locals={},
         globals={
-            "a": [Variable(["a", "b"], Span("", 3, 8))],
+            "['a', 'b']": [Variable([["a", "b"]], Span("", 3, 8))],
+            "a": [Variable(["a", "b"], Span("", 4, 7))],
         },
     )
 
