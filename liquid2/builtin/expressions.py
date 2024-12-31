@@ -383,10 +383,6 @@ class Path(Expression):
             else:
                 self.path.append(segment)
 
-        if isinstance(self.path[0], Path):
-            # Flatten root segment
-            self.path = self.path[0].path + self.path[1:]
-
     def __str__(self) -> str:
         it = iter(self.path)
         buf = [str(next(it))]
@@ -1442,30 +1438,13 @@ class LoopExpression(Expression):
             token=self.token,
         )
 
-    def _eval_int(self, expr: Expression | None, context: RenderContext) -> int | None:
-        if expr is None:
-            return None
-
+    def _to_int(self, obj: object, *, token: TokenT) -> int:
         try:
-            return to_int(expr.evaluate(context))
-        except ValueError as err:
+            return to_int(obj)
+        except (ValueError, TypeError) as err:
             raise LiquidTypeError(
-                f"expected an integer, found {expr.__class__.__name__}",
-                token=expr.token,
-            ) from err
-
-    async def _eval_int_async(
-        self, expr: Expression | None, context: RenderContext
-    ) -> int | None:
-        if expr is None:
-            return None
-
-        try:
-            return to_int(await expr.evaluate_async(context))
-        except ValueError as err:
-            raise LiquidTypeError(
-                f"expected an integer, found {expr.__class__.__name__}",
-                token=expr.token,
+                f"expected an integer, found {obj.__class__.__name__}",
+                token=token,
             ) from err
 
     def _slice(
@@ -1505,15 +1484,21 @@ class LoopExpression(Expression):
 
     def evaluate(self, context: RenderContext) -> tuple[Iterator[object], int]:
         it, length = self._to_iter(self.iterable.evaluate(context))
-        limit = self._eval_int(self.limit, context)
+        limit = (
+            self._to_int(self.limit.evaluate(context), token=self.limit.token)
+            if self.limit
+            else None
+        )
 
         match self.offset:
-            case StringLiteral(value=value):
+            case StringLiteral(value=value, token=token):
                 offset: str | int | None = value
                 if offset != "continue":
-                    offset = to_int(offset)
+                    offset = self._to_int(offset, token=token)
+            case None:
+                offset = None
             case _offset:
-                offset = self._eval_int(_offset, context)
+                offset = self._to_int(_offset.evaluate(context), token=_offset.token)
 
         return self._slice(it, length, context, limit=limit, offset=offset)
 
@@ -1521,14 +1506,24 @@ class LoopExpression(Expression):
         self, context: RenderContext
     ) -> tuple[Iterator[object], int]:
         it, length = self._to_iter(await self.iterable.evaluate_async(context))
-        limit = await self._eval_int_async(self.limit, context)
+        limit = (
+            self._to_int(
+                await self.limit.evaluate_async(context), token=self.limit.token
+            )
+            if self.limit
+            else None
+        )
 
-        if isinstance(self.offset, StringLiteral):
-            offset: str | int | None = self.offset.evaluate(context)
+        if self.offset is None:
+            offset: str | int | None = None
+        elif isinstance(self.offset, StringLiteral):
+            offset = self.offset.evaluate(context)
             if offset != "continue":
-                offset = to_int(offset)
+                offset = self._to_int(offset, token=self.offset.token)
         else:
-            offset = await self._eval_int_async(self.offset, context)
+            offset = self._to_int(
+                await self.offset.evaluate_async(context), token=self.offset.token
+            )
 
         return self._slice(it, length, context, limit=limit, offset=offset)
 

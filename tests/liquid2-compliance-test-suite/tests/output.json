@@ -166,6 +166,12 @@
       "result": "d"
     },
     {
+      "name": "path, bracket notation with extra whitespace",
+      "template": "{{ a[ 'b c'\t] }}",
+      "data": { "a": { "b c": "d" } },
+      "result": "d"
+    },
+    {
       "name": "path, bracket notation, root",
       "template": "{{ ['a b c'] }}",
       "data": { "a b c": "d" },

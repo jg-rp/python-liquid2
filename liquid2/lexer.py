@@ -298,6 +298,10 @@ class Lexer:
                 self.error("unexpected end of path")
 
             if c == ".":
+                if self.peek() == ".":  # probably a range expression delimiter
+                    self.backup()
+                    return
+
                 self.ignore()
                 self.ignore_whitespace()
                 if match := self.RE_PROPERTY.match(self.source, self.pos):
@@ -305,6 +309,8 @@ class Lexer:
                     self.pos += match.end() - match.start()
                     self.start = self.pos
                     self.path_stack[-1].stop = self.pos
+                else:
+                    self.error("expected a property name")
 
             elif c == "]":
                 if len(self.path_stack) == 1:
@@ -335,6 +341,7 @@ class Lexer:
                         )
                     self.next()
                     self.ignore()  # skip closing quote
+                    self.ignore_whitespace()
 
                     if self.next() != "]":
                         self.backup()
@@ -347,6 +354,7 @@ class Lexer:
                     self.path_stack[-1].path.append(int(match.group()))
                     self.pos += match.end() - match.start()
                     self.start = self.pos
+                    self.ignore_whitespace()
 
                     if self.next() != "]":
                         self.backup()
@@ -626,36 +634,10 @@ class Lexer:
 
         if kind == "SINGLE_QUOTE_STRING":
             self.ignore()
-            # self.accept_string(quote="'")
-            # expression.append(
-            #     Token(
-            #         type_=TokenType.SINGLE_QUOTE_STRING,
-            #         value=self.source[self.start : self.pos],
-            #         index=self.start,
-            #         source=self.source,
-            #     )
-            # )
-            # self.start = self.pos
-            # assert self.next() == "'"
-            # self.ignore()
             self.accept_template_string(quote="'", expression=expression)
-
         elif kind == "DOUBLE_QUOTE_STRING":
             self.ignore()
-            # self.accept_string(quote='"')
-            # expression.append(
-            #     Token(
-            #         type_=TokenType.DOUBLE_QUOTE_STRING,
-            #         value=self.source[self.start : self.pos],
-            #         index=self.start,
-            #         source=self.source,
-            #     )
-            # )
-            # self.start = self.pos
-            # assert self.next() == '"'
-            # self.ignore()
             self.accept_template_string(quote='"', expression=expression)
-
         elif kind == "LBRACKET":
             self.backup()
             self.accept_path()
