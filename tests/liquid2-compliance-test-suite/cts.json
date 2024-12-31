@@ -438,7 +438,7 @@
       "result": "#}"
     },
     {
-      "name": "output, string literal, start tag delimiter",
+      "name": "output, string literal, start comment delimiter",
       "template": "{{ '{#' }}",
       "data": {},
       "result": "{#"
@@ -4998,7 +4998,7 @@
       "result": "#}"
     },
     {
-      "name": "tags, echo, string literal, start tag delimiter",
+      "name": "tags, echo, string literal, start comment delimiter",
       "template": "{% echo '{#' %}",
       "data": {},
       "result": "{#"

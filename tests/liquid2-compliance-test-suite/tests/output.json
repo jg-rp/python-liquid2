@@ -142,7 +142,7 @@
       "result": "#}"
     },
     {
-      "name": "string literal, start tag delimiter",
+      "name": "string literal, start comment delimiter",
       "template": "{{ '{#' }}",
       "data": {},
       "result": "{#"

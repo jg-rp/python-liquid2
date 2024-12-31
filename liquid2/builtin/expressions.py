@@ -1863,7 +1863,6 @@ def _contains(token: TokenT, left: object, right: object) -> bool:
     )
 
 
-# XXX: copied to avoid import issues
 def _to_liquid_string(val: Any, *, auto_escape: bool = False) -> str:
     """Stringify a Python object ready for output in a Liquid template."""
     if isinstance(val, str) or (auto_escape and hasattr(val, "__html__")):
