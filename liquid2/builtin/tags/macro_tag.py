@@ -64,6 +64,7 @@ class MacroNode(Node):
         self.args = args
         self.block = block
         self.end_tag_token = end_tag_token
+        self.blank = True
 
     def __str__(self) -> str:
         assert isinstance(self.token, TagToken)
@@ -142,6 +143,7 @@ class CallNode(Node):
         self.name = name
         self.args = args
         self.kwargs = kwargs
+        self.blank = False
 
     def __str__(self) -> str:
         assert isinstance(self.token, TagToken)

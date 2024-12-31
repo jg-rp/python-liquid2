@@ -1446,14 +1446,13 @@ class LoopExpression(Expression):
         if expr is None:
             return None
 
-        val = expr.evaluate(context)
-        if not isinstance(val, int):
+        try:
+            return to_int(expr.evaluate(context))
+        except ValueError as err:
             raise LiquidTypeError(
                 f"expected an integer, found {expr.__class__.__name__}",
                 token=expr.token,
-            )
-
-        return val
+            ) from err
 
     async def _eval_int_async(
         self, expr: Expression | None, context: RenderContext
@@ -1461,14 +1460,13 @@ class LoopExpression(Expression):
         if expr is None:
             return None
 
-        val = await expr.evaluate_async(context)
-        if not isinstance(val, int):
+        try:
+            return to_int(await expr.evaluate_async(context))
+        except ValueError as err:
             raise LiquidTypeError(
                 f"expected an integer, found {expr.__class__.__name__}",
                 token=expr.token,
-            )
-
-        return val
+            ) from err
 
     def _slice(
         self,
@@ -1513,10 +1511,7 @@ class LoopExpression(Expression):
             case StringLiteral(value=value):
                 offset: str | int | None = value
                 if offset != "continue":
-                    raise LiquidSyntaxError(
-                        f"expected 'continue' or an integer, found '{offset}'",
-                        token=self.offset.token,
-                    )
+                    offset = to_int(offset)
             case _offset:
                 offset = self._eval_int(_offset, context)
 
@@ -1531,10 +1526,7 @@ class LoopExpression(Expression):
         if isinstance(self.offset, StringLiteral):
             offset: str | int | None = self.offset.evaluate(context)
             if offset != "continue":
-                raise LiquidSyntaxError(
-                    f"expected 'continue' or an integer, found '{offset}'",
-                    token=self.offset.token,
-                )
+                offset = to_int(offset)
         else:
             offset = await self._eval_int_async(self.offset, context)
 
@@ -1568,6 +1560,7 @@ class LoopExpression(Expression):
         reversed_ = False
         offset: Expression | None = None
         limit: Expression | None = None
+        cols: Expression | None = None
 
         while True:
             arg_token = stream.next()
@@ -1580,6 +1573,10 @@ class LoopExpression(Expression):
                         stream.expect_one_of(TokenType.COLON, TokenType.ASSIGN)
                         stream.next()
                         limit = parse_primitive(stream.next())
+                    case "cols":
+                        stream.expect_one_of(TokenType.COLON, TokenType.ASSIGN)
+                        stream.next()
+                        cols = parse_primitive(stream.next())
                     case "offset":
                         stream.expect_one_of(TokenType.COLON, TokenType.ASSIGN)
                         stream.next()
@@ -1615,7 +1612,7 @@ class LoopExpression(Expression):
             limit=limit,
             offset=offset,
             reversed_=reversed_,
-            cols=None,
+            cols=cols,
         )
 
 

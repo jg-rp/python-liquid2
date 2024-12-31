@@ -37,6 +37,7 @@ class WithNode(Node):
         self.args = args
         self.block = block
         self.end_tag_token = end_tag_token
+        self.blank = self.block.blank
 
     def __str__(self) -> str:
         assert isinstance(self.token, TagToken)

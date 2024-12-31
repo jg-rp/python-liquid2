@@ -88,3 +88,4 @@ The following packages are dependencies of Python Liquid2.
 - Babel>=2
 - python-dateutil
 - pytz
+- typing-extensions
