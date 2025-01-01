@@ -52,6 +52,8 @@
     
       <link rel="stylesheet" href="../assets/_mkdocstrings.css">
     
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -67,7 +69,7 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="indigo">
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="indigo">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -418,6 +420,27 @@
   
   <span class="md-ellipsis">
     Liquid Syntax
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../conventions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Conventions
   </span>
   
 
@@ -1458,6 +1481,7 @@
 <p>The following features are new or are now built-in where they weren't before.</p>
 <ul>
 <li>More whitespace control. Along with a <code>default_trim</code> configuration option, tags and the output statement now support <code>+</code>, <code>-</code> and <code>~</code> for controlling whitespace in templates. By default, <code>~</code> will remove newlines but retain space and tab characters.</li>
+<li>String literals support interpolation using <code>${</code> and <code>}</code> as delimiters. For example, <code>{% echo 'Hello, ${you | capitalize}' %}</code>.</li>
 <li>Logical expressions now support negation with the <code>not</code> operator and grouping terms with parentheses by default.</li>
 <li>Ternary expressions are now available by default. For example, <code>{{ a if b else c }}</code> or <code>{{ a | upcase if b == 'foo' else c || split }}</code>.</li>
 <li>Inline comments surrounded by <code>{#</code> and <code>#}</code> are enabled by default. Additional <code>#</code>’s can be added to comment out blocks of markup that already contain comments, as long as the number of hashes match.</li>
@@ -1488,9 +1512,11 @@
 <li><code>FileSystemLoader</code> now takes an optional default file extension to use when looking for files that don't already have an extension. Previously there was a separate <code>FileExtensionLoader</code>.</li>
 <li><code>AwareBoundTemplate</code> (a template with a built-in <code>template</code> drop) has been removed, but can be added as a feature later if there is a demand.</li>
 <li>The <code>auto_reload</code> and <code>cache_size</code> arguments to <code>Environment</code> have been removed. Now caching is handle by template loaders, not the environment. For example, pass a <code>CachingFileSystemLoader</code> as the <code>loader</code> argument to <code>Environment</code> instead of a <code>FileSystemLoader</code>.</li>
+<li>The <code>strict_filters</code> argument to <code>Environment</code> has been removed. Unknown filters now always raise ab <code>UnknownFilterError</code>.</li>
 <li><code>TemplateNotFound</code> has been renamed to <code>TemplateNotFoundError</code>.</li>
 <li><code>Context</code> has been renamed to <code>RenderContext</code> and now takes a mandatory <code>template</code> argument instead of <code>env</code>. All other arguments to <code>RenderContext</code> are now keyword only.</li>
 <li><code>FilterValueError</code> and <code>FilterArgumentError</code> have been removed. <code>LiquidValueError</code> and <code>LiquidTypeError</code> should be used instead. In some cases where <code>FilterValueError</code> was deliberately ignored before, <code>LiquidValueError</code> is now raised.</li>
+<li>The exception <code>NoSuchFilterFunc</code>, raised when rendering a template that uses a filter that is not defined in <code>Environment.filters</code>, has been renamed to <code>UnknownFilterError</code>.</li>
 </ul>
 <h3 id="template-and-expression-parsing">Template and expression parsing</h3>
 <p>The lexer has been completely rewritten and the token's it produces bare little resemblance to those produced by any of the several parsing functions from Python Liquid version 1. Now we have a single lexer that scans source text content, tags, statements and expressions in a single pass, and a parser that delegates the parsing of those tokens to classes implementing <code>Tag</code>.</p>
@@ -1505,10 +1531,11 @@
 <h2 id="package-dependencies">Package dependencies</h2>
 <p>The following packages are dependencies of Python Liquid2.</p>
 <ul>
-<li>Markupsafe&gt;=2</li>
+<li>Markupsafe&gt;=3</li>
 <li>Babel&gt;=2</li>
 <li>python-dateutil</li>
 <li>pytz</li>
+<li>typing-extensions</li>
 </ul>
 
 

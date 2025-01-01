@@ -50,6 +50,8 @@
     
       <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -65,7 +67,7 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="indigo">
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="indigo">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -411,6 +413,27 @@
   
   <span class="md-ellipsis">
     Liquid Syntax
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../conventions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Conventions
   </span>
   
 
@@ -1847,6 +1870,8 @@
               Bases: <code><span title="abc.ABC">ABC</span></code></p>
 
 
+        <p>The base class for all tokens.</p>
+
 
 
 
@@ -1882,7 +1907,7 @@
 
     <div class="doc doc-contents ">
 
-        <p>The end position of this token.</p>
+        <p>The start position of this token.</p>
     </div>
 
 </div>
@@ -1983,6 +2008,9 @@
               Bases: <code><a class="autorefs autorefs-internal" title="liquid2.token.CommentToken" href="#liquid2.token.CommentToken">CommentToken</a></code></p>
 
 
+        <p>A token representing a block comment.</p>
+<p>That's one with a start and end tag.</p>
+
 
 
 
@@ -2028,6 +2056,8 @@
             <p class="doc doc-class-bases">
               Bases: <code><a class="autorefs autorefs-internal" title="liquid2.token.TokenT" href="#liquid2.token.TokenT">TokenT</a></code></p>
 
+
+        <p>A token representing a comment.</p>
 
 
 
@@ -2075,6 +2105,8 @@
               Bases: <code><a class="autorefs autorefs-internal" title="liquid2.token.TokenT" href="#liquid2.token.TokenT">TokenT</a></code></p>
 
 
+        <p>A token representing template text content that is not markup.</p>
+
 
 
 
@@ -2120,6 +2152,8 @@
             <p class="doc doc-class-bases">
               Bases: <code><a class="autorefs autorefs-internal" title="liquid2.token.TokenT" href="#liquid2.token.TokenT">TokenT</a></code></p>
 
+
+        <p>A token representing a syntax error found by the lexer.</p>
 
 
 
@@ -2213,6 +2247,9 @@
               Bases: <code><a class="autorefs autorefs-internal" title="liquid2.token.CommentToken" href="#liquid2.token.CommentToken">CommentToken</a></code></p>
 
 
+        <p>A token representing an inline comment tag.</p>
+<p>That's one with <code>#</code> as the tag name. Like <code>{% # some comment %}</code>.</p>
+
 
 
 
@@ -2258,6 +2295,9 @@
             <p class="doc doc-class-bases">
               Bases: <code><a class="autorefs autorefs-internal" title="liquid2.token.TokenT" href="#liquid2.token.TokenT">TokenT</a></code></p>
 
+
+        <p>A token representing line statements, where each line is a tag expression.</p>
+<p>The built-in <code>{% liquid %}</code> tag is an example of a tag that uses line statements.</p>
 
 
 
@@ -2305,6 +2345,8 @@
               Bases: <code><a class="autorefs autorefs-internal" title="liquid2.token.TokenT" href="#liquid2.token.TokenT">TokenT</a></code></p>
 
 
+        <p>A token representing an output statement.</p>
+
 
 
 
@@ -2350,6 +2392,8 @@
             <p class="doc doc-class-bases">
               Bases: <code><a class="autorefs autorefs-internal" title="liquid2.token.TokenT" href="#liquid2.token.TokenT">TokenT</a></code></p>
 
+
+        <p>A token representing the path to a variable.</p>
 
 
 
@@ -2397,6 +2441,9 @@
               Bases: <code><a class="autorefs autorefs-internal" title="liquid2.token.TokenT" href="#liquid2.token.TokenT">TokenT</a></code></p>
 
 
+        <p>A token representing a range expression.</p>
+<p>For example, <code>(1..3)</code>.</p>
+
 
 
 
@@ -2442,6 +2489,8 @@
             <p class="doc doc-class-bases">
               Bases: <code><a class="autorefs autorefs-internal" title="liquid2.token.TokenT" href="#liquid2.token.TokenT">TokenT</a></code></p>
 
+
+        <p>A token representing raw content that should be treated as plain text.</p>
 
 
 
@@ -2489,6 +2538,9 @@
               Bases: <code><a class="autorefs autorefs-internal" title="liquid2.token.TokenT" href="#liquid2.token.TokenT">TokenT</a></code></p>
 
 
+        <p>A token representing a tag.</p>
+<p>This could be an inline tag, or the start or end of a block tag.</p>
+
 
 
 
@@ -2534,6 +2586,8 @@
             <p class="doc doc-class-bases">
               Bases: <code><a class="autorefs autorefs-internal" title="liquid2.token.TokenT" href="#liquid2.token.TokenT">TokenT</a></code></p>
 
+
+        <p>A liquid expression token.</p>
 
 
 
@@ -2620,7 +2674,7 @@
 
     <div class="doc doc-contents first">
 
-        <p>A <em>CommentToken</em> type guard.</p>
+        <p>A <a class="autorefs autorefs-internal" href="#liquid2.token.CommentToken">CommentToken</a> type guard.</p>
 
     </div>
 
@@ -2639,7 +2693,7 @@
 
     <div class="doc doc-contents first">
 
-        <p>A <em>ContentToken</em> type guard.</p>
+        <p>A <a class="autorefs autorefs-internal" href="#liquid2.token.ContentToken">ContentToken</a> type guard.</p>
 
     </div>
 
@@ -2658,7 +2712,7 @@
 
     <div class="doc doc-contents first">
 
-        <p>A <em>LinesToken</em> type guard.</p>
+        <p>A <a class="autorefs autorefs-internal" href="#liquid2.token.LinesToken">LinesToken</a> type guard.</p>
 
     </div>
 
@@ -2677,7 +2731,7 @@
 
     <div class="doc doc-contents first">
 
-        <p>An <em>OutputToken</em> type guard.</p>
+        <p>An <a class="autorefs autorefs-internal" href="#liquid2.token.OutputToken">OutputToken</a> type guard.</p>
 
     </div>
 
@@ -2696,7 +2750,7 @@
 
     <div class="doc doc-contents first">
 
-        <p>A <em>PathToken</em> type guard.</p>
+        <p>A <a class="autorefs autorefs-internal" href="#liquid2.token.PathToken">PathToken</a> type guard.</p>
 
     </div>
 
@@ -2715,7 +2769,7 @@
 
     <div class="doc doc-contents first">
 
-        <p>A <em>RangeToken</em> type guard.</p>
+        <p>A <a class="autorefs autorefs-internal" href="#liquid2.token.RangeToken">RangeToken</a> type guard.</p>
 
     </div>
 
@@ -2734,7 +2788,7 @@
 
     <div class="doc doc-contents first">
 
-        <p>A <em>RawToken</em> type guard.</p>
+        <p>A <a class="autorefs autorefs-internal" href="#liquid2.token.RawToken">RawToken</a> type guard.</p>
 
     </div>
 
@@ -2753,7 +2807,7 @@
 
     <div class="doc doc-contents first">
 
-        <p>A <em>TagToken</em> type guard.</p>
+        <p>A <a class="autorefs autorefs-internal" href="#liquid2.token.TagToken">TagToken</a> type guard.</p>
 
     </div>
 
@@ -2774,7 +2828,7 @@
 
     <div class="doc doc-contents first">
 
-        <p>A <em>Token</em> type guard.</p>
+        <p>A <a class="autorefs autorefs-internal" href="#liquid2.token.Token">Token</a> type guard.</p>
 
     </div>
 

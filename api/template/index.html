@@ -52,6 +52,8 @@
     
       <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -67,7 +69,7 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="indigo">
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="indigo">
   
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
@@ -413,6 +415,27 @@
   
   <span class="md-ellipsis">
     Liquid Syntax
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../conventions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Conventions
   </span>
   
 
@@ -1075,9 +1098,81 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#liquid2.Template.filter_names" class="md-nav__link">
+    <span class="md-ellipsis">
+      filter_names
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.filter_names_async" class="md-nav__link">
+    <span class="md-ellipsis">
+      filter_names_async
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#liquid2.Template.full_name" class="md-nav__link">
     <span class="md-ellipsis">
       full_name
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.global_variable_paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      global_variable_paths
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.global_variable_paths_async" class="md-nav__link">
+    <span class="md-ellipsis">
+      global_variable_paths_async
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.global_variable_segments" class="md-nav__link">
+    <span class="md-ellipsis">
+      global_variable_segments
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.global_variable_segments_async" class="md-nav__link">
+    <span class="md-ellipsis">
+      global_variable_segments_async
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.global_variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      global_variables
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.global_variables_async" class="md-nav__link">
+    <span class="md-ellipsis">
+      global_variables_async
     </span>
   </a>
   
@@ -1141,6 +1236,78 @@
   <a href="#liquid2.Template.render_with_context_async" class="md-nav__link">
     <span class="md-ellipsis">
       render_with_context_async
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.tag_names" class="md-nav__link">
+    <span class="md-ellipsis">
+      tag_names
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.tag_names_async" class="md-nav__link">
+    <span class="md-ellipsis">
+      tag_names_async
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.variable_paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      variable_paths
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.variable_paths_async" class="md-nav__link">
+    <span class="md-ellipsis">
+      variable_paths_async
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.variable_segments" class="md-nav__link">
+    <span class="md-ellipsis">
+      variable_segments
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.variable_segments_async" class="md-nav__link">
+    <span class="md-ellipsis">
+      variable_segments_async
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      variables
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.variables_async" class="md-nav__link">
+    <span class="md-ellipsis">
+      variables_async
     </span>
   </a>
   
@@ -1415,9 +1582,81 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#liquid2.Template.filter_names" class="md-nav__link">
+    <span class="md-ellipsis">
+      filter_names
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.filter_names_async" class="md-nav__link">
+    <span class="md-ellipsis">
+      filter_names_async
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#liquid2.Template.full_name" class="md-nav__link">
     <span class="md-ellipsis">
       full_name
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.global_variable_paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      global_variable_paths
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.global_variable_paths_async" class="md-nav__link">
+    <span class="md-ellipsis">
+      global_variable_paths_async
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.global_variable_segments" class="md-nav__link">
+    <span class="md-ellipsis">
+      global_variable_segments
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.global_variable_segments_async" class="md-nav__link">
+    <span class="md-ellipsis">
+      global_variable_segments_async
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.global_variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      global_variables
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.global_variables_async" class="md-nav__link">
+    <span class="md-ellipsis">
+      global_variables_async
     </span>
   </a>
   
@@ -1481,6 +1720,78 @@
   <a href="#liquid2.Template.render_with_context_async" class="md-nav__link">
     <span class="md-ellipsis">
       render_with_context_async
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.tag_names" class="md-nav__link">
+    <span class="md-ellipsis">
+      tag_names
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.tag_names_async" class="md-nav__link">
+    <span class="md-ellipsis">
+      tag_names_async
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.variable_paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      variable_paths
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.variable_paths_async" class="md-nav__link">
+    <span class="md-ellipsis">
+      variable_paths_async
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.variable_segments" class="md-nav__link">
+    <span class="md-ellipsis">
+      variable_segments
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.variable_segments_async" class="md-nav__link">
+    <span class="md-ellipsis">
+      variable_segments_async
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      variables
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Template.variables_async" class="md-nav__link">
+    <span class="md-ellipsis">
+      variables_async
     </span>
   </a>
   
@@ -1550,6 +1861,9 @@
 
 
         <p>A parsed template ready to be rendered.</p>
+<p>Don't try to instantiate <code>Template</code> directly. Use <a class="autorefs autorefs-internal" href="../convenience/#liquid2.parse"><code>parse()</code></a>,
+<a class="autorefs autorefs-internal" href="../environment/#liquid2.Environment.from_string"><code>Environment.from_string()</code></a> or
+<a class="autorefs autorefs-internal" href="../environment/#liquid2.Environment.get_template"><code>Environment.get_template()</code></a> instead.</p>
 
 
 
@@ -1651,6 +1965,50 @@ analyze those templates too.</p>
 <div class="doc doc-object doc-function">
 
 
+<h3 id="liquid2.Template.filter_names" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">filter_names</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">filter_names</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">include_partials</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return a list of filter names used in this template.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="liquid2.Template.filter_names_async" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">filter_names_async</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">filter_names_async</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="o">*</span><span class="p">,</span> <span class="n">include_partials</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return a list of filter names used in this template.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
 <h3 id="liquid2.Template.full_name" class="doc doc-heading">
             <span class="doc doc-object-name doc-function-name">full_name</span>
 
@@ -1662,6 +2020,498 @@ analyze those templates too.</p>
     <div class="doc doc-contents ">
 
         <p>Return this template's path, if available, joined with its name.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="liquid2.Template.global_variable_paths" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">global_variable_paths</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">global_variable_paths</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="o">*</span><span class="p">,</span> <span class="n">include_partials</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return a list of variables used in this template including all path segments.</p>
+<p>Excludes variables that are <em>local</em> to the template, like those crated with
+<code>{% assign %}</code> and <code>{% capture %}</code>.</p>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">PARAMETER</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>include_partials</code>
+            </td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>If <code>True</code>, will try to load and find variables in
+included/rendered templates too.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code>bool</code>
+                  </span>
+                  <span class="doc-param-default">
+                    <b>DEFAULT:</b>
+                      <code>True</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">RETURNS</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <span class="doc-returns-annotation">
+                    <code>list[str]</code>
+                </span>
+            </td>
+            <td class="doc-returns-details">
+              <div class="doc-md-description">
+                <p>A list of distinct paths for variables in this template.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="liquid2.Template.global_variable_paths_async" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">global_variable_paths_async</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">global_variable_paths_async</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="o">*</span><span class="p">,</span> <span class="n">include_partials</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return a list of variables used in this template including all path segments.</p>
+<p>Excludes variables that are <em>local</em> to the template, like those crated with
+<code>{% assign %}</code> and <code>{% capture %}</code>.</p>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">PARAMETER</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>include_partials</code>
+            </td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>If <code>True</code>, will try to load and find variables in
+included/rendered templates too.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code>bool</code>
+                  </span>
+                  <span class="doc-param-default">
+                    <b>DEFAULT:</b>
+                      <code>True</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">RETURNS</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <span class="doc-returns-annotation">
+                    <code>list[str]</code>
+                </span>
+            </td>
+            <td class="doc-returns-details">
+              <div class="doc-md-description">
+                <p>A list of distinct paths for variables in this template.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="liquid2.Template.global_variable_segments" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">global_variable_segments</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">global_variable_segments</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="o">*</span><span class="p">,</span> <span class="n">include_partials</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Segments</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return a list of variables used in this template, each as a list of segments.</p>
+<p>Excludes variables that are <em>local</em> to the template, like those crated with
+<code>{% assign %}</code> and <code>{% capture %}</code>.</p>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">PARAMETER</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>include_partials</code>
+            </td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>If <code>True</code>, will try to load and find variables in
+included/rendered templates too.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code>bool</code>
+                  </span>
+                  <span class="doc-param-default">
+                    <b>DEFAULT:</b>
+                      <code>True</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">RETURNS</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <span class="doc-returns-annotation">
+                    <code>list[<span title="liquid2.static_analysis.Segments">Segments</span>]</code>
+                </span>
+            </td>
+            <td class="doc-returns-details">
+              <div class="doc-md-description">
+                <p>A list of distinct paths for variables in this template.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="liquid2.Template.global_variable_segments_async" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">global_variable_segments_async</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">global_variable_segments_async</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="o">*</span><span class="p">,</span> <span class="n">include_partials</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Segments</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return a list of variables used in this template, each as a list of segments.</p>
+<p>Excludes variables that are <em>local</em> to the template, like those crated with
+<code>{% assign %}</code> and <code>{% capture %}</code>.</p>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">PARAMETER</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>include_partials</code>
+            </td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>If <code>True</code>, will try to load and find variables in
+included/rendered templates too.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code>bool</code>
+                  </span>
+                  <span class="doc-param-default">
+                    <b>DEFAULT:</b>
+                      <code>True</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">RETURNS</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <span class="doc-returns-annotation">
+                    <code>list[<span title="liquid2.static_analysis.Segments">Segments</span>]</code>
+                </span>
+            </td>
+            <td class="doc-returns-details">
+              <div class="doc-md-description">
+                <p>A list of distinct paths for variables in this template.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="liquid2.Template.global_variables" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">global_variables</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">global_variables</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="o">*</span><span class="p">,</span> <span class="n">include_partials</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return a list of variables used in this template without path segments.</p>
+<p>Excludes variables that are <em>local</em> to the template, like those crated with
+<code>{% assign %}</code> and <code>{% capture %}</code>.</p>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">PARAMETER</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>include_partials</code>
+            </td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>If <code>True</code>, will try to load and find variables in
+included/rendered templates too.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code>bool</code>
+                  </span>
+                  <span class="doc-param-default">
+                    <b>DEFAULT:</b>
+                      <code>True</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">RETURNS</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <span class="doc-returns-annotation">
+                    <code>list[str]</code>
+                </span>
+            </td>
+            <td class="doc-returns-details">
+              <div class="doc-md-description">
+                <p>A list of distinct <em>root segments</em> for variables in this template.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="liquid2.Template.global_variables_async" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">global_variables_async</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">global_variables_async</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="o">*</span><span class="p">,</span> <span class="n">include_partials</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return a list of variables used in this template without path segments.</p>
+<p>Excludes variables that are <em>local</em> to the template, like those crated with
+<code>{% assign %}</code> and <code>{% capture %}</code>.</p>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">PARAMETER</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>include_partials</code>
+            </td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>If <code>True</code>, will try to load and find variables in
+included/rendered templates too.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code>bool</code>
+                  </span>
+                  <span class="doc-param-default">
+                    <b>DEFAULT:</b>
+                      <code>True</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">RETURNS</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <span class="doc-returns-annotation">
+                    <code>list[str]</code>
+                </span>
+            </td>
+            <td class="doc-returns-details">
+              <div class="doc-md-description">
+                <p>A list of distinct <em>root segments</em> for variables in this template.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
 
     </div>
 
@@ -1745,7 +2595,8 @@ called just like <em>is_up_to_date</em>.</p>
 
     <div class="doc doc-contents ">
 
-        <p>Render this template with <em>args</em> and <em>kwargs</em>.</p>
+        <p>Render this template with <em>args</em> and <em>kwargs</em> added to the render context.</p>
+<p><em>args</em> and <em>kwargs</em> are passed to <code>dict()</code>.</p>
 
     </div>
 
@@ -1768,7 +2619,8 @@ called just like <em>is_up_to_date</em>.</p>
 
     <div class="doc doc-contents ">
 
-        <p>Render this template with <em>args</em> and <em>kwargs</em>.</p>
+        <p>Render this template with <em>args</em> and <em>kwargs</em> added to the render context.</p>
+<p><em>args</em> and <em>kwargs</em> are passed to <code>dict()</code>.</p>
 
     </div>
 
@@ -1825,6 +2677,546 @@ called just like <em>is_up_to_date</em>.</p>
     <div class="doc doc-contents ">
 
         <p>Render this template using an existing render context and output buffer.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="liquid2.Template.tag_names" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">tag_names</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">tag_names</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">include_partials</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return a list of tag names used in this template.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="liquid2.Template.tag_names_async" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">tag_names_async</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">tag_names_async</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="o">*</span><span class="p">,</span> <span class="n">include_partials</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return a list of tag names used in this template.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="liquid2.Template.variable_paths" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">variable_paths</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">variable_paths</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="o">*</span><span class="p">,</span> <span class="n">include_partials</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return a list of variables used in this template including all path segments.</p>
+<p>Includes variables that are <em>local</em> to the template, like those crated with
+<code>{% assign %}</code> and <code>{% capture %}</code>.</p>
+<p>See also <a class="autorefs autorefs-internal" href="#liquid2.Template.global_variable_paths">global_variable_paths</a>.</p>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">PARAMETER</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>include_partials</code>
+            </td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>If <code>True</code>, will try to load and find variables in
+included/rendered templates too.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code>bool</code>
+                  </span>
+                  <span class="doc-param-default">
+                    <b>DEFAULT:</b>
+                      <code>True</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">RETURNS</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <span class="doc-returns-annotation">
+                    <code>list[str]</code>
+                </span>
+            </td>
+            <td class="doc-returns-details">
+              <div class="doc-md-description">
+                <p>A list of distinct paths for variables in this template.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="liquid2.Template.variable_paths_async" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">variable_paths_async</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">variable_paths_async</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="o">*</span><span class="p">,</span> <span class="n">include_partials</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return a list of variables used in this template including all path segments.</p>
+<p>Includes variables that are <em>local</em> to the template, like those crated with
+<code>{% assign %}</code> and <code>{% capture %}</code>.</p>
+<p>See also <a class="autorefs autorefs-internal" href="#liquid2.Template.global_variable_paths">global_variable_paths</a>.</p>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">PARAMETER</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>include_partials</code>
+            </td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>If <code>True</code>, will try to load and find variables in
+included/rendered templates too.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code>bool</code>
+                  </span>
+                  <span class="doc-param-default">
+                    <b>DEFAULT:</b>
+                      <code>True</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">RETURNS</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <span class="doc-returns-annotation">
+                    <code>list[str]</code>
+                </span>
+            </td>
+            <td class="doc-returns-details">
+              <div class="doc-md-description">
+                <p>A list of distinct paths for variables in this template.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="liquid2.Template.variable_segments" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">variable_segments</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">variable_segments</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="o">*</span><span class="p">,</span> <span class="n">include_partials</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Segments</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return a list of variables used in this template, each as a list of segments.</p>
+<p>Includes variables that are <em>local</em> to the template, like those crated with
+<code>{% assign %}</code> and <code>{% capture %}</code>.</p>
+<p>See also <a class="autorefs autorefs-internal" href="#liquid2.Template.global_variable_segments">global_variable_segments</a>.</p>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">PARAMETER</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>include_partials</code>
+            </td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>If <code>True</code>, will try to load and find variables in
+included/rendered templates too.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code>bool</code>
+                  </span>
+                  <span class="doc-param-default">
+                    <b>DEFAULT:</b>
+                      <code>True</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">RETURNS</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <span class="doc-returns-annotation">
+                    <code>list[<span title="liquid2.static_analysis.Segments">Segments</span>]</code>
+                </span>
+            </td>
+            <td class="doc-returns-details">
+              <div class="doc-md-description">
+                <p>A list of distinct paths for variables in this template.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="liquid2.Template.variable_segments_async" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">variable_segments_async</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">variable_segments_async</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="o">*</span><span class="p">,</span> <span class="n">include_partials</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Segments</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return a list of variables used in this template, each as a list of segments.</p>
+<p>Includes variables that are <em>local</em> to the template, like those crated with
+<code>{% assign %}</code> and <code>{% capture %}</code>.</p>
+<p>See also <a class="autorefs autorefs-internal" href="#liquid2.Template.global_variable_segments">global_variable_segments</a>.</p>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">PARAMETER</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>include_partials</code>
+            </td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>If <code>True</code>, will try to load and find variables in
+included/rendered templates too.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code>bool</code>
+                  </span>
+                  <span class="doc-param-default">
+                    <b>DEFAULT:</b>
+                      <code>True</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">RETURNS</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <span class="doc-returns-annotation">
+                    <code>list[<span title="liquid2.static_analysis.Segments">Segments</span>]</code>
+                </span>
+            </td>
+            <td class="doc-returns-details">
+              <div class="doc-md-description">
+                <p>A list of distinct paths for variables in this template.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="liquid2.Template.variables" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">variables</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">variables</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">include_partials</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return a list of variables used in this template without path segments.</p>
+<p>Includes variables that are <em>local</em> to the template, like those crated with
+<code>{% assign %}</code> and <code>{% capture %}</code>.</p>
+<p>See also <a class="autorefs autorefs-internal" href="#liquid2.Template.global_variables">global_variables</a>.</p>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">PARAMETER</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>include_partials</code>
+            </td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>If <code>True</code>, will try to load and find variables in
+included/rendered templates too.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code>bool</code>
+                  </span>
+                  <span class="doc-param-default">
+                    <b>DEFAULT:</b>
+                      <code>True</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">RETURNS</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <span class="doc-returns-annotation">
+                    <code>list[str]</code>
+                </span>
+            </td>
+            <td class="doc-returns-details">
+              <div class="doc-md-description">
+                <p>A list of distinct <em>root segments</em> for variables in this template.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="liquid2.Template.variables_async" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">variables_async</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">variables_async</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="o">*</span><span class="p">,</span> <span class="n">include_partials</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return a list of variables used in this template without path segments.</p>
+<p>Includes variables that are <em>local</em> to the template, like those crated with
+<code>{% assign %}</code> and <code>{% capture %}</code>.</p>
+<p>See also <a class="autorefs autorefs-internal" href="#liquid2.Template.global_variables">global_variables</a>.</p>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">PARAMETER</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>include_partials</code>
+            </td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>If <code>True</code>, will try to load and find variables in
+included/rendered templates too.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code>bool</code>
+                  </span>
+                  <span class="doc-param-default">
+                    <b>DEFAULT:</b>
+                      <code>True</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">RETURNS</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <span class="doc-returns-annotation">
+                    <code>list[str]</code>
+                </span>
+            </td>
+            <td class="doc-returns-details">
+              <div class="doc-md-description">
+                <p>A list of distinct <em>root segments</em> for variables in this template.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
 
     </div>
 
@@ -1999,6 +3391,7 @@ be included by the application developer rather than a template author.</p>
 
 
         <p>A variable as sequence of segments that make up its path and its location.</p>
+<p>Variables with the same segments compare equal, regardless of span.</p>
 
 
 
