@@ -147,7 +147,6 @@ __all__ = (
     "at_least",
     "at_most",
     "Blank",
-    "BlockComment",
     "BlockTag",
     "Boolean",
     "BooleanExpression",

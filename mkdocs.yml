@@ -5,7 +5,7 @@ site_url: https://jg-rp.github.io/python-liquid2/
 theme:
   name: material
   palette:
-    primary: black
+    primary: white
   features:
     - navigation.tabs
     - navigation.instant
@@ -29,54 +29,67 @@ plugins:
             docstring_section_style: "spacy"
 
 nav:
-  - Home: 
-    - Introduction: "index.md"
-    - Quick start: "quick_start.md"
-    - Liquid Syntax: "syntax.md"
-    - Terminology: "terminology.md" 
-    - Migration guide: "migration.md"
-    - Known issues: "known_issues.md"
+  - Home:
+      - Introduction: "index.md"
+      - Quick start: "quick_start.md"
+      - Liquid Syntax: "syntax.md"
+      - Conventions: "conventions.md"
+      - Terminology: "terminology.md"
+      - Migration guide: "migration.md"
+      - Known issues: "known_issues.md"
   - User guide:
-    - Liquid environments: "environment.md"
-    - Rendering templates: "rendering_templates.md"
-    - Loading templates: "loading_templates.md"
-    - Render context data: "render_context.md"
-    - Variables and drops: "variables_and_drops.md"
-    - Whitespace control: "whitespace_control.md"
-    - Template inheritance: "template_inheritance.md"
-    - HTML auto escape: "auto_escape.md"
-    - Resource limits: "resource_limits.md"
-    - Internationalization and localization: "babel.md"
-    - Async support: "async_support.md"
-    - Static template analysis: "static_analysis.md"
-    - Liquid exceptions: "exceptions.md"
-    - Custom filters: "custom_filters.md"
-    - Custom tags: "custom_tags.md"
-    - Custom template loaders: "custom_loaders.md"
+      - Liquid environments: "environment.md"
+      - Rendering templates: "rendering_templates.md"
+      - Loading templates: "loading_templates.md"
+      - Render context data: "render_context.md"
+      - Variables and drops: "variables_and_drops.md"
+      - Whitespace control: "whitespace_control.md"
+      - Template inheritance: "template_inheritance.md"
+      - HTML auto escape: "auto_escape.md"
+      - Resource limits: "resource_limits.md"
+      - Internationalization and localization: "babel.md"
+      - Async support: "async_support.md"
+      - Static template analysis: "static_analysis.md"
+      - Liquid exceptions: "exceptions.md"
+      - Custom filters: "custom_filters.md"
+      - Custom tags: "custom_tags.md"
+      - Custom template loaders: "custom_loaders.md"
   - Tag reference: "tag_reference.md"
   - Filter reference: "filter_reference.md"
   - API reference:
-    - Convenience functions: "api/convenience.md"
-    - Environment: "api/environment.md"
-    - Template: "api/template.md"
-    - Loaders: "api/loaders.md"
-    - Exceptions: "api/exceptions.md"
-    - AST: "api/ast.md"
-    - Filters: "api/filter.md"
-    - Tags: "api/tag.md"
-    - Undefined: "api/undefined.md"
-    - Babel: "api/babel.md"
-    - Tokens: "api/tokens.md"
+      - Convenience functions: "api/convenience.md"
+      - Environment: "api/environment.md"
+      - Template: "api/template.md"
+      - Loaders: "api/loaders.md"
+      - Exceptions: "api/exceptions.md"
+      - AST: "api/ast.md"
+      - Filters: "api/filter.md"
+      - Tags: "api/tag.md"
+      - Undefined: "api/undefined.md"
+      - Babel: "api/babel.md"
+      - Tokens: "api/tokens.md"
 
 markdown_extensions:
   - admonition
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
+      use_pygments: true
       pygments_lang_class: true
+  - attr_list
+  - md_in_html
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
 watch:
   - liquid2
+
+hooks:
+  - docs/.overrides/hooks/shortcodes.py
+
+extra_css:
+  - stylesheets/extra.css

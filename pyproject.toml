@@ -201,4 +201,13 @@ convention = "google"
 "liquid2/query/parse.py" = ["D102", "PLR2004"]
 "liquid2/unescape.py" = ["PLR2004"]
 "tests/*" = ["D100", "D101", "D102", "D104", "D103", "PLR2004", "FBT003"]
+"docs/.overrides/hooks*" = [
+  "D100",
+  "D101",
+  "D102",
+  "D104",
+  "D103",
+  "PLR2004",
+  "FBT003",
+]
 "performance/*" = ["D103", "PLR2004", "T201", "D100"]
