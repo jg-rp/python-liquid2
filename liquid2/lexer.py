@@ -79,7 +79,6 @@ class Lexer:
         "DOUBLE_DOT": r"\.\.",
         "DOUBLE_PIPE": r"\|\|",
         "ASSIGN": r"=",
-        "ROOT": r"\$",
         "LPAREN": r"\(",
         "RPAREN": r"\)",
         "SINGLE_QUOTE_STRING": r"'",

@@ -63,6 +63,7 @@ dependencies = [
   "types-pytz",
   "types-babel",
   "types-python-dateutil",
+  "pygments-liquid2",
 ]
 python = "3.12"
 
