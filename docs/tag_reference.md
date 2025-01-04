@@ -134,7 +134,7 @@ foo is now equal to {{ foo }}.
 {% assign <identifier> = <expression> if <expression> else <expression> %}
 ```
 
-Inline conditional expressions can be used as an alternative to the longer for [`{% if %}` tag](#if).
+Inline conditional expressions can be used as an alternative to the longer form [`{% if %}` tag](#if).
 
 ```liquid2
 {% assign foo = "bar" if x.y == z else "baz" %}
@@ -161,7 +161,7 @@ Or to the result of the conditional expression as a whole using _tail filters_. 
 {% capture <identifier> %} <liquid markup> {% endcapture %}
 ```
 
-The `capture` tag renders the contents of its block and saves the resulting string as a new variable, or reassigns an existing variable.
+The `capture` tag evaluates the contents of its block and saves the resulting string as a new variable, or reassigns an existing variable, without immediately rendering it.
 
 ```liquid2
 {% capture welcome_message %}
@@ -189,7 +189,7 @@ In some cases, it can be easier to use a template string <!-- md:liquid2 -->.
 {% endcase %}
 ```
 
-The `case` tag evaluates an expression, matching the result against one or move `when` clauses. In the event of a match, the `when` block is rendered. The `else` clause is rendered if no `when` clauses match the `case` expression.
+The `case` tag evaluates an expression, matching the result against one or more `when` clauses. In the event of a match, the `when` block is rendered. The `else` clause is rendered if no `when` clauses match the `case` expression.
 
 ```liquid2
 {% assign day = "Monday" %}
@@ -215,7 +215,7 @@ The `case` tag evaluates an expression, matching the result against one or move 
 {% cycle [ <string or identifier>: ] <expression> [, <expression> ... ] %}
 ```
 
-Render the next item in an iterator, initializing the and rendering the first value if it does not yet exist. When the items are exhausted, the iterator starts again from the beginning.
+Render the next item in an iterator, initializing it and rendering the first value if it does not yet exist. When the items are exhausted, the iterator starts again from the beginning.
 
 ```liquid2
 {% cycle 'odd', 'even' %}
