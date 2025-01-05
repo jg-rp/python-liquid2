@@ -1,3 +1,5 @@
+All the tags described here are enabled by default in Python Liquid2.
+
 ## Comments
 
 <!-- md:version 0.1.0 -->
@@ -528,20 +530,318 @@ Any primitive expression can be tested for truthiness, like `{% if some_variable
 
 ## include
 
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```liquid2
+{% include <template name>
+    [ ( with | for ) <expression> [ as <identifier> ]]
+    [[,] <identifier>: <expression> [, [<identifier>: <expression> ... ]]]
+%}
+```
+
+The `include` tag loads and renders a named template, inserting the resulting text in its place. The name of the template to include can be a string literal or a variable resolving to a string. When rendered, the included template will share the same scope as the current template.
+
+```liquid2
+{% include "snippets/header.html" %}
+```
+
+### with
+
+Using the optional `with` syntax, we can bind a value to a variable that will be in scope for the included template. By default, that variable will be the name of the included template. Alternatively we can specify the variable to use with the `as` keyword followed by an identifier.
+
+Here, the template named `greeting` will have access to a variable called `greeting` with the value `"Hello"`.
+
+```liquid2
+{% assign greetings = "Hello,Goodbye" | split: "," %}
+{% include "greeting" with greetings.first %}
+```
+
+### for
+
+If an array-like object it given following the `for` keyword, the named template will be rendered once for each item in the sequence and, like `with` above, the item value will be bound to a variable named after the included template.
+
+In this example the template named `greeting` will be rendered once with the variable `greeting` set to `"Hello"` and once with the variable `greeting` set to `"Goodbye"`.
+
+```liquid2
+{% assign greetings = "Hello, Goodbye" | split: ", " %}
+{% include "greeting" for greetings as greeting %}
+```
+
+### Keyword arguments
+
+Additional keyword arguments given to the `include` tag will be added to the included template's scope, then go out of scope after the included template has been rendered.
+
+```liquid2
+{% include "partial_template" greeting: "Hello", num: 3, skip: 2 %}
+```
+
 ## increment
+
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+{% increment <identifier> %}
+```
+
+The `increment` tag renders the next value in a named counter, increasing the count by one each time. If a counter with the given name does not already exist, it is created automatically and initialized to zero, which is output **before** adding `1`.
+
+```liquid2
+{% increment some %}
+{% increment thing %}
+{% increment thing %}
+```
 
 ## liquid
 
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+{% liquid
+  <tag name> [<expression>]
+  [ <tag name> [<expression>]]
+  ...
+%}
+```
+
+The `liquid` tag encloses _line statements_, where each line starts with a tag name and is followed by the tag's expression. Expressions inside `liquid` tags **must** fit on one line as we use `\n` as a delimiter indicating the end of the expression.
+
+Note that output statement syntax (`{{ <expression> }}`) is not allowed inside `liquid` tags, so you must use the [`echo`](#echo) tag instead.
+
+```liquid2
+{% liquid
+  assign username = "Brian"
+
+  if username
+    echo "Hello, " | append: username
+  else
+    echo "Hello, user"
+  endif
+
+  for i in (1..3)
+    echo i
+  endfor
+%}
+```
+
+Also, inside `liquid` tags, any line starting with a hash will be considered a comment.
+
+```liquid2
+{% liquid
+  # This is a comment
+  echo "Hello"
+%}
+```
+
 ## macro
 
-### call
+<!-- md:version 0.1.0 -->
+<!-- md:liquid2 -->
+
+```
+{% macro <name> [[,] [ <identifier>[: <expression>]] ... ] %}
+  <liquid markup>
+{% endmacro %}
+```
+
+```
+{% call <name> [[,] [ <identifier>[: <expression>]] ... ] %}
+```
+
+The `macro` tag defines a parameterized block that can later be called using the `call` tag.
+
+A macro is like defining a function. You define a parameter list, possibly with default values, that are expected to be provided by a `call` tag. A macro tag's block has its own scope including its arguments and template global variables, just like the [`render`](#render) tag.
+
+Note that argument defaults are bound late. They are evaluated when a call expression is evaluated, not when the macro is defined.
+
+```liquid2
+{% macro 'price' product, on_sale: false %}
+  <div class="price-wrapper">
+  {% if on_sale %}
+    <p>Was {{ product.regular_price | prepend: '$' }}</p>
+    <p>Now {{ product.price | prepend: '$' }}</p>
+  {% else %}
+    <p>{{ product.price | prepend: '$' }}</p>
+  {% endif %}
+  </div>
+{% endmacro %}
+
+{% call 'price' products[0], on_sale: true %}
+{% call 'price' products[1] %}
+```
+
+Excess arguments passed to `call` are collected into variables called `args` and `kwargs`, so variadic macros a possible too.
+
+```liquid2
+{% macro 'foo' %}
+  {% for arg in args %}
+    - {{ arg }}
+  {% endfor %}
+
+  {% for arg in kwargs %}
+    - {{ arg.0 }} => {{ arg.1 }}
+  {% endfor %}
+{% endmacro %}
+
+{% call 'foo' 42, 43, 99, a: 3.14, b: 2.71828 %}
+```
 
 ## raw
 
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+{% raw %} <text> {% endraw %}
+```
+
+Any text between `{% raw %}` and `{% endraw %}` will not be interpreted as Liquid markup, but output as plain text instead.
+
+```liquid2
+{% raw %}
+  This will be rendered {{verbatim}}, with the curly brackets.
+{% endraw %}
+```
+
 ## render
+
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```liquid2
+{% render <string>
+    [ ( with | for ) <expression> [ as <identifier> ]]
+    [[,] <identifier>: <expression> [, [<identifier>: <expression> ... ]]]
+%}
+```
+
+The `render` tag loads and renders a named template, inserting the resulting text in its place. The name of the template to include **must** be a string literal. When rendered, the included template will have its onw scope, without variables define in the calling template.
+
+```liquid2
+{% render "snippets/header.html" %}
+```
+
+### with
+
+Using the optional `with` syntax, we can bind a value to a variable that will be in scope for the rendered template. By default, that variable will be the name of the rendered template. Alternatively we can specify the variable to use with the `as` keyword followed by an identifier.
+
+Here, the template named `greeting` will have access to a variable called `greeting` with the value `"Hello"`.
+
+```liquid2
+{% assign greetings = "Hello,Goodbye" | split: "," %}
+{% render "greeting" with greetings.first %}
+```
+
+### for
+
+If an array-like object it given following the `for` keyword, the named template will be rendered once for each item in the sequence and, like `with` above, the item value will be bound to a variable named after the rendered template.
+
+In this example the template named `greeting` will be rendered once with the variable `greeting` set to `"Hello"` and once with the variable `greeting` set to `"Goodbye"`.
+
+```liquid2
+{% assign greetings = "Hello, Goodbye" | split: ", " %}
+{% render "greeting" for greetings as greeting %}
+```
+
+### Keyword arguments
+
+Additional keyword arguments given to the `render` tag will be added to the rendered template's scope, then go out of scope after the it has been rendered.
+
+```liquid2
+{% render "partial_template" greeting: "Hello", num: 3, skip: 2 %}
+```
 
 ## translate
 
+<!-- md:version 0.1.0 -->
+<!-- md:liquid2 -->
+
+```
+{% translate
+    [context: <string>]
+    [, count: <number>]
+    [, <identifier>: <object> ] ... %}
+  <text,variable> ...
+[ {% plural %} <text,variable> ... ]
+{% endtranslate %}
+```
+
+The `translate` tag defines text to be translated into another language. Said text can contain placeholders for variables. These placeholders look like Liquid output statements, but can't use dotted or bracketed property syntax or filters.
+
+If a German translations object is found in the current render context, this example would output `Hallo Welt!`.
+
+```liquid2
+{% translate %}
+  Hello, World!
+{% endtranslate %}
+```
+
+If a `{% plural %}` block follows the message text and the special `count` argument is considered plural, the `{% plural %}` block will be rendered instead. Again, with a German translations object, this example would render `Hallo Welten!`.
+
+```liquid2
+{% translate count: 2 %}
+  Hello, World!
+{% plural %}
+  Hello, Worlds!
+{% endtranslate %}
+```
+
+Keyword arguments are used to add (or shadow existing) variables.
+
+```liquid2
+{% translate you: 'Sue' %}
+  Hello, {{ you }}!
+{% endtranslate %}
+```
+
 ## unless
 
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+{% unless <expression> %}
+  <liquid markup>
+  [ {% elsif <expression> %} <liquid markup> [ {% elsif <expression> %} ... ]]
+  [ {% else %} <liquid markup> ... ]
+{% endif %}
+```
+
+The `unless` tag conditionally renders its block if its expression evaluates to be falsy. Any number of elsif blocks can be given to add alternative conditions, and an else block is used as a default if none of preceding conditions were met.
+
+```liquid2
+{% unless product.title == "OK Hat" %}
+  This hat is OK.
+{% elsif product.title == "Rubbish Tie" %}
+  This tie is rubbish.
+{% else %}
+  Not sure what this is.
+{% endif %}
+```
+
+Otherwise `unless` behaves the same as [`if`](#if). See [Conditional expressions](#conditional-expressions).
+
 ## with
+
+<!-- md:version 0.1.0 -->
+<!-- md:liquid2 -->
+
+```
+{% with <identifier>: <expression> [, <identifier>: <expression> ... ] %}
+  <liquid markup>
+{% endwith %}
+```
+
+The `with` tag extends the template namespace with block scoped variables. These variables have the potential to shadow global variables or variables assigned with `{% assign %}` and `{% capture %}`.
+
+```liquid2
+{% with p: collection.products.first %}
+  {{ p.title }}
+{% endwith %}
+
+{% with a: 1, b: 3.4 %}
+  {{ a }} + {{ b }} = {{ a | plus: b }}
+{% endwith %}
+```

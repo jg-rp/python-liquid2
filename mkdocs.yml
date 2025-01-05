@@ -54,7 +54,9 @@ nav:
       - Custom filters: "custom_filters.md"
       - Custom tags: "custom_tags.md"
       - Custom template loaders: "custom_loaders.md"
-  - Tag reference: "tag_reference.md"
+  - Tag reference:
+      - Tag reference: "tag_reference.md"
+      - Optional tags: "optional_tags.md"
   - Filter reference: "filter_reference.md"
   - API reference:
       - Convenience functions: "api/convenience.md"

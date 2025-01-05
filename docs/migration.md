@@ -6,7 +6,7 @@ Liquid2 changes Liquid syntax and features **and** the template engine's Python 
 
 With [Python Liquid version 1](https://github.com/jg-rp/liquid), our primary objectives were render behavior stability and Shopify/Liquid compatibility, in that order. Later we introduced `liquid.future.Environment`, which sacrificed some stability for greater Shopify/Liquid compatibility as Shopify/Liquid and our understanding of it changed.
 
-Now, with Python Liquid version 2, render behavior stability is still the top priority, but the default environment deliberately deviates from Shopify/Liquid in several ways, "fixing" and adding often requested features that Shopify can't due to their large user base and the technical debt that comes with it.
+Now, with Python Liquid2, render behavior stability is still the top priority, but the default environment deliberately deviates from Shopify/Liquid in several ways, "fixing" and adding often requested features that Shopify can't due to their large user base and the technical debt that comes with it.
 
 In most cases these fixes and features are backwards compatible with Shopify/Liquid, requiring little or no modification to legacy Liquid templates. To ease transition from legacy templates to Liquid2 templates we include a `liquid2.shopify.Environment`, which is configured to include some legacy tags that didn't make it in to the default environment.
 
@@ -54,11 +54,11 @@ These features are not yet included in Python Liquid2, but can be if there is a 
 These are the most notable changes. Please raise an [issue](https://github.com/jg-rp/python-liquid2/issues) or start a discussion if I've missed anything or you need help with migration.
 
 - Package level `Template` can no longer be used as a convenience function for creating a template from a string. Use `parse()` or `DEFAULT_ENVIRONMENT.from_string()` instead.
-- StrictUndefined now plays nicely with the `default` filter. Previously we had a separate `StrictDefaultUndefined` class.
+- `StrictUndefined` now plays nicely with the `default` filter. Previously we had a separate `StrictDefaultUndefined` class.
 - `FileSystemLoader` now takes an optional default file extension to use when looking for files that don't already have an extension. Previously there was a separate `FileExtensionLoader`.
 - `AwareBoundTemplate` (a template with a built-in `template` drop) has been removed, but can be added as a feature later if there is a demand.
 - The `auto_reload` and `cache_size` arguments to `Environment` have been removed. Now caching is handle by template loaders, not the environment. For example, pass a `CachingFileSystemLoader` as the `loader` argument to `Environment` instead of a `FileSystemLoader`.
-- The `strict_filters` argument to `Environment` has been removed. Unknown filters now always raise ab `UnknownFilterError`.
+- The `strict_filters` argument to `Environment` has been removed. Unknown filters now always raise an `UnknownFilterError`.
 - `TemplateNotFound` has been renamed to `TemplateNotFoundError`.
 - `Context` has been renamed to `RenderContext` and now takes a mandatory `template` argument instead of `env`. All other arguments to `RenderContext` are now keyword only.
 - `FilterValueError` and `FilterArgumentError` have been removed. `LiquidValueError` and `LiquidTypeError` should be used instead. In some cases where `FilterValueError` was deliberately ignored before, `LiquidValueError` is now raised.
