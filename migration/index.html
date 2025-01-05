@@ -230,16 +230,17 @@
   
   
   
-    <li class="md-tabs__item">
-      <a href="../tag_reference/" class="md-tabs__link">
-        
-  
     
+    
+      <li class="md-tabs__item">
+        <a href="../tag_reference/" class="md-tabs__link">
+          
   
   Tag reference
 
-      </a>
-    </li>
+        </a>
+      </li>
+    
   
 
       
@@ -1031,6 +1032,44 @@
   
   
   
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Tag reference
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Tag reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
     <li class="md-nav__item">
       <a href="../tag_reference/" class="md-nav__link">
         
@@ -1041,6 +1080,35 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../optional_tags/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Optional tags
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -1470,7 +1538,7 @@
 <p>Liquid2 changes Liquid syntax and features <strong>and</strong> the template engine's Python API. Liquid2's default syntax and semantics are mostly backwards compatible with version 1 and, by extension, Shopify/Liquid.</p>
 <h2 id="approach-to-compatibility-and-stability">Approach to compatibility and stability</h2>
 <p>With <a href="https://github.com/jg-rp/liquid">Python Liquid version 1</a>, our primary objectives were render behavior stability and Shopify/Liquid compatibility, in that order. Later we introduced <code>liquid.future.Environment</code>, which sacrificed some stability for greater Shopify/Liquid compatibility as Shopify/Liquid and our understanding of it changed.</p>
-<p>Now, with Python Liquid version 2, render behavior stability is still the top priority, but the default environment deliberately deviates from Shopify/Liquid in several ways, "fixing" and adding often requested features that Shopify can't due to their large user base and the technical debt that comes with it.</p>
+<p>Now, with Python Liquid2, render behavior stability is still the top priority, but the default environment deliberately deviates from Shopify/Liquid in several ways, "fixing" and adding often requested features that Shopify can't due to their large user base and the technical debt that comes with it.</p>
 <p>In most cases these fixes and features are backwards compatible with Shopify/Liquid, requiring little or no modification to legacy Liquid templates. To ease transition from legacy templates to Liquid2 templates we include a <code>liquid2.shopify.Environment</code>, which is configured to include some legacy tags that didn't make it in to the default environment.</p>
 <h3 id="why-is-render-stability-so-important">Why is render stability so important?</h3>
 <p>When developing a conventional website, for example, templates are developed along side application code. Template authors and application developers might be different people or different teams, but templates are known at deployment time, and all templates can probably be parsed upfront and held in memory. In this scenario it's a pain if your template render engine introduces behavioral changes, but it's manageable.</p>
@@ -1508,11 +1576,11 @@
 <p>These are the most notable changes. Please raise an <a href="https://github.com/jg-rp/python-liquid2/issues">issue</a> or start a discussion if I've missed anything or you need help with migration.</p>
 <ul>
 <li>Package level <code>Template</code> can no longer be used as a convenience function for creating a template from a string. Use <code>parse()</code> or <code>DEFAULT_ENVIRONMENT.from_string()</code> instead.</li>
-<li>StrictUndefined now plays nicely with the <code>default</code> filter. Previously we had a separate <code>StrictDefaultUndefined</code> class.</li>
+<li><code>StrictUndefined</code> now plays nicely with the <code>default</code> filter. Previously we had a separate <code>StrictDefaultUndefined</code> class.</li>
 <li><code>FileSystemLoader</code> now takes an optional default file extension to use when looking for files that don't already have an extension. Previously there was a separate <code>FileExtensionLoader</code>.</li>
 <li><code>AwareBoundTemplate</code> (a template with a built-in <code>template</code> drop) has been removed, but can be added as a feature later if there is a demand.</li>
 <li>The <code>auto_reload</code> and <code>cache_size</code> arguments to <code>Environment</code> have been removed. Now caching is handle by template loaders, not the environment. For example, pass a <code>CachingFileSystemLoader</code> as the <code>loader</code> argument to <code>Environment</code> instead of a <code>FileSystemLoader</code>.</li>
-<li>The <code>strict_filters</code> argument to <code>Environment</code> has been removed. Unknown filters now always raise ab <code>UnknownFilterError</code>.</li>
+<li>The <code>strict_filters</code> argument to <code>Environment</code> has been removed. Unknown filters now always raise an <code>UnknownFilterError</code>.</li>
 <li><code>TemplateNotFound</code> has been renamed to <code>TemplateNotFoundError</code>.</li>
 <li><code>Context</code> has been renamed to <code>RenderContext</code> and now takes a mandatory <code>template</code> argument instead of <code>env</code>. All other arguments to <code>RenderContext</code> are now keyword only.</li>
 <li><code>FilterValueError</code> and <code>FilterArgumentError</code> have been removed. <code>LiquidValueError</code> and <code>LiquidTypeError</code> should be used instead. In some cases where <code>FilterValueError</code> was deliberately ignored before, <code>LiquidValueError</code> is now raised.</li>
