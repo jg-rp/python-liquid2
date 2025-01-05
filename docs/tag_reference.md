@@ -233,19 +233,298 @@ You can give `cycle` a name to further distinguish multiple iterators with the s
 
 ## decrement
 
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+{% decrement <identifier> %}
+```
+
+The `decrement` tag renders the next value in a named counter, reducing the count by one each time. If a counter with the given name does not already exist, it is created automatically and initialized to zero, before subtracting 1 and outputting `-1`.
+
+```liquid2
+{% decrement some %}
+{% decrement thing %}
+{% decrement thing %}
+```
+
 ## echo
+
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+{% echo <expression> | <filter> [| <filter> ...] %}
+```
+
+The `echo` tag is equivalent to output statements, an expression surrounded by `{{` and `}}`, just in tag form. It is mostly used inside [`{% liquid %}`](#liquid) tags where plain output statements are not allowed.
+
+```liquid2
+Hello, {% echo you %}!
+Hello, {{ you }}!
+
+{% liquid
+  for product in collection.products
+    echo product.title | capitalize
+  endfor
+%}
+```
+
+### Ternary expressions
+
+<!-- md:version 0.1.0 -->
+<!-- md:liquid2 -->
+
+```
+{% echo <expression> if <expression> else <expression> %}
+```
+
+Just like output statements and the [`assign`](#assign) tag, you can use inline conditional expressions inside `echo` tags.
+
+```liquid2
+{% echo "bar" | upcase if x else "baz" | capitalize %}
+
+{% liquid
+  for product in collection.products
+    echo product.title | capitalize if "foo" in product.tags
+  endfor
+%}
+```
 
 ## extends
 
+<!-- md:version 0.1.0 -->
+<!-- md:liquid2 -->
+
+```
+{% extends <template name> %}
+```
+
+Together with the [`block`](#block) tag, the `extends` tag allows you to inherit content and Liquid markup from parent templates and define blocks that can be overridden by child templates.
+
+In this example `page.html` inherits from `base.html` and overrides the `content` block. As `page.html` does not define a `footer` block, the footer from `base.html` is used.
+
+```liquid2 title="base.html"
+<body>
+  <div id="content">{% block content required %}{% endblock %}</div>
+  <div id="footer">{% block footer %}Default footer{% endblock %}</div>
+</body>
+```
+
+```liquid2 title="page.html"
+{% extends 'base.html' %}
+{% block content %}Hello, {{ you }}!{% endblock %}
+```
+
 ### block
+
+<!-- md:version 0.1.0 -->
+<!-- md:liquid2 -->
+
+```
+{% block <name> [required] %} <Liquid markup> {% endblock [<name>] %}
+```
+
+Every `block` tag must have a name that is unique to the template. `endblock` tags can include a name too. If given, the `endblock` name must match the name given at the start of the block.
+
+If the optional `required` argument is given, the block must be overridden by a child template, otherwise a `RequiredBlockError` will be raised.
+
+```liquid2
+<body>
+  <div id="content">
+    {% block content %}
+      {% block title %}
+        <h1>Some Title</h1>
+      {% endblock title %}
+    {% endblock content %}
+  </div>
+  <div id="footer">
+    {% block footer %}
+      Default footer
+    {% endblock footer %}
+  </div>
+</body>
+```
 
 ## for
 
-## if
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+{% for <identifier> in <expression>
+    [ limit: <expression> ] [ offset: <expression> ] [ reversed ] %}
+  <liquid markup>
+  [ {% else %} <liquid markup> ]
+{% endfor %}
+```
+
+The `for` tag renders its block once for each item in an iterable object, like an array/list or mapping/dict/hash. If the iterable is empty and an `else` block given, it will be rendered instead.
+
+```liquid2
+{% for product in collection %}
+    - {{ product.title }}
+{% else %}
+    No products available
+{% endfor %}
+```
+
+Range expression are often used with the `for` tag to loop over increasing integers.
+
+```liquid2
+{% for i in (1..4) %}
+    {{ i }}
+{% endfor %}
+```
+
+### limit
+
+If a `limit` argument is given, the loop will stop after the specified number of iterations.
+
+```liquid2
+{% for product in collection.products limit: 2 %}
+    - {{ product.title }}
+{% endfor %}
+```
+
+### offset
+
+If an `offset` argument is given, it should be an integer specifying how many items to skip before starting the loop.
+
+```liquid2
+{% for product in collection.products limit: 2 %}
+    - {{ product.title }}
+{% endfor %}
+```
+
+`offset` can also be given the special value `"continue"`, in which case the loop will start from where a previous loop with the same iterable left off.
+
+```liquid2
+{% for product in collection.products limit: 2 %}
+    - {{ product.title }}
+{% endfor %}
+
+{% for product in collection.products offset: continue %}
+    - {{ product.title }}!
+{% endfor %}
+```
+
+### reversed
+
+If the reversed flag is given, the target iterable will be iterated in reverse order.
+
+```liquid2
+{% for product in collection.products reversed %}
+    - {{ product.title }}
+{% endfor %}
+```
 
 ### break
 
+You can exit a loop early using the `break` tag.
+
+```liquid2
+{% for product in collection.products %}
+    {% if product.title == "Shirt" %}
+        {% break %}
+    {% endif %}
+    - {{ product.title }}
+{% endfor %}
+```
+
 ### continue
+
+You can skip all or part of a loop iteration with the `continue` tag.
+
+```liquid2
+{% for product in collection.products %}
+    {% if product.title == "Shirt" %}
+        {% continue %}
+    {% endif %}
+    - {{ product.title }}
+{% endfor %}
+```
+
+### forloop
+
+A `forloop` object is available inside every `for` tag block.
+
+| Property     | Description                                                          | Type    |
+| ------------ | -------------------------------------------------------------------- | ------- |
+| `name`       | The loop variable name and target identifier, separated by a hyphen. | string  |
+| `length`     | The length of the sequence being iterated.                           | integer |
+| `index`      | The 1-base index of the current iteration.                           | integer |
+| `index0`     | The 0-base index of the current iteration.                           | integer |
+| `rindex`     | The 1-base index of the current iteration counting from the end.     | integer |
+| `rindex0`    | The 0-base index of the current iteration counting from the end.     | integer |
+| `first`      | `true` if the current iteration is the first, `false` otherwise.     | bool    |
+| `last`       | `true` is the current iteration is the last, `false` otherwise.      | bool    |
+| `parentloop` | the `forloop` object of an enclosing `for` loop.                     | forloop |
+
+```liquid2
+{% for product in collection.products %}
+    {% if forloop.first %}
+      <b>{{ product.title }}</b> - {{ forloop.index0 }}
+    {% else %}
+      {{ product.title }} - {{ forloop.index0 }}
+    {% endif %}
+{% endfor %}
+```
+
+## if
+
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+{% if <expression> %}
+  <liquid markup>
+  [ {% elsif <expression> %} <liquid markup> [ {% elsif <expression> %} ... ]]
+  [ {% else %} <liquid markup> ... ]
+{% endif %}
+```
+
+The `if` tag conditionally renders its block if its expression evaluates to be truthy. Any number of `elsif` blocks can be given to add alternative conditions, and an `else` block is used as a default if no preceding conditions were truthy.
+
+```liquid2
+{% if product.title == "OK Hat" %}
+  This hat is OK.
+{% elsif product.title == "Rubbish Tie" %}
+  This tie is rubbish.
+{% else %}
+  Not sure what this is.
+{% endif %}
+```
+
+### Conditional expressions
+
+Any primitive expression can be tested for truthiness, like `{% if some_variable %}`, or you can use a combination of the following operators. Only `false`, `nil`/`null` and the special _undefined_ object are falsy in Liquid.
+
+| Operator                  | Description              | Example                             |
+| ------------------------- | ------------------------ | ----------------------------------- |
+| `==`                      | Equals                   | `product.title == "Nice Shoes"`     |
+| `!=`                      | Not equals               | `user.name != "anonymous"`          |
+| `>`                       | Greater than             | `product.was_price > product.price` |
+| `<`                       | Less than                | `collection.products.size < 10`     |
+| `>=`                      | Greater than or equal to | `user.age >= 18`                    |
+| `<=`                      | Less than or equal to    | `basket.size <= 0`                  |
+| `and`                     | Logical and              | `x and y`                           |
+| `and`                     | Logical or               | `x or y`                            |
+| `not` <!-- md:liquid2 --> | Logical not              | `not x`                             |
+
+### Operator precedence
+
+<!-- md:liquid2 -->
+
+`and` binds more tightly than `or`, just like in Python. Terms can be grouped with parentheses to explicitly control logical operator precedence.
+
+```liquid
+{% if (user != empty and user.eligible and user.score > 100) or exempt %}
+    user is special
+{% else %}
+    denied
+{% endif %}
+```
 
 ## include
 
