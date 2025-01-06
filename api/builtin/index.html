@@ -10,28 +10,28 @@
       
       
       
-        <link rel="canonical" href="https://jg-rp.github.io/python-liquid2/resource_limits/">
+        <link rel="canonical" href="https://jg-rp.github.io/python-liquid2/api/builtin/">
       
       
-        <link rel="prev" href="../auto_escape/">
+        <link rel="prev" href="../exceptions/">
       
       
-        <link rel="next" href="../babel/">
+        <link rel="next" href="../ast/">
       
       
-      <link rel="icon" href="../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.49">
     
     
       
-        <title>Resource limits - Python Liquid2</title>
+        <title>Builtin - Python Liquid2</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.6f8fc17f.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.6f8fc17f.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -50,11 +50,11 @@
       
     
     
-      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
-      <link rel="stylesheet" href="../stylesheets/extra.css">
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -77,6 +77,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#liquid2.builtin.register_default_tags_and_filters" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -87,7 +92,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="Python Liquid2" class="md-header__button md-logo" aria-label="Python Liquid2" data-md-component="logo">
+    <a href="../.." title="Python Liquid2" class="md-header__button md-logo" aria-label="Python Liquid2" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -107,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Resource limits
+              Builtin
             
           </span>
         </div>
@@ -190,7 +195,7 @@
     
     
       <li class="md-tabs__item">
-        <a href=".." class="md-tabs__link">
+        <a href="../.." class="md-tabs__link">
           
   
   Home
@@ -204,13 +209,11 @@
         
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../environment/" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../environment/" class="md-tabs__link">
           
   
   User guide
@@ -228,7 +231,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../tag_reference/" class="md-tabs__link">
+        <a href="../../tag_reference/" class="md-tabs__link">
           
   
   Tag reference
@@ -246,7 +249,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../filter_reference/" class="md-tabs__link">
+        <a href="../../filter_reference/" class="md-tabs__link">
           
   
   Filter reference
@@ -260,11 +263,13 @@
         
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../api/convenience/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../convenience/" class="md-tabs__link">
           
   
   API reference
@@ -297,7 +302,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="Python Liquid2" class="md-nav__button md-logo" aria-label="Python Liquid2" data-md-component="logo">
+    <a href="../.." title="Python Liquid2" class="md-nav__button md-logo" aria-label="Python Liquid2" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -365,7 +370,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -386,7 +391,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../quick_start/" class="md-nav__link">
+      <a href="../../quick_start/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -407,7 +412,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../syntax/" class="md-nav__link">
+      <a href="../../syntax/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -428,7 +433,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../conventions/" class="md-nav__link">
+      <a href="../../conventions/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -449,7 +454,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../terminology/" class="md-nav__link">
+      <a href="../../terminology/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -470,7 +475,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../migration/" class="md-nav__link">
+      <a href="../../migration/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -491,7 +496,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../known_issues/" class="md-nav__link">
+      <a href="../../known_issues/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -516,28 +521,23 @@
       
   
   
-    
   
   
-  
     
     
     
       
-        
-        
-      
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -548,7 +548,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             User guide
@@ -562,7 +562,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../environment/" class="md-nav__link">
+      <a href="../../environment/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -583,7 +583,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../rendering_templates/" class="md-nav__link">
+      <a href="../../rendering_templates/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -604,7 +604,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../loading_templates/" class="md-nav__link">
+      <a href="../../loading_templates/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -625,7 +625,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../render_context/" class="md-nav__link">
+      <a href="../../render_context/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -646,7 +646,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../variables_and_drops/" class="md-nav__link">
+      <a href="../../variables_and_drops/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -667,7 +667,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../whitespace_control/" class="md-nav__link">
+      <a href="../../whitespace_control/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -688,7 +688,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../template_inheritance/" class="md-nav__link">
+      <a href="../../template_inheritance/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -709,7 +709,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../auto_escape/" class="md-nav__link">
+      <a href="../../auto_escape/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -727,17 +727,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../resource_limits/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -746,7 +739,6 @@
   
 
       </a>
-      
     </li>
   
 
@@ -759,7 +751,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../babel/" class="md-nav__link">
+      <a href="../../babel/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -780,7 +772,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../async_support/" class="md-nav__link">
+      <a href="../../async_support/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -801,7 +793,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../static_analysis/" class="md-nav__link">
+      <a href="../../static_analysis/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -822,7 +814,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../exceptions/" class="md-nav__link">
+      <a href="../../exceptions/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -843,7 +835,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../custom_filters/" class="md-nav__link">
+      <a href="../../custom_filters/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -864,7 +856,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../custom_tags/" class="md-nav__link">
+      <a href="../../custom_tags/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -885,7 +877,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../custom_loaders/" class="md-nav__link">
+      <a href="../../custom_loaders/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -951,7 +943,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../tag_reference/" class="md-nav__link">
+      <a href="../../tag_reference/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -972,7 +964,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../optional_tags/" class="md-nav__link">
+      <a href="../../optional_tags/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1038,7 +1030,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../filter_reference/" class="md-nav__link">
+      <a href="../../filter_reference/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1059,7 +1051,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../optional_filters/" class="md-nav__link">
+      <a href="../../optional_filters/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1084,23 +1076,28 @@
       
   
   
+    
   
   
+  
     
     
     
-      
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
             
   
   <span class="md-ellipsis">
@@ -1111,7 +1108,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             API reference
@@ -1125,7 +1122,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/convenience/" class="md-nav__link">
+      <a href="../convenience/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1146,7 +1143,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/environment/" class="md-nav__link">
+      <a href="../environment/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1167,7 +1164,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/template/" class="md-nav__link">
+      <a href="../template/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1188,7 +1185,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/loaders/" class="md-nav__link">
+      <a href="../loaders/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1209,7 +1206,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/exceptions/" class="md-nav__link">
+      <a href="../exceptions/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1227,10 +1224,28 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../api/builtin/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Builtin
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -1239,6 +1254,33 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#liquid2.builtin.register_default_tags_and_filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      register_default_tags_and_filters
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1251,7 +1293,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/ast/" class="md-nav__link">
+      <a href="../ast/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1272,7 +1314,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/filter/" class="md-nav__link">
+      <a href="../filter/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1293,7 +1335,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/tag/" class="md-nav__link">
+      <a href="../tag/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1314,7 +1356,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/undefined/" class="md-nav__link">
+      <a href="../undefined/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1335,7 +1377,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/babel/" class="md-nav__link">
+      <a href="../babel/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1356,7 +1398,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/tokens/" class="md-nav__link">
+      <a href="../tokens/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1395,6 +1437,23 @@
   
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#liquid2.builtin.register_default_tags_and_filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      register_default_tags_and_filters
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1408,9 +1467,26 @@
                   
 
 
-  <h1>Resource limits</h1>
+  <h1>Builtin</h1>
+
+<div class="doc doc-object doc-function">
 
 
+<h2 id="liquid2.builtin.register_default_tags_and_filters" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">liquid2.builtin.register_default_tags_and_filters</span>
+
+
+</h2>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">register_default_tags_and_filters</span><span class="p">(</span><span class="n">env</span><span class="p">:</span> <span class="n">Environment</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents first">
+
+        <p>Register standard tags and filters with an environment.</p>
+
+    </div>
+
+</div>
 
 
 
@@ -1463,10 +1539,10 @@
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.instant", "content.code.copy", "navigation.top"], "search": "../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.instant", "content.code.copy", "navigation.top"], "search": "../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.88dd0f4e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.88dd0f4e.min.js"></script>
       
     
   </body>

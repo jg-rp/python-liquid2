@@ -1,3 +1,0 @@
-# Installation guide
-
-TODO
