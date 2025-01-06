@@ -600,108 +600,1054 @@ hello
 
 ## divided_by
 
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+<number> | divided_by: <number>
+```
+
+Divide a number by another number. The result is rounded down to the nearest integer if the divisor is an integer.
+
+```liquid2
+{{ 16 | divided_by: 4 }}
+{{ 5 | divided_by: 3 }}
+```
+
+```plain title="output"
+4
+1
+```
+
+If you divide by a float, the result will be a float.
+
+```liquid2
+{{ 20 | divided_by: 7 }}
+{{ 20 | divided_by: 7.0 }}
+```
+
+```plain title="output"
+2
+2.857142857142857
+```
+
+If either the input or argument are not an integer or float, Liquid will try to convert them to an integer or float. If the input can't be converted, `0` will be used instead. If the argument can't be converted, an exception is raised.
+
+```liquid2
+{{ "20" | divided_by: "7" }}
+{{ "hello" | divided_by: 2 }}
+```
+
+```plain title="output"
+2
+0
+```
+
 ## downcase
+
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+<string> | downcase
+```
+
+Return the input string with all characters in lowercase.
+
+```liquid2
+{{ 'Hello, World!' | downcase }}
+```
+
+```plain title="output"
+hello, world!
+```
+
+If the input is not a string, Liquid will convert it to a string before forcing characters to lowercase.
+
+```liquid2
+{{ 5 | downcase }}
+```
+
+```plain title="output"
+5
+```
+
+If the input is undefined, an empty string is returned.
 
 ## escape
 
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+<string> | escape
+```
+
+Return the input string with characters `&`, `<` and `>` converted to HTML-safe sequences.
+
+```liquid2
+{{ "Have you read 'James & the Giant Peach'?" | escape }}
+```
+
+```plain title="output"
+Have you read &#39;James &amp; the Giant Peach&#39;?
+```
+
 ## escape_once
+
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+<string> | escape_once
+```
+
+Return the input string with characters `&`, `<` and `>` converted to HTML-safe sequences while preserving existing HTML escape sequences.
+
+```liquid2
+{{ "Have you read 'James &amp; the Giant Peach'?" | escape_once }}
+```
+
+```plain title="output"
+Have you read &#39;James &amp; the Giant Peach&#39;?
+```
 
 ## first
 
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+<sequence> | first
+```
+
+Return the first item of the input sequence. The input could be array-like or a mapping, but not a string.
+
+```liquid2
+{{ "Ground control to Major Tom." | split: " " | first }}
+```
+
+```plain title="output"
+Ground
+```
+
+If the input sequence is undefined, empty or not a sequence, `nil` is returned.
+
 ## floor
+
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+<number> | floor
+```
+
+Return the input down to the nearest whole number. Liquid tries to convert the input to a number before the filter is applied.
+
+```liquid2
+{{ 1.2 | floor }}
+{{ 2.0 | floor }}
+{{ 183.357 | floor }}
+{{ -5.4 | floor }}
+{{ "3.5" | floor }}
+```
+
+```plain title="output"
+1
+2
+183
+-6
+3
+```
+
+If the input can't be converted to a number, `0` is returned.
 
 ## gettext
 
+<!-- md:version 0.1.0 -->
+<!-- md:liquid2 -->
+
+```
+<string> | gettext[: <identifier>: <object> ... ]
+```
+
+Return the localized translation of the input message without pluralization or message context.
+
+```liquid2
+{{ "Hello, World!" | gettext }}
+```
+
+```plain title="output"
+Hallo Welt!
+```
+
+Any keyword arguments are used to populate message variables. If `user.name` is `"Sue"`:
+
+```liquid2
+{{ "Hello, %(you)s" | gettext: you: user.name }}
+```
+
+```plain title="output"
+Hallo Sue!
+```
+
 ## join
+
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+<array> | join[: <string>]
+```
+
+Return the items in the input array as a single string, separated by the argument string. If the
+input is not an array, Liquid will convert it to one. If input array items are not strings, they
+will be converted to strings before joining.
+
+```liquid2
+{% assign beatles = "John, Paul, George, Ringo" | split: ", " -%}
+
+{{ beatles | join: " and " }}
+```
+
+```plain title="output"
+John and Paul and George and Ringo
+```
+
+If an argument string is not given, it defaults to a single space.
+
+```liquid2
+{% assign beatles = "John, Paul, George, Ringo" | split: ", " -%}
+
+{{ beatles | join }}
+```
+
+```plain title="output"
+John Paul George Ringo
+```
 
 ## json
 
+<!-- md:version 0.1.0 -->
+<!-- md:liquid2 -->
+
+```
+<object> | json
+```
+
+Return the input object serialized to a JSON (JavaScript Object Notation) string.
+
+```json title="data"
+{
+  "product": {
+    "id": 1234,
+    "name": "Football"
+  }
+}
+```
+
+```liquid2
+{{ product | json }}
+```
+
+```plain title="output"
+{ "id": 1234, "name": "Football" }
+```
+
 ## last
+
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+<array> | last
+```
+
+Return the last item in the array-like input.
+
+```liquid2
+{{ "Ground control to Major Tom." | split: " " | last }}
+```
+
+```plain title="output"
+Tom.
+```
+
+If the input is undefined, empty, string or a number, `nil` will be returned.
 
 ## lstrip
 
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+<string> | lstrip
+```
+
+Return the input string with all leading whitespace removed. If the input is not a string, it will
+be converted to a string before stripping whitespace.
+
+```liquid2
+{{ "          So much room for activities          " | lstrip }}!
+```
+
+```plain title="output"
+So much room for activities          !
+```
+
 ## map
+
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+<array> | map: <string>
+```
+
+Extract properties from an array of objects into a new array.
+
+For example, if `pages` is an array of objects with a `category` property:
+
+```json title="data"
+{
+  "pages": [
+    { "category": "business" },
+    { "category": "celebrities" },
+    { "category": "lifestyle" },
+    { "category": "sports" },
+    { "category": "technology" }
+  ]
+}
+```
+
+```liquid2
+{% assign categories = pages | map: "category" -%}
+
+{% for category in categories -%}
+- {{ category }}
+{%- endfor %}
+```
+
+```plain title="output"
+- business
+- celebrities
+- lifestyle
+- sports
+- technology
+```
 
 ## minus
 
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+````
+<number> | minus: <number>
+```
+
+Return the result of subtracting one number from another. If either the input or argument are not a number, Liquid will try to convert them to a number. If that conversion fails, `0` is used instead.
+
+```liquid2
+{{ 4 | minus: 2 }}
+{{ "16" | minus: 4 }}
+{{ 183.357 | minus: 12.2 }}
+{{ "hello" | minus: 10 }}
+````
+
+```plain title="output"
+2
+12
+171.157
+-10
+```
+
 ## modulo
+
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+<number> | modulo: <number>
+```
+
+Return the remainder from the division of the input by the argument.
+
+```liquid2
+{{ 3 | modulo: 2 }}
+{{ "24" | modulo: "7" }}
+{{ 183.357 | modulo: 12 }}
+```
+
+```plain title="output"
+1
+3
+3.357
+```
+
+If either the input or argument are not an integer or float, Liquid will try to convert them to an
+integer or float. If the input can't be converted, `0` will be used instead. If the argument can't
+be converted, an exception is raised.
 
 ## money
 
+<!-- md:version 0.1.0 -->
+<!-- md:liquid2 -->
+
+`money` is an alias for [`currency`](#currency).
+
 ## money_with_currency
+
+<!-- md:version 0.1.0 -->
+<!-- md:liquid2 -->
+
+`money_with_currency` is an alias for [`currency`](#currency) with the default format set to `"¤#,##0.00 ¤¤"`.
 
 ## money_without_currency
 
+<!-- md:version 0.1.0 -->
+<!-- md:liquid2 -->
+
+`money_without_currency` is an alias for [`currency`](#currency) with the default format set to `"#,##0.00¤"`.
+
 ## money_without_trailing_zeros
+
+<!-- md:version 0.1.0 -->
+<!-- md:liquid2 -->
+
+`money_without_trailing_zeros` is an alias for [`currency`](#currency) with the default format set to `"¤#,###"` and `currency_digits` set to `False`.
 
 ## newline_to_br
 
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+<string> | newline_to_br
+```
+
+Return the input string with `\n` and `\r\n` replaced with `<br />\n`.
+
+```liquid2
+{% capture string_with_newlines %}
+Hello
+there
+{% endcapture %}
+
+{{ string_with_newlines | newline_to_br }}
+```
+
+```plain title="output"
+
+
+<br />
+Hello<br />
+there<br />
+
+```
+
 ## ngettext
+
+<!-- md:version 0.1.0 -->
+<!-- md:liquid2 -->
+
+```
+<string> | ngettext: <string>, <number> [, <identifier>: <object> ... ]
+```
+
+Return the localized translation of the input message with pluralization. The first positional argument is the plural form of the message. The second is a number used to determine if the singular or plural message should be used.
+
+```liquid2
+{% assign count = "Earth,Tatooine" | split: "," | size %}
+{{ "Hello, World!" | ngetetxt: "Hello, Worlds!", count }}
+```
+
+```plain title="output"
+Hallo Welten!
+```
+
+Any keyword arguments are used to populate message variables. If `user.name` is `"Sue"` and `count` is `1`:
+
+```liquid2
+{{ "Hello, %(you)s" | ngetetxt: "Hello, everyone!", count, you: user.name }}
+```
+
+```plain title="output"
+Hallo Sue!
+```
 
 ## npgettext
 
+<!-- md:version 0.1.0 -->
+<!-- md:liquid2 -->
+
+````
+<string> | npgettext: <string>, <string>, <number> [, <identifier>: <object> ... ]
+``
+
+Return the localized translation of the input message with pluralization and a message context. The first positional argument is the message context string, the second is the plural form of the message, and the third is a number used to determine if the singular or plural message should be used.
+
+```liquid2
+{% assign count = "Earth,Tatooine" | split: "," | size %}
+{{ "Hello, World!" | ngetetxt: "extra special greeting", "Hello, Worlds!", count }}
+````
+
+```plain title="output"
+Hallo Welten!
+```
+
+Any keyword arguments are used to populate message variables. If `user.name` is `"Sue"` and `count` is `1`:
+
+```liquid2
+{{ "Hello, %(you)s" | ngetetxt: "extra special greeting", "Hello, everyone!", count, you: user.name }}
+```
+
+```plain title="output"
+Hallo Sue!
+```
+
 ## pgettext
+
+<!-- md:version 0.1.0 -->
+<!-- md:liquid2 -->
+
+```
+<string> | pgettext: <string> [, <identifier>: <object> ... ]
+```
+
+Return the localized translation of the input message with additional message context. Message context is used to give translators extra information about where the messages is to be used.
+
+```liquid2
+{{ "Hello, World!" | pgettext: "extra special greeting" }}
+```
+
+```plain title="output"
+Hallo Welt!
+```
+
+Any keyword arguments are used to populate message variables. If `user.name` is `"Sue"`:
+
+```liquid2
+{{ "Hello, %(you)s" | pgettext: "extra special greeting", you: user.name }}
+```
+
+```plain title="output"
+Hallo Sue!
+```
 
 ## plus
 
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+<number> | plus: <number>
+```
+
+Return the result of adding one number to another. If either the input or argument are not a number, Liquid will try to convert them to a number. If that conversion fails, `0` is used instead.
+
+```liquid2
+{{ 4 | plus: 2 }}
+{{ "16" | plus: "4" }}
+{{ 183.357 | plus: 12 }}
+```
+
+```plain title="output"
+6
+20
+195.357
+```
+
 ## prepend
+
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+<string> | prepend: <string>
+```
+
+Return the argument concatenated with the filter input.
+
+```liquid2
+{{ "apples, oranges, and bananas" | prepend: "Some fruit: " }}
+```
+
+```plain title="output"
+Some fruit: apples, oranges, and bananas
+```
+
+If either the input value or argument are not a string, they will be coerced to a string before
+concatenation.
+
+```liquid2
+{% assign a_number = 7.5 -%}
+{{ 42 | prepend: a_number }}
+{{ nosuchthing | prepend: 'World!' }}
+```
+
+```plain title="output"
+7.542
+World!
+```
 
 ## remove
 
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+<string> | remove: <string>
+```
+
+Return the input with all occurrences of the argument string removed.
+
+```liquid2
+{{ "I strained to see the train through the rain" | remove: "rain" }}
+```
+
+```plain title="output"
+I sted to see the t through the
+```
+
+If either the filter input or argument are not a string, they will be coerced to a string before
+substring removal.
+
 ## remove_first
+
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+<string> | remove_first: <string>
+```
+
+Return a copy of the input string with the first occurrence of the argument string removed.
+
+```liquid2
+{{ "I strained to see the train through the rain" | remove_first: "rain" }}
+```
+
+```plain title="output"
+I sted to see the train through the rain
+```
+
+If either the filter input or argument are not a string, they will be coerced to a string before substring removal.
 
 ## remove_last
 
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+<string> | remove_last: <string>
+```
+
+Return a copy of the input string with the last occurrence of the argument string removed.
+
+```liquid2
+{{ "I strained to see the train through the rain" | remove_last: "rain" }}
+```
+
+```plain title="output"
+I strained to see the train through the
+```
+
+If either the filter input or argument are not a string, they will be coerced to a string before substring removal.
+
 ## replace
+
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+<string> | replace: <string>[, <string>]
+```
+
+Return the input with all occurrences of the first argument replaced with the second argument. If
+the second argument is omitted, it will default to an empty string, making `replace` behave like
+`remove`.
+
+```liquid2
+{{ "Take my protein pills and put my helmet on" | replace: "my", "your" }}
+```
+
+```plain title="output"
+Take your protein pills and put your helmet on
+```
+
+If either the filter input or argument are not a string, they will be coerced to a string before
+replacement.
 
 ## replace_first
 
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+<string> | replace_first: <string>[, <string>]
+```
+
+Return a copy of the input string with the first occurrence of the first argument replaced with the second argument. If the second argument is omitted, it will default to an empty string, making `replace_first` behave like `remove_first`.
+
+```liquid2
+{{ "Take my protein pills and put my helmet on" | replace_first: "my", "your" }}
+```
+
+```plain title="output"
+Take your protein pills and put my helmet on
+```
+
+If either the filter input or argument are not a string, they will be coerced to a string before replacement.
+
 ## replace_last
+
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+<string> | replace_last: <string>, <string>
+```
+
+Return a copy of the input string with the last occurrence of the first argument replaced with the second argument.
+
+```liquid2
+{{ "Take my protein pills and put my helmet on" | replace_first: "my", "your" }}
+```
+
+```plain title="output"
+Take my protein pills and put your helmet on
+```
+
+If either the filter input or argument are not a string, they will be coerced to a string before replacement.
 
 ## reverse
 
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+<array> | reverse
+```
+
+Return a copy of the input array with the items in reverse order. If the filter input is a string, `reverse` will return the string unchanged.
+
+```liquid2
+{% assign my_array = "apples, oranges, peaches, plums" | split: ", " -%}
+
+{{ my_array | reverse | join: ", " }}
+```
+
+```plain title="output"
+plums, peaches, oranges, apples
+```
+
 ## round
+
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+<number> | round[: <number>]
+```
+
+Return the input number rounded to the given number of decimal places. The number of digits defaults to `0`.
+
+```liquid2
+{{ 1.2 | round }}
+{{ 2.7 | round }}
+{{ 183.357 | round: 2 }}
+```
+
+```plain title="output"
+1
+3
+183.36
+```
+
+If either the filter input or its optional argument are not an integer or float, they will be converted to an integer or float before rounding.
 
 ## rstrip
 
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+<string> | rstrip
+```
+
+Return the input string with all trailing whitespace removed. If the input is not a string, it will be converted to a string before stripping whitespace.
+
+```liquid2
+{{ "          So much room for activities          " | rstrip }}!
+```
+
+```plain title="output"
+          So much room for activities!
+```
+
 ## safe
+
+<!-- md:version 0.1.0 -->
+<!-- md:liquid2 -->
+
+```
+<string> | safe
+```
+
+Return the input string marked as safe to use in an HTML or XML document. If the filter input is not a string, it will be converted to an HTML-safe string.
+
+With auto-escape enabled and the following global variables:
+
+```json title="data"
+{
+  "username": "Sally",
+  "greeting": "</p><script>alert('XSS!');</script>"
+}
+```
+
+```liquid2 title="template"
+<p>{{ greeting }}, {{ username }}</p>
+<p>{{ greeting | safe }}, {{ username }}</p>
+```
+
+```html title="output"
+<p>&lt;/p&gt;&lt;script&gt;alert(&#34;XSS!&#34;);&lt;/script&gt;, Sally</p>
+<p></p><script>alert('XSS!');</script>, Sally</p>
+```
 
 ## size
 
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+<object> | size
+```
+
+Return the size of the input object. Works on strings, arrays and hashes.
+
+```liquid2
+{{ "Ground control to Major Tom." | size }}
+{{ "apples, oranges, peaches, plums" | split: ", " | size }}
+```
+
+```plain title="output"
+28
+4
+```
+
 ## slice
+
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+<sequence> | slice: <int>[, <int>]
+```
+
+Return a substring or subsequence of the input string or array. The first argument is the zero-based start index. The second, optional argument is the length of the substring or sequence, which defaults to `1`.
+
+```liquid2
+{{ "Liquid" | slice: 0 }}
+{{ "Liquid" | slice: 2 }}
+{{ "Liquid" | slice: 2, 5 }}
+{% assign beatles = "John, Paul, George, Ringo" | split: ", " -%}
+{{ beatles | slice: 1, 2 | join: " " }}
+```
+
+```plain title="output"
+L
+q
+quid
+Paul George
+```
+
+If the first argument is negative, the start index is counted from the end of the sequence.
+
+```liquid2
+{{ "Liquid" | slice: -3 }}
+{{ "Liquid" | slice: -3, 2 }}
+{% assign beatles = "John, Paul, George, Ringo" | split: ", " -%}
+{{ beatles | slice: -2, 2 | join: " " }}
+```
+
+```plain title="output"
+u
+ui
+George Ringo
+```
 
 ## sort
 
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+````
+<array> | sort[: <string>]
+``
+
+Return a copy of the input array with its elements sorted.
+
+```liquid
+{% assign my_array = "zebra, octopus, giraffe, Sally Snake" | split: ", " -%}
+{{ my_array | sort | join: ", " }}
+````
+
+```plain title="output"
+Sally Snake, giraffe, octopus, zebra
+```
+
+The optional argument is a sort key. If given, it should be the name of a property and the filter's input should be an array of objects.
+
+```json title="data"
+{
+  "collection": {
+    "products": [
+      { "title": "A Shoe", "price": "9.95" },
+      { "title": "A Tie", "price": "0.50" },
+      { "title": "A Hat", "price": "2.50" }
+    ]
+  }
+}
+```
+
+```liquid2 title="template"
+{% assign products_by_price = collection.products | sort: "price" -%}
+{% for product in products_by_price %}
+  <h4>{{ product.title }}</h4>
+{% endfor %}
+```
+
+```plain title="output"
+<h4>A Tie</h4>
+<h4>A Hat</h4>
+<h4>A Shoe</h4>
+```
+
 ## sort_natural
+
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+<array> | sort_natural[: <string>]
+```
+
+Return a copy of the input array with its elements sorted case-insensitively. Array items
+will be compared by their string representations, forced to lowercase.
+
+```liquid2
+{% assign my_array = "zebra, octopus, giraffe, Sally Snake" | split: ", " -%}
+{{ my_array | sort_natural | join: ", " }}
+```
+
+```plain title="output"
+giraffe, octopus, Sally Snake, zebra
+```
+
+The optional argument is a sort key. If given, it should be the name of a property and the filter's input should be an array of objects. Array elements are compared using the lowercase string representation of that property.
+
+```json title="data"
+{
+  "collection": {
+    "products": [
+      { "title": "A Shoe", "company": "Cool Shoes" },
+      { "title": "A Tie", "company": "alpha Ties" },
+      { "title": "A Hat", "company": "Beta Hats" }
+    ]
+  }
+}
+```
+
+```liquid2 title="template"
+{% assign products_by_company = collection.products | sort_natural: "company" %}
+{% for product in products_by_company %}
+  <h4>{{ product.title }}</h4>
+{% endfor %}
+```
+
+```plain title="output"
+<h4>A Tie</h4>
+<h4>A Hat</h4>
+<h4>A Shoe</h4>
+```
 
 ## sort_numeric
 
+<!-- md:version 0.1.0 -->
+<!-- md:liquid2 -->
+
 ## split
+
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
 
 ## strip
 
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
 ## strip_html
+
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
 
 ## strip_newlines
 
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
 ## sum
+
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
 
 ## t
 
+<!-- md:version 0.1.0 -->
+<!-- md:liquid2 -->
+
 ## times
+
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
 
 ## truncate
 
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
 ## truncatewords
+
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
 
 ## uniq
 
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
 ## unit
+
+<!-- md:version 0.1.0 -->
+<!-- md:liquid2 -->
 
 ## upcase
 
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
 ## url_decode
+
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
 
 ## url_encode
 
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
 ## where
+
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
