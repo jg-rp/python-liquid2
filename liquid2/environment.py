@@ -11,7 +11,7 @@ from typing import Mapping
 from typing import Type
 
 from .builtin import DictLoader
-from .builtin import register_standard_tags_and_filters
+from .builtin import register_default_tags_and_filters
 from .exceptions import LiquidError
 from .lexer import Lexer
 from .parser import Parser
@@ -96,9 +96,14 @@ class Environment:
             if default_trim == WhitespaceControl.DEFAULT
             else default_trim
         )
+        """The default whitespace trimming mode."""
 
         self.filters: dict[str, Callable[..., Any]] = {}
+        """The environment's filter register, mapping filter names to callables."""
+
         self.tags: dict[str, Tag] = {}
+        """The environment's tag register, mapping tag names to instances of `Tag`."""
+
         self.setup_tags_and_filters()
         self.parser = Parser(self)
 
@@ -108,7 +113,7 @@ class Environment:
         This is called once when initializing an environment. Override this method
         in your custom environments.
         """
-        register_standard_tags_and_filters(self)
+        register_default_tags_and_filters(self)
 
     def tokenize(self, source: str) -> list[TokenT]:
         """Scan Liquid template _source_ and return a list of Markup objects."""

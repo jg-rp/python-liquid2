@@ -10,6 +10,7 @@ theme:
     - navigation.tabs
     - navigation.instant
     - content.code.copy
+    - navigation.top
 
 repo_name: jg-rp/python-liquid2
 repo_url: https://github.com/jg-rp/python-liquid2
@@ -66,9 +67,10 @@ nav:
       - Template: "api/template.md"
       - Loaders: "api/loaders.md"
       - Exceptions: "api/exceptions.md"
+      - Builtin: "api/builtin.md"
       - AST: "api/ast.md"
       - Filters: "api/filter.md"
-      - Tags: "api/tag.md"
+      - Tag: "api/tag.md"
       - Undefined: "api/undefined.md"
       - Babel: "api/babel.md"
       - Tokens: "api/tokens.md"

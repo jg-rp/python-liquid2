@@ -210,7 +210,7 @@ __all__ = (
     "PositionalArgument",
     "RangeLiteral",
     "RawTag",
-    "register_standard_tags_and_filters",
+    "register_default_tags_and_filters",
     "RenderTag",
     "round_",
     "safe",
@@ -239,7 +239,7 @@ __all__ = (
 )
 
 
-def register_standard_tags_and_filters(env: Environment) -> None:  # noqa: PLR0915
+def register_default_tags_and_filters(env: Environment) -> None:  # noqa: PLR0915
     """Register standard tags and filters with an environment."""
     env.filters["join"] = join
     env.filters["first"] = first
