@@ -1533,8 +1533,7 @@ The optional argument is a sort key. If given, it should be the name of a proper
 <array> | sort_natural[: <string>]
 ```
 
-Return a copy of the input array with its elements sorted case-insensitively. Array items
-will be compared by their string representations, forced to lowercase.
+Return a copy of the input array with its elements sorted case-insensitively. Array items will be compared by their string representations, forced to lowercase.
 
 ```liquid2
 {% assign my_array = "zebra, octopus, giraffe, Sally Snake" | split: ", " -%}
@@ -1577,77 +1576,528 @@ The optional argument is a sort key. If given, it should be the name of a proper
 <!-- md:version 0.1.0 -->
 <!-- md:liquid2 -->
 
+```
+<sequence> | sort_numeric[: <string>]
+```
+
+Return a new array/list with items from the input sequence sorted by any integers and/or floats found in the string representation of each item. Note the difference between `sort_numeric` and `sort` in this example.
+
+```liquid2
+{% assign foo = '1.2.1, v1.10.0, v1.1.0, v1.2.2' | split: ', ' -%}
+{{ foo | sort_numeric | join: ', ' }}
+{{ foo | sort | join: ', ' }}
+
+{% assign bar = '107, 12, 0001' | split: ', ' -%}
+{{ bar | sort_numeric | join: ', ' }}
+{{ bar | sort | join: ', ' }}
+```
+
+```plain title="output"
+v1.1.0, 1.2.1, v1.2.2, v1.10.0
+1.2.1, v1.1.0, v1.10.0, v1.2.2
+
+0001, 12, 107
+0001, 107, 12
+```
+
+The optional string argument is the name of a key/property to use as the sort key. In which case each item in the input sequence should be a dict/hash/mapping, each with said key/property.
+
+`sort_numeric` will work as expected when given arrays/lists/tuples of integers, floats and/or Decimals, but will be slower than using standard `sort`.
+
+If an input sequence contains strings (or arbitrary objects that get stringified) that do not have numeric characters, they will be pushed to the end of the resulting list, probably in the same order as in the input sequence.
+
 ## split
 
 <!-- md:version 0.1.0 -->
 <!-- md:shopify -->
+
+```
+<string> | split: <string>
+```
+
+Return an array of strings that are the input string split on the filter's argument string.
+
+```liquid2
+{% assign beatles = "John, Paul, George, Ringo" | split: ", " -%}
+
+{% for member in beatles %}
+  {{- member }}
+{% endfor %}
+```
+
+```plain title="output"
+John
+Paul
+George
+Ringo
+```
+
+If the argument is undefined or an empty string, the input will be split at every character.
+
+```liquid2
+{{ "Hello there" | split: nosuchthing | join: "#" }}
+```
+
+```plain title="output"
+H#e#l#l#o# #t#h#e#r#e
+```
 
 ## strip
 
 <!-- md:version 0.1.0 -->
 <!-- md:shopify -->
 
+```
+<string> | strip
+```
+
+Return the input string with all leading and trailing whitespace removed. If the input is not a string, it will be converted to a string before stripping whitespace.
+
+```liquid2
+{{ "          So much room for activities          " | strip }}!
+```
+
+```plain title="output"
+So much room for activities!
+```
+
 ## strip_html
 
 <!-- md:version 0.1.0 -->
 <!-- md:shopify -->
+
+```
+<string> | strip_html
+```
+
+Return the input string with all HTML tags removed.
+
+```liquid2
+{{ "Have <em>you</em> read <strong>Ulysses</strong>?" | strip_html }}
+```
+
+```plain title="output"
+Have you read Ulysses?
+```
 
 ## strip_newlines
 
 <!-- md:version 0.1.0 -->
 <!-- md:shopify -->
 
+```
+<string> | strip_newlines
+```
+
+Return the input string with `\n` and `\r\n` removed.
+
+```liquid2
+{% capture string_with_newlines %}
+Hello
+there
+{% endcapture -%}
+
+{{ string_with_newlines | strip_newlines }}
+```
+
+```plain title="output"
+Hellothere
+```
+
 ## sum
 
 <!-- md:version 0.1.0 -->
 <!-- md:shopify -->
+
+```
+<array> | sum[: <string>]
+```
+
+Return the sum of all numeric elements in an array.
+
+```liquid2
+{% assign array = '1,2,3' | split: ',' -%}
+{{ array | sum }}
+```
+
+```plain title="output"
+6
+```
+
+If the optional string argument is given, it is assumed that array items are hash/dict/mapping-like, and the argument should be the name of a property/key. The values at `array[property]` will be summed.
 
 ## t
 
 <!-- md:version 0.1.0 -->
 <!-- md:liquid2 -->
 
+```
+<string> | t[: <string>[, <identifier>: <object> ... ]] -> <string>
+```
+
+Return the localized translation of the input message. For example, if a German [Translations](babel.md#message-catalogs) object is found in the current render context:
+
+```liquid2
+{{ "Hello, World!" | t }}
+```
+
+```plain title="output"
+Hallo Welt!
+```
+
+If given, the first and only positional argument is a message context string. It will be used to give translators extra information about where the message is to be used. With the default configuration, keyword arguments `plural` and `count` are reserved for specifying a pluralizable message.
+
+```liquid2
+{{ "Hello, World!" | t: plural: 'Hello, Worlds!', count: 2 }}
+```
+
+```plain title="output"
+Hallo Welten!
+```
+
+The remaining keyword arguments are used to populate translatable message variables. If `user.name` is `"Sue"`:
+
+```liquid2
+{{ "Hello, %(you)s" | t: you: user.name }}
+```
+
+```plain title="output"
+Hallo Sue!
+```
+
 ## times
 
 <!-- md:version 0.1.0 -->
 <!-- md:shopify -->
+
+```
+<number> | times: <number>
+```
+
+Return the product of the input number and the argument. If either the input or argument are not a number, Liquid will try to convert them to a number. If that conversion fails, `0` is used instead.
+
+```liquid2
+{{ 3 | times: 2 }}
+{{ "24" | times: "7" }}
+{{ 183.357 | times: 12 }}
+```
+
+```plain title="output"
+6
+168
+2200.284
+```
 
 ## truncate
 
 <!-- md:version 0.1.0 -->
 <!-- md:shopify -->
 
+```
+<string> | truncate[: <integer>[, <string>]]
+```
+
+Return a truncated version of the input string. The first argument, length, defaults to `50`. The second argument defaults to an ellipsis (`...`).
+
+If the length of the input string is less than the given length (first argument), the input string will be truncated to `length` minus the length of the second argument, with the second argument appended.
+
+```liquid2
+{{ "Ground control to Major Tom." | truncate: 20 }}
+{{ "Ground control to Major Tom." | truncate: 25, ", and so on" }}
+{{ "Ground control to Major Tom." | truncate: 20, "" }}
+```
+
+```plain title="output"
+Ground control to...
+Ground control, and so on
+Ground control to Ma
+```
+
 ## truncatewords
 
 <!-- md:version 0.1.0 -->
 <!-- md:shopify -->
+
+```
+<string> | truncatewords[: <integer>[, <string>]]
+```
+
+Return the input string truncated to the specified number of words, with the second argument appended. The number of words (first argument) defaults to `15`. The second argument defaults to an ellipsis (`...`).
+
+If the input string already has fewer than the given number of words, it is returned unchanged.
+
+```liquid2
+{{ "Ground control to Major Tom." | truncatewords: 3 }}
+{{ "Ground control to Major Tom." | truncatewords: 3, "--" }}
+{{ "Ground control to Major Tom." | truncatewords: 3, "" }}
+```
+
+```plain title="output"
+Ground control to...
+Ground control to--
+Ground control to
+```
 
 ## uniq
 
 <!-- md:version 0.1.0 -->
 <!-- md:shopify -->
 
+```
+<array> | uniq[: <string>]
+```
+
+Return a copy of the input array with duplicate elements removed.
+
+```liquid2
+{% assign my_array = "ants, bugs, bees, bugs, ants" | split: ", " -%}
+{{ my_array | uniq | join: ", " }}
+```
+
+```plain title="output"
+ants, bugs, bees
+```
+
+If an argument is given, it should be the name of a property and the filter's input should be an array of objects.
+
+```json title="data"
+{
+  "collection": {
+    "products": [
+      { "title": "A Shoe", "company": "Cool Shoes" },
+      { "title": "A Tie", "company": "alpha Ties" },
+      { "title": "Another Tie", "company": "alpha Ties" },
+      { "title": "A Hat", "company": "Beta Hats" }
+    ]
+  }
+}
+```
+
+```liquid2 title="template"
+{% assign one_product_from_each_company = collections.products | uniq: "company" -%}
+{% for product in one_product_from_each_company -%}
+  - product.title
+{% endfor %}
+```
+
+```plain title="output"
+- A Shoe
+- A Tie
+- A Hat
+```
+
 ## unit
 
 <!-- md:version 0.1.0 -->
 <!-- md:liquid2 -->
+
+```
+<number> | unit: <string>
+  [, denominator: <number>]
+  [, denominator_unit: <string>]
+  [, length: <string>]
+  [, format: <string>]
+```
+
+Return the input number formatted with the given units according to the current locale. The first, required positional argument is a [CLDR](https://cldr.unicode.org/) measurement unit [code](https://github.com/unicode-org/cldr/blob/latest/common/validity/unit.xml).
+
+```liquid2
+{{ 12 | unit: 'length-meter' }}
+```
+
+```plain title="output"
+12 meters
+```
+
+### length
+
+`length` can be one of "short", "long" or "narrow", defaulting to "long".
+
+```liquid
+{{ 12 | unit: 'length-meter' }}
+{{ 12 | unit: 'length-meter', length: 'short' }}
+{{ 12 | unit: 'length-meter', length: 'long' }}
+{{ 12 | unit: 'length-meter', length: 'narrow' }}
+```
+
+```plain title="output"
+12 meters
+12 m
+12 meters
+12m
+```
+
+Or, if the current locale is set to `fr`.
+
+```liquid2
+{% with locale:"fr" %}
+  {{ 12 | unit: 'length-meter' }}
+  {{ 12 | unit: 'length-meter', length: 'short' }}
+  {{ 12 | unit: 'length-meter', length: 'long' }}
+  {{ 12 | unit: 'length-meter', length: 'narrow' }}
+{% endwith %}
+```
+
+```plain title="output"
+12 mètres
+12 m
+12 mètres
+12m
+```
+
+### format
+
+`format` is an optional decimal format string, described in the [Locale Data Markup Language specification (LDML)](https://unicode.org/reports/tr35/).
+
+```liquid2
+{{ 12 | unit: 'length-meter', format: '#,##0.00' }}
+```
+
+```plain title="output"
+12.00 meters
+```
+
+### Compound Units
+
+If a `denominator` and/or `denominator_unit` is given, the value will be formatted as a compound unit.
+
+```liquid2
+{{ 150 | unit: 'kilowatt', denominator_unit: 'hour' }}
+{{ 32.5 | unit: 'ton', denominator: 15, denominator_unit: 'hour' }}
+```
+
+```plain title="output"
+150 kilowatts per hour
+32.5 tons per 15 hours
+```
+
+Or, if the current locale is set to `fi`.
+
+```liquid2
+{% with locale:"fi" %}
+  {{ 150 | unit: 'kilowatt', denominator_unit: 'hour' }}
+  {{ 32.5 | unit: 'ton', denominator: 15, denominator_unit: 'hour' }}
+{% endwith %}
+```
+
+```plain title="output"
+150 kilowattia / tunti
+32,5 am. tonnia/15 tuntia
+```
 
 ## upcase
 
 <!-- md:version 0.1.0 -->
 <!-- md:shopify -->
 
+```
+<string> | upcase
+```
+
+Return the input string with all characters in uppercase.
+
+```liquid2
+{{ 'Hello, World!' | upcase }}
+```
+
+```plain title="output"
+HELLO, WORLD!
+```
+
 ## url_decode
 
 <!-- md:version 0.1.0 -->
 <!-- md:shopify -->
+
+```
+<string> | url_decode
+```
+
+Return the input string with `%xx` escapes replaced with their single-character equivalents. Also replaces `'+'` with `' '`.
+
+```liquid2
+{{ "My+email+address+is+bob%40example.com%21" | url_decode }}
+```
+
+```plain title="output"
+My email address is bob@example.com!
+```
 
 ## url_encode
 
 <!-- md:version 0.1.0 -->
 <!-- md:shopify -->
 
+```
+<string> | url_encode
+```
+
+Return the input string with URL reserved characters %-escaped. Also replaces `' '` with `'+'`.
+
+```liquid2
+{{ My email address is bob@example.com! | url_encode }}
+```
+
+```plain title="output"
+My+email+address+is+bob%40example.com%21
+```
+
 ## where
 
 <!-- md:version 0.1.0 -->
 <!-- md:shopify -->
+
+```
+<array> | where: <string>[, <object>]
+```
+
+Return a copy of the input array including only those objects that have a property, named with the first argument, equal to a value, given as the second argument. If a second argument is not given, only elements with the named property that are truthy will be included.
+
+```json title="data"
+{
+  "products": [
+    { "title": "Vacuum", "type": "house", "available": true },
+    { "title": "Spatula", "type": "kitchen", "available": false },
+    { "title": "Television", "type": "lounge", "available": true },
+    { "title": "Garlic press", "type": "kitchen", "available": true }
+  ]
+}
+```
+
+```liquid2
+All products:
+{% for product in products -%}
+- {{ product.title }}
+{% endfor %}
+
+{%- assign kitchen_products = products | where: "type", "kitchen" -%}
+
+Kitchen products:
+{% for product in kitchen_products -%}
+- {{ product.title }}
+{% endfor %}
+
+{%- assign available_products = products | where: "available" -%}
+
+Available products:
+{% for product in available_products -%}
+- {{ product.title }}
+{% endfor %}
+```
+
+```plain title="output"
+All products:
+- Vacuum
+- Spatula
+- Television
+- Garlic press
+
+Kitchen products:
+- Spatula
+- Garlic press
+
+Available product:
+- Vacuum
+- Television
+- Garlic press
+```
