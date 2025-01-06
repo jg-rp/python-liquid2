@@ -55,9 +55,11 @@ nav:
       - Custom tags: "custom_tags.md"
       - Custom template loaders: "custom_loaders.md"
   - Tag reference:
-      - Tag reference: "tag_reference.md"
+      - Default tags: "tag_reference.md"
       - Optional tags: "optional_tags.md"
-  - Filter reference: "filter_reference.md"
+  - Filter reference:
+      - Default filters: "filter_reference.md"
+      - Optional filters: "optional_filters.md"
   - API reference:
       - Convenience functions: "api/convenience.md"
       - Environment: "api/environment.md"
