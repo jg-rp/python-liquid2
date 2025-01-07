@@ -1,24 +1,26 @@
 # Migration guide
 
-Liquid2 adds features, changes the syntax of Liquid templates and changes the template engine's Python API. Liquid2's default syntax and semantics are mostly backwards compatible with version 1 and, by extension, Shopify/Liquid.
+Liquid2 adds features, subtly changes the syntax of Liquid templates and changes the template engine's Python API. This is not "Python Liquid version 2", but a Python implementation of "Liquid2".
+
+At the moment, Liquid2 is one man's attempt at making Liquid "feel" and behave like a "proper language". Its default syntax and semantics are mostly backwards compatible with [Python Liquid](https://github.com/jg-rp/liquid) and, by extension, Shopify/Liquid.
 
 ## Approach to compatibility and stability
 
-With [Python Liquid version 1](https://github.com/jg-rp/liquid), our primary objectives were render behavior stability and Shopify/Liquid compatibility, in that order. Later we introduced `liquid.future.Environment`, which sacrificed some stability for greater Shopify/Liquid compatibility as Shopify/Liquid and our understanding of it changed.
+With [Python Liquid](https://github.com/jg-rp/liquid), our primary objectives were render behavior stability and Shopify/Liquid compatibility, in that order. Later we introduced `liquid.future.Environment`, which sacrificed some stability for greater Shopify/Liquid compatibility as Shopify/Liquid and our understanding of it changed.
 
 Now, with Python Liquid2, render behavior stability is still the top priority, but the default environment deliberately deviates from Shopify/Liquid in several ways, "fixing" and adding often requested features that Shopify can't due to their large user base and the technical debt that comes with it.
 
-In most cases these fixes and features are backwards compatible with Shopify/Liquid, requiring little or no modification to legacy Liquid templates. To ease transition from legacy templates to Liquid2 templates we include a `liquid2.shopify.Environment`, which is configured to include some legacy tags that didn't make it in to the default environment.
+In most cases these fixes and features are backwards compatible with Shopify/Liquid, requiring little or no modification to legacy Liquid templates. To ease transition from legacy templates to Liquid2 templates, we include a `liquid2.shopify.Environment`, which is configured to include some legacy tags that didn't make it in to the default environment.
 
 ### Why is render stability so important?
 
 When developing a conventional website, for example, templates are developed along side application code. Template authors and application developers might be different people or different teams, but templates are known at deployment time, and all templates can probably be parsed upfront and held in memory. In this scenario it's a pain if your template render engine introduces behavioral changes, but it's manageable.
 
-Python Liquid caters for situations where templates change and grow with an application's user base. Not only can templates change after the application is deployed, but the number of templates could be huge, far more than can be expected to fit in memory at one time.
+Python Liquid caters for situations where templates change and grow with an application's user base. Not only can templates change after the application is deployed, but the number of templates could be huge, far more than can be expected to fit in memory all at once.
 
 Behavioral stability is essential when application users are responsible for maintaining templates. It is impractical or unreasonable to expect authors to update their templates on demand.
 
-Whether shopify/Liquid compatibility is important to you or not, if you’re developing a multi-tenant application where users are responsible for maintaining templates, you should seriously consider building in an opt-in upgrade path for template authors to transition to updated syntax and features.
+Whether shopify/Liquid compatibility is important to you or not, if you're developing a multi-tenant application where users are responsible for maintaining templates, you should seriously consider building in an opt-in upgrade path for template authors to transition to updated syntax and features.
 
 ## New features
 
@@ -26,9 +28,28 @@ Whether shopify/Liquid compatibility is important to you or not, if you’re dev
 
 Along with a [`default_trim`](api/environment.md#liquid2.Environment.default_trim) configuration option, tags and the output statement now support `+`, `-` and `~` for controlling whitespace in templates. By default, `~` will remove newlines but retain space and tab characters.
 
+Here we use `~` to remove the newline after the opening `for` tag, but preserve indentation before `<li>`.
+
+```liquid2
+<ul>
+{% for x in (1..4) ~%}
+  <li>{{ x }}</li>
+{% endfor -%}
+</ul>
+```
+
+```plain title="output"
+<ul>
+  <li>1</li>
+  <li>2</li>
+  <li>3</li>
+  <li>4</li>
+</ul>
+```
+
 ### Array construction syntax
 
-If the left-hand side of a filtered expression (those found in output statements, the `assign` tag and the `echo` tag) is a comma separated list of primitive expression, an "array" will be created with those items.
+If the left-hand side of a filtered expression (those found in output statements, the `assign` tag and the `echo` tag) is a comma separated list of primitive expressions, an array-like object will be created with those items.
 
 ```liquid2
 {% assign my_array = a, b, '42', false -%}
@@ -58,7 +79,9 @@ With `a` set to `"Hello"` and `b` set to `"World"`, both of the examples above p
 
 ### String interpolation
 
-String literals support interpolation using JavaScript-style `${` and `}` delimiters. Liquid template strings don't use backticks like JavaScript. Any single or double quotes string can use `${variable_name}` placeholders for automatic variable substitution.
+String literals support interpolation using JavaScript-style `${` and `}` delimiters. Liquid template strings don't use backticks like JavaScript. Any single or double quoted string can use `${variable_name}` placeholders for automatic variable substitution.
+
+`${` can be escaped with `\${` to prevent variable substitution.
 
 Liquid template strings are effectively a shorthand alternative to `capture` tags or chains of `append` filters. These two tags equivalent.
 
@@ -95,7 +118,7 @@ Inline conditional expression are now supported by default. Previously this was 
 
 ### Dedicated comment syntax
 
-Comments surrounded by `{#` and `#}` are enabled by default. Additional `#`’s can be added to comment out blocks of markup that already contain comments, as long as hashes are balanced.
+Comments surrounded by `{#` and `#}` are enabled by default. Additional `#`'s can be added to comment out blocks of markup that already contain comments, as long as hashes are balanced.
 
 ```liquid2
 {## comment this out for now
@@ -121,23 +144,30 @@ Hi 😀!
 
 ### Unicode identifiers
 
-Identifiers and paths resolving to variables can contain Unicode characters.
+Identifiers and paths resolving to variables can contain Unicode characters (templates are assumed to be UTF-8 encoded). For example:
+
+```liquid2
+{% assign 😀 = 'smiley' %}
+{{ 😀 }}
+```
 
 ### Scientific notation
 
-Integer and float literals can use scientific notation, like `1.2e10`.
+Integer and float literals can use scientific notation, like `1.2e3` or `1e-2`.
 
 ### Common argument delimiters
 
-Filter and tag named arguments can be separated by a `:` or `=`.
+Filter and tag named arguments can be separated by a `:` or `=`. Previously only `:` was allowed.
 
 ### Template inheritance
 
-Template inheritance is now built-in. Previously `{% extends %}` and `{% block %}` tags were available from a separate package.
+Template inheritance is now built-in. Previously [`{% extends %}`](tag_reference.md#extends) and [`{% block %}`](tag_reference.md#block) tags were available from a separate package.
 
 ### i18n and l10n
 
-Internationalization and localization tags and filters are now built-in. Previously these were in a separate package.
+Internationalization and localization tags and filters are now built in and enabled by default. Previously these were in a separate package.
+
+See [currency](filter_reference.md#currency), [datetime](filter_reference.md#datetime), [money](filter_reference.md#money), [decimal](filter_reference.md#decimal), [unit](filter_reference.md#unit), [gettext](filter_reference.md#gettext), [t](filter_reference.md#t) and [translate](tag_reference.md#translate).
 
 ### Serializable templates
 
@@ -145,17 +175,30 @@ Instances of `Template` are now serializable. Use `str(template)` or `pickle.dum
 
 ### Better exceptions
 
-Error messages have been improved and exceptions expose line and column numbers.
+Error messages have been improved and exceptions inheriting from `LiquidError` expose line and column numbers, and have `detailed_message()` and error `context()` methods.
+
+```liquid2
+{% assign foo = (0..3) %}
+{% for x foo %}
+    {{ x }}
+{% endfor %}
+```
+
+```plain title="error message"
+liquid2.exceptions.LiquidSyntaxError: expected IN, found WORD
+  -> '{% for x foo %}' 2:9
+  |
+2 | {% for x foo %}
+  |          ^^^ expected IN, found WORD
+```
 
 ## Features that have been removed
 
-These features are not yet included in Python Liquid2, but can be if there is a demand.
-
-- We no longer offer a "lax" or "warn" parsing mode, previously controlled by the `tolerance` argument to `Environment`. The assertion is that errors should be loud and we should be made aware as early as possible, whether you're an experienced developer or not.
-- Async filters have not been implemented.
-- Contextual template analysis has not been implemented.
-- Template tag analysis (analyzing tokens instead of a syntax tree) has not been implemented.
-- The `@liquid_filter` decorator has been removed. Now filter implementations are expected to raise a `LiquidTypeError` in the even of an argument with an unacceptable type.
+- We no longer offer "lax" or "warn" parsing modes, previously controlled by the `tolerance` argument to `Environment`. The assertion is that errors should be loud and we should be made aware as early as possible, whether you're an experienced developer or not.
+- It's not currently possible to change Liquid markup delimiters (`{{`, `}}`, `{%` and `%}`).
+- Async filters have not been implemented, but can be if there is a demand.
+- Contextual template analysis has not been implemented, but can be if there is a demand.
+- Template tag analysis (analyzing tokens instead of a syntax tree) has not been implemented, but can be if there is a demand.
 - Liquid Babel used to allow simple, zero-argument filters in the arguments to the `translate` tag. The `translate` tag bundled in to Liquid2 does not allow the use of filters here.
 
 ## API changes
@@ -172,14 +215,15 @@ These are the most notable changes. Please raise an [issue](https://github.com/j
 - `Context` has been renamed to `RenderContext` and now takes a mandatory `template` argument instead of `env`. All other arguments to `RenderContext` are now keyword only.
 - `FilterValueError` and `FilterArgumentError` have been removed. `LiquidValueError` and `LiquidTypeError` should be used instead. In some cases where `FilterValueError` was deliberately ignored before, `LiquidValueError` is now raised.
 - The exception `NoSuchFilterFunc`, raised when rendering a template that uses a filter that is not defined in `Environment.filters`, has been renamed to `UnknownFilterError`.
+- The `@liquid_filter` decorator has been removed. Now filter implementations are expected to raise a `LiquidTypeError` in the even of an argument with an unacceptable type.
 
 ### Template and expression parsing
 
-The lexer has been completely rewritten and the token's it produces bare little resemblance to those produced by any of the several parsing functions from Python Liquid version 1. Now we have a single lexer that scans source text content, tags, statements and expressions in a single pass, and a parser that delegates the parsing of those tokens to classes implementing `Tag`.
+The lexer has been completely rewritten and the token's it produces bare little resemblance to those produced by any of the several parsing functions from Python Liquid. Now we have a single lexer that scans source text content, tags, statements and expressions in a single pass, and a parser that delegates the parsing of those tokens to classes implementing `Tag`.
 
 As before, `Tag` instances are responsible for returning `Node`s from `Tag.parse()`. And nodes still have the familiar `render_to_output()` abstract method.
 
-For now I recommend familiarizing yourself with the different [tokens][liquid2.token.TokenT] generated by the lexer, and refer to built-in tag implementations for examples of using various `Expression.parse()` static methods to parse expressions.
+For now I recommend familiarizing yourself with the different [tokens][liquid2.token.TokenT] generated by the lexer, and refer to built-in tag implementations for examples of using various `Expression.parse()` static methods to parse expressions. Note that the `TokenStream` interface has changed too.
 
 As always, open an [issue](https://github.com/jg-rp/python-liquid2/issues) or start a discussion if you need any help with migration.
 
