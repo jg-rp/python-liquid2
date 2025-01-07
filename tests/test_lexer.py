@@ -123,6 +123,11 @@ TEST_CASES = [
         want="{% assign x = true if y else z | upcase %}",
     ),
     Case(
+        name="assign tag, comma separated right",
+        source="{% assign x = a, b %}",
+        want="{% assign x = a, b %}",
+    ),
+    Case(
         name="if tag",
         source="{% if foo %}bar{% endif %}",
         want="{% if foo %}bar{% endif %}",

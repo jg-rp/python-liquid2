@@ -581,6 +581,24 @@
       "result": "a"
     },
     {
+      "name": "output, comma separated value",
+      "template": "{{ b, c, 'd' }}",
+      "data": {
+        "b": 1,
+        "c": 2
+      },
+      "result": "12d"
+    },
+    {
+      "name": "output, comma separated value, filtered",
+      "template": "{{ b, c, 'd' | join: '#' }}",
+      "data": {
+        "b": 1,
+        "c": 2
+      },
+      "result": "1#2#d"
+    },
+    {
       "name": "special, first of an array",
       "template": "{{ a.first }}",
       "data": {
@@ -4488,6 +4506,29 @@
       "name": "tags, assign, missing expression",
       "template": "{% assign a = %}",
       "invalid": true
+    },
+    {
+      "name": "tags, assign, comma before equals",
+      "template": "{% assign a, = b %}",
+      "invalid": true
+    },
+    {
+      "name": "tags, assign, comma separated value",
+      "template": "{% assign a = b, c, 'd' %}{{ a }}",
+      "data": {
+        "b": 1,
+        "c": 2
+      },
+      "result": "12d"
+    },
+    {
+      "name": "tags, assign, comma separated value, filtered",
+      "template": "{% assign a = b, c, 'd' | join: '#' %}{{ a }}",
+      "data": {
+        "b": 1,
+        "c": 2
+      },
+      "result": "1#2#d"
     },
     {
       "name": "tags, block comment, comment block",

@@ -39,8 +39,8 @@ nav:
       - Migration guide: "migration.md"
       - Known issues: "known_issues.md"
   - User guide:
-      - Liquid environments: "environment.md"
       - Rendering templates: "rendering_templates.md"
+      - Liquid environments: "environment.md"
       - Loading templates: "loading_templates.md"
       - Render context data: "render_context.md"
       - Variables and drops: "variables_and_drops.md"

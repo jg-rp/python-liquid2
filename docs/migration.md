@@ -1,6 +1,6 @@
 # Migration guide
 
-Liquid2 changes Liquid syntax and features **and** the template engine's Python API. Liquid2's default syntax and semantics are mostly backwards compatible with version 1 and, by extension, Shopify/Liquid.
+Liquid2 adds features, changes the syntax of Liquid template **and** changes the template engine's Python API. Liquid2's default syntax and semantics are mostly backwards compatible with version 1 and, by extension, Shopify/Liquid.
 
 ## Approach to compatibility and stability
 
@@ -25,6 +25,7 @@ Whether shopify/Liquid compatibility is important to you or not, if you’re dev
 The following features are new or are now built-in where they weren't before.
 
 - More whitespace control. Along with a `default_trim` configuration option, tags and the output statement now support `+`, `-` and `~` for controlling whitespace in templates. By default, `~` will remove newlines but retain space and tab characters.
+- Array construction syntax. If the left-hand side of a filtered expression (those found in output statements, the `assign` tag and the `echo` tag) is a comma separated list of primitive expression, an "array" will be created with those items. For example, `{% assign my_array = a, b, '42', false %}`.
 - String literals support interpolation using `${` and `}` as delimiters. For example, `{% echo 'Hello, ${you | capitalize}' %}`.
 - Logical expressions now support negation with the `not` operator and grouping terms with parentheses by default.
 - Ternary expressions are now available by default. For example, `{{ a if b else c }}` or `{{ a | upcase if b == 'foo' else c || split }}`.
@@ -43,6 +44,7 @@ The following features are new or are now built-in where they weren't before.
 
 These features are not yet included in Python Liquid2, but can be if there is a demand.
 
+- We no longer offer a "lax" or "warn" parsing mode, previously controlled by the `tolerance` argument to `Environment`. The assertion is that errors should be loud and we should be made aware as early as possible, whether you're an experienced developer or not.
 - Async filters have not been implemented.
 - Contextual template analysis has not been implemented.
 - Template tag analysis (analyzing tokens instead of a syntax tree) has not been implemented.

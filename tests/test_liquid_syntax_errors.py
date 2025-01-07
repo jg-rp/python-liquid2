@@ -117,7 +117,7 @@ test_cases = [
     Case(
         description="bad conditional expression in unless block",
         template="{% unless true %}ok{% elsif £$! %}{% endunless %}",
-        expect_msg=r"unexpected token '\$'",
+        expect_msg=r"unexpected '\$'",
     ),
     Case(
         description="unknown infix operator",
@@ -145,7 +145,7 @@ test_cases = [
     Case(
         description="bad token in loop expression",
         template="{% for i$ in (1..3) %}{% endfor %}",
-        expect_msg=r"unexpected token '\$'",
+        expect_msg=r"unexpected '\$'",
     ),
     Case(
         description="invalid loop argument",
