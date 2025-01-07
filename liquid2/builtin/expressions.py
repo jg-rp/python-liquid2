@@ -304,6 +304,44 @@ class RangeLiteral(Expression):
         return [self.start, self.stop]
 
 
+class ArrayLiteral(Expression):
+    __slots__ = ("items",)
+
+    def __init__(self, token: TokenT, items: list[Expression]):
+        super().__init__(token)
+        self.items = items
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, ArrayLiteral) and self.items == other.items
+
+    def __str__(self) -> str:
+        return ", ".join(str(e) for e in self.items)
+
+    def __hash__(self) -> int:
+        return hash(tuple(self.items))
+
+    def __sizeof__(self) -> int:
+        return super().__sizeof__() + sys.getsizeof(self.items)
+
+    def evaluate(self, context: RenderContext) -> list[object]:
+        return [e.evaluate(context) for e in self.items]
+
+    async def evaluate_async(self, context: RenderContext) -> list[object]:
+        return [await e.evaluate_async(context) for e in self.items]
+
+    def children(self) -> list[Expression]:
+        return self.items
+
+    @staticmethod
+    def parse(stream: TokenStream, left: Expression) -> ArrayLiteral:
+        items: list[Expression] = [left]
+        while stream.current().type_ == TokenType.COMMA:
+            stream.next()  # ignore comma
+            items.append(parse_primitive(stream.current()))
+            stream.next()
+        return ArrayLiteral(left.token, items)
+
+
 class TemplateString(Expression):
     __slots__ = ("template",)
 
@@ -491,8 +529,11 @@ class FilteredExpression(Expression):
 
     @staticmethod
     def parse(stream: TokenStream) -> FilteredExpression | TernaryFilteredExpression:
-        """Return a new FilteredExpression parsed from _tokens_."""
+        """Return a new FilteredExpression parsed from _stream_."""
         left = parse_primitive(stream.next())
+        if stream.current().type_ == TokenType.COMMA:
+            # Array literal syntax
+            left = ArrayLiteral.parse(stream, left)
         filters = Filter.parse(stream, delim=(TokenType.PIPE,))
 
         if is_token_type(stream.current(), TokenType.IF):

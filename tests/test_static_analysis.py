@@ -917,3 +917,19 @@ def test_analyze_template_strings(env: Environment) -> None:
         locals={},
         globals={"some": [Variable(["some", "thing"], Span("", 13, 23))]},
     )
+
+
+def test_analyze_array_literals(env: Environment) -> None:
+    source = "{% assign a = b, c, 'd' %}"
+
+    _assert(
+        env.from_string(source),
+        locals={
+            "a": [Variable(["a"], Span("", 10, 11))],
+        },
+        globals={
+            "b": [Variable(["b"], Span("", 14, 15))],
+            "c": [Variable(["c"], Span("", 17, 18))],
+        },
+        tags={"assign": [Span("", 0, 26)]},
+    )

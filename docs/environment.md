@@ -1,6 +1,6 @@
 # Liquid environments
 
-Template parsing and rendering behavior is configured using an instance of [`Environment`](api/environment.md). Once configured, you'd parse templates with [`Environment.from_string()`](api/environment.md##liquid2.Environment.from_string) or [`Environment.get_template()`](api/environment.md##liquid2.Environment.get_template), both of which return an instance of [`Template`](api/template.md).
+Template parsing and rendering behavior is configured using an instance of [`Environment`](api/environment.md). Once configured, you'd parse templates with [`Environment.from_string()`](api/environment.md#liquid2.Environment.from_string) or [`Environment.get_template()`](api/environment.md#liquid2.Environment.get_template), both of which return an instance of [`Template`](api/template.md).
 
 ## The default environment
 
@@ -39,7 +39,7 @@ env = MyLiquidEnvironment(
 
 ## Managing tags and filters
 
-As you'd expect, [`register_default_tags_and_filters()`](api/builtin.md##liquid2.builtin.register_default_tags_and_filters) registers all the default tags and filters with the environment. You are encouraged to override `setup_tags_and_filters()` in your `Environment` subclasses to add optional or custom tags and filters, remove unwanted default tags and filters, and possibly replace default implementation with your own.
+As you'd expect, [`register_default_tags_and_filters()`](api/builtin.md#liquid2.builtin.register_default_tags_and_filters) registers all the default tags and filters with the environment. You are encouraged to override `setup_tags_and_filters()` in your `Environment` subclasses to add optional or custom tags and filters, remove unwanted default tags and filters, and possibly replace default implementation with your own.
 
 It's also OK to manipulate [`Environment.tags`](api/environment.md#liquid2.Environment.tags) and [`Environment.filters`](api/environment.md#liquid2.Environment.filters) directly after an `Environment` instance has been created. They are just dictionaries mapping tag names to instances of [`Tag`](api/tag.md) and filter names to callables, respectively.
 

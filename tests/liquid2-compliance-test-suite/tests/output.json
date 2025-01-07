@@ -254,6 +254,24 @@
       "template": "{{ ['and'] }}",
       "data": { "and": "a" },
       "result": "a"
+    },
+    {
+      "name": "comma separated value",
+      "template": "{{ b, c, 'd' }}",
+      "data": {
+        "b": 1,
+        "c": 2
+      },
+      "result": "12d"
+    },
+    {
+      "name": "comma separated value, filtered",
+      "template": "{{ b, c, 'd' | join: '#' }}",
+      "data": {
+        "b": 1,
+        "c": 2
+      },
+      "result": "1#2#d"
     }
   ]
 }

@@ -117,6 +117,29 @@
       "name": "missing expression",
       "template": "{% assign a = %}",
       "invalid": true
+    },
+    {
+      "name": "comma before equals",
+      "template": "{% assign a, = b %}",
+      "invalid": true
+    },
+    {
+      "name": "comma separated value",
+      "template": "{% assign a = b, c, 'd' %}{{ a }}",
+      "data": {
+        "b": 1,
+        "c": 2
+      },
+      "result": "12d"
+    },
+    {
+      "name": "comma separated value, filtered",
+      "template": "{% assign a = b, c, 'd' | join: '#' %}{{ a }}",
+      "data": {
+        "b": 1,
+        "c": 2
+      },
+      "result": "1#2#d"
     }
   ]
 }

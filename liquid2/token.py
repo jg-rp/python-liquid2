@@ -179,16 +179,22 @@ class LinesToken(TokenT):
 
 
 def _expression_as_string(expression: list[TokenT]) -> str:
-    def _as_string(token: TokenT) -> str:
+    buf: list[str] = []
+
+    for token in expression:
         if isinstance(token, Token):
             if token.type_ == TokenType.SINGLE_QUOTE_STRING:
-                return f"'{token.value}'"
-            if token.type_ == TokenType.DOUBLE_QUOTE_STRING:
-                return f'"{token.value}"'
-            return token.value
-        return str(token)
+                buf.append(f" '{token.value}'")
+            elif token.type_ == TokenType.DOUBLE_QUOTE_STRING:
+                buf.append(f' "{token.value}"')
+            elif token.type_ == TokenType.COMMA:
+                buf.append(",")  # no leading space
+            else:
+                buf.append(f" {token.value}")
+        else:
+            buf.append(f" {token}")
 
-    return " ".join(_as_string(token) for token in expression)
+    return "".join(buf).strip()
 
 
 def _tag_as_line_statement(markup: TagToken | CommentToken) -> str:

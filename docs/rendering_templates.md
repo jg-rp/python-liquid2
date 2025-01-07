@@ -33,7 +33,7 @@ env = Environment(
 )
 ```
 
-Now, if there's a file called "main.html" in "/path/to/templates/", we can use [`env.get_template()`](api/environment.md##liquid2.Environment.get_template) to load and parse it, along with any templates it [includes](tag_reference.md#include), [renders](tag_reference.md#render) or [extends](tag_reference.md#extends).
+Now, if there's a file called "main.html" in "/path/to/templates/", we can use [`env.get_template()`](api/environment.md#liquid2.Environment.get_template) to load and parse it, along with any templates it [includes](tag_reference.md#include), [renders](tag_reference.md#render) or [extends](tag_reference.md#extends).
 
 ```python
 # ... continued from above
