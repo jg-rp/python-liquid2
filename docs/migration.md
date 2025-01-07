@@ -1,6 +1,6 @@
 # Migration guide
 
-Liquid2 adds features, changes the syntax of Liquid template **and** changes the template engine's Python API. Liquid2's default syntax and semantics are mostly backwards compatible with version 1 and, by extension, Shopify/Liquid.
+Liquid2 adds features, changes the syntax of Liquid templates and changes the template engine's Python API. Liquid2's default syntax and semantics are mostly backwards compatible with version 1 and, by extension, Shopify/Liquid.
 
 ## Approach to compatibility and stability
 
@@ -22,23 +22,130 @@ Whether shopify/Liquid compatibility is important to you or not, if you’re dev
 
 ## New features
 
-The following features are new or are now built-in where they weren't before.
+### More whitespace control
 
-- More whitespace control. Along with a `default_trim` configuration option, tags and the output statement now support `+`, `-` and `~` for controlling whitespace in templates. By default, `~` will remove newlines but retain space and tab characters.
-- Array construction syntax. If the left-hand side of a filtered expression (those found in output statements, the `assign` tag and the `echo` tag) is a comma separated list of primitive expression, an "array" will be created with those items. For example, `{% assign my_array = a, b, '42', false %}`.
-- String literals support interpolation using `${` and `}` as delimiters. For example, `{% echo 'Hello, ${you | capitalize}' %}`.
-- Logical expressions now support negation with the `not` operator and grouping terms with parentheses by default.
-- Ternary expressions are now available by default. For example, `{{ a if b else c }}` or `{{ a | upcase if b == 'foo' else c || split }}`.
-- Inline comments surrounded by `{#` and `#}` are enabled by default. Additional `#`’s can be added to comment out blocks of markup that already contain comments, as long as the number of hashes match.
-- String literals are allowed to contain markup delimiters (`{{`, `}}`, `{%`, `%}`, `{#` and `#}`) and support c-like escape sequence to allow for including quote characters.
-- Identifiers and paths resolving to variables can contain Unicode characters.
-- Integer and float literals can use scientific notation, like `1.2e10`.
-- Filter and tag named arguments can be separated by a `:` or `=`.
-- Template inheritance is now built-in. Previously `{% extends %}` and `{% block %}` tags were available from a separate package.
-- Internationalization and localization tags and filters are now built-in. Previously these were in a separate package.
-- Templates are now serializable. Use `str(template)` or `pickle.dump(template)`.
-- Error messages have been improved and exceptions expose line and column numbers.
-- A new test suite is included if you'd like to implement Liquid2 in another language.
+Along with a [`default_trim`](api/environment.md#liquid2.Environment.default_trim) configuration option, tags and the output statement now support `+`, `-` and `~` for controlling whitespace in templates. By default, `~` will remove newlines but retain space and tab characters.
+
+### Array construction syntax
+
+If the left-hand side of a filtered expression (those found in output statements, the `assign` tag and the `echo` tag) is a comma separated list of primitive expression, an "array" will be created with those items.
+
+```liquid2
+{% assign my_array = a, b, '42', false -%}
+{% for item in my_array -%}
+    - {{ item }}
+{% endfor %}
+```
+
+or, using a `{% liquid %}` tag:
+
+```liquid2
+{% liquid
+    assign my_array = a, b, '42', false
+    for item in my_array
+        echo "- ${item}\n"
+    endfor %}
+```
+
+With `a` set to `"Hello"` and `b` set to `"World"`, both of the examples above produce the following output.
+
+```plain title="output"
+- Hello
+- World
+- 42
+- false
+```
+
+### String interpolation
+
+String literals support interpolation using JavaScript-style `${` and `}` delimiters. Liquid template strings don't use backticks like JavaScript. Any single or double quotes string can use `${variable_name}` placeholders for automatic variable substitution.
+
+Liquid template strings are effectively a shorthand alternative to `capture` tags or chains of `append` filters. These two tags equivalent.
+
+```liquid2
+{% capture greeting %}
+Hello, {{ you | capitalize }}!
+{% endcapture %}
+
+{% assign greeting = 'Hello, ${you | capitalize}!' %}
+```
+
+### Logical `not`
+
+Logical expressions now support negation with the `not` operator and grouping terms with parentheses by default. Previously this was an opt-in feature.
+
+In this example, `{% if not user %}` is equivalent to `{% unless user %}`, however, `not` can also be used after `and` and `or`, like `{% if user.active and not user.title %}`, potentially saving nested `if` and `unless` tags.
+
+```liquid2
+{% if not user %}
+  please log in
+{% else %}
+  hello user
+{% endif %}
+```
+
+### Ternary expressions
+
+Inline conditional expression are now supported by default. Previously this was an opt-in feature. If omitted, the `else` branch defaults to an instance of `Undefined`.
+
+```liquid2
+{{ a if b else c }}
+{{ a | upcase if b == 'foo' else c || split }}
+```
+
+### Dedicated comment syntax
+
+Comments surrounded by `{#` and `#}` are enabled by default. Additional `#`’s can be added to comment out blocks of markup that already contain comments, as long as hashes are balanced.
+
+```liquid2
+{## comment this out for now
+{% for x in y %}
+    {# x could be empty #}
+    {{ x | default: TODO}}
+{% endfor %}
+##}
+```
+
+### Better string literal parsing
+
+String literals are now allowed to contain markup delimiters (`{{`, `}}`, `{%`, `%}`, `{#` and `#}`) and support c-like escape sequence to allow for including quote characters, literal newline characters and `\uXXXX` Unicode code points.
+
+```liquid2
+{% assign x = "Hi \uD83D\uDE00!" %}
+{{ x }}
+```
+
+```plain title="output"
+Hi 😀!
+```
+
+### Unicode identifiers
+
+Identifiers and paths resolving to variables can contain Unicode characters.
+
+### Scientific notation
+
+Integer and float literals can use scientific notation, like `1.2e10`.
+
+### Common argument delimiters
+
+Filter and tag named arguments can be separated by a `:` or `=`.
+
+### Template inheritance
+
+Template inheritance is now built-in. Previously `{% extends %}` and `{% block %}` tags were available from a separate package.
+
+### i18n and l10n
+
+Internationalization and localization tags and filters are now built-in. Previously these were in a separate package.
+
+### Serializable templates
+
+Instances of `Template` are now serializable. Use `str(template)` or `pickle.dump(template)`.
+
+### Better exceptions
+
+Error messages have been improved and exceptions expose line and column numbers.
 
 ## Features that have been removed
 
