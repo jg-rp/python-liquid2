@@ -22,7 +22,7 @@ another_result = template.render(you="Liquid")
 
 ## Common configuration
 
-Often, at a minimum, you'll want to configure a [template loader](loading_templates.md) that reads template source text from a file system and give Liquid a default file extension to use. Doing this will tell the Liquid engine where to look for templates when [including](tag_reference.md#include), [rendering](tag_reference.md#render) or [extending](tag_reference.md#extends) other templates.
+Often, at a minimum, you'll want to configure a [template loader](loading_templates.md) that reads template source text from a file system. Doing this will tell the template engine where to look for templates when [including](tag_reference.md#include), [rendering](tag_reference.md#render) or [extending](tag_reference.md#extends) other templates.
 
 ```python
 from liquid2 import Environment

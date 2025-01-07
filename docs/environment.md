@@ -115,3 +115,7 @@ class MyLiquidEnvironment(Environment):
 
         return text
 ```
+
+## What's next?
+
+See [loading templates](loading_templates.md) for more information about configuring a template loader, and [undefined variables](variables_and_drops.md) for information about managing undefined variables.

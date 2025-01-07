@@ -8,8 +8,6 @@ from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Iterable
-from typing import Tuple
-from typing import Union
 
 from liquid2.exceptions import TemplateNotFoundError
 from liquid2.loader import BaseLoader
@@ -31,7 +29,7 @@ class FileSystemLoader(BaseLoader):
 
     def __init__(
         self,
-        search_path: Union[str, Path, Iterable[Union[str, Path]]],
+        search_path: str | Path | Iterable[str | Path],
         *,
         encoding: str = "utf-8",
         ext: str | None = None,
@@ -66,7 +64,7 @@ class FileSystemLoader(BaseLoader):
             return source_path
         raise TemplateNotFoundError(template_name)
 
-    def _read(self, source_path: Path) -> Tuple[str, float]:
+    def _read(self, source_path: Path) -> tuple[str, float]:
         with source_path.open(encoding=self.encoding) as fd:
             source = fd.read()
         return source, source_path.stat().st_mtime
