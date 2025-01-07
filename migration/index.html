@@ -215,7 +215,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../environment/" class="md-tabs__link">
+        <a href="../rendering_templates/" class="md-tabs__link">
           
   
   User guide
@@ -691,11 +691,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../environment/" class="md-nav__link">
+      <a href="../rendering_templates/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Liquid environments
+    Rendering templates
   </span>
   
 
@@ -712,11 +712,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../rendering_templates/" class="md-nav__link">
+      <a href="../environment/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Rendering templates
+    Liquid environments
   </span>
   
 
@@ -1624,7 +1624,7 @@
 
 
 <h1 id="migration-guide">Migration guide</h1>
-<p>Liquid2 changes Liquid syntax and features <strong>and</strong> the template engine's Python API. Liquid2's default syntax and semantics are mostly backwards compatible with version 1 and, by extension, Shopify/Liquid.</p>
+<p>Liquid2 adds features, changes the syntax of Liquid template <strong>and</strong> changes the template engine's Python API. Liquid2's default syntax and semantics are mostly backwards compatible with version 1 and, by extension, Shopify/Liquid.</p>
 <h2 id="approach-to-compatibility-and-stability">Approach to compatibility and stability</h2>
 <p>With <a href="https://github.com/jg-rp/liquid">Python Liquid version 1</a>, our primary objectives were render behavior stability and Shopify/Liquid compatibility, in that order. Later we introduced <code>liquid.future.Environment</code>, which sacrificed some stability for greater Shopify/Liquid compatibility as Shopify/Liquid and our understanding of it changed.</p>
 <p>Now, with Python Liquid2, render behavior stability is still the top priority, but the default environment deliberately deviates from Shopify/Liquid in several ways, "fixing" and adding often requested features that Shopify can't due to their large user base and the technical debt that comes with it.</p>
@@ -1638,6 +1638,7 @@
 <p>The following features are new or are now built-in where they weren't before.</p>
 <ul>
 <li>More whitespace control. Along with a <code>default_trim</code> configuration option, tags and the output statement now support <code>+</code>, <code>-</code> and <code>~</code> for controlling whitespace in templates. By default, <code>~</code> will remove newlines but retain space and tab characters.</li>
+<li>Array construction syntax. If the left-hand side of a filtered expression (those found in output statements, the <code>assign</code> tag and the <code>echo</code> tag) is a comma separated list of primitive expression, an "array" will be created with those items. For example, <code>{% assign my_array = a, b, '42', false %}</code>.</li>
 <li>String literals support interpolation using <code>${</code> and <code>}</code> as delimiters. For example, <code>{% echo 'Hello, ${you | capitalize}' %}</code>.</li>
 <li>Logical expressions now support negation with the <code>not</code> operator and grouping terms with parentheses by default.</li>
 <li>Ternary expressions are now available by default. For example, <code>{{ a if b else c }}</code> or <code>{{ a | upcase if b == 'foo' else c || split }}</code>.</li>
@@ -1655,6 +1656,7 @@
 <h2 id="features-that-have-been-removed">Features that have been removed</h2>
 <p>These features are not yet included in Python Liquid2, but can be if there is a demand.</p>
 <ul>
+<li>We no longer offer a "lax" or "warn" parsing mode, previously controlled by the <code>tolerance</code> argument to <code>Environment</code>. The assertion is that errors should be loud and we should be made aware as early as possible, whether you're an experienced developer or not.</li>
 <li>Async filters have not been implemented.</li>
 <li>Contextual template analysis has not been implemented.</li>
 <li>Template tag analysis (analyzing tokens instead of a syntax tree) has not been implemented.</li>
