@@ -436,3 +436,9 @@ def test_template_string_str() -> None:
     source = "{{ 'Hello' if not you else 'Hello there, ${you}!' }}"
     template = parse(source)
     assert str(template) == source
+
+
+def test_array_literal_str() -> None:
+    source = "{% assign my_array = 1, 2, 3 %}"
+    template = parse(source)
+    assert str(template) == source

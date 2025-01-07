@@ -44,6 +44,7 @@ The following features are new or are now built-in where they weren't before.
 
 These features are not yet included in Python Liquid2, but can be if there is a demand.
 
+- We no longer offer a "lax" or "warn" parsing mode, previously controlled by the `tolerance` argument to `Environment`. The assertion is that errors should be loud and we should be made aware as early as possible, whether you're an experienced developer or not.
 - Async filters have not been implemented.
 - Contextual template analysis has not been implemented.
 - Template tag analysis (analyzing tokens instead of a syntax tree) has not been implemented.
