@@ -169,6 +169,33 @@ class StrictUndefined(Undefined):
         raise UndefinedError(self.msg, token=self.token)
 
 
+class FalsyStrictUndefined(StrictUndefined):
+    """An strict undefined type that can be tested for truthiness."""
+
+    allowed_properties = frozenset(
+        [
+            "__repr__",
+            "__bool__",
+            "__eq__",
+            "__liquid__",
+            "__class__",
+            "name",
+            "hint",
+            "obj",
+            "msg",
+            "force_liquid_default",
+            "path",
+            "token",
+        ]
+    )
+
+    def __bool__(self) -> bool:
+        return False
+
+    def __eq__(self, other: object) -> bool:
+        return other is False
+
+
 def is_undefined(obj: object) -> TypeGuard[Undefined]:
     """Return `True` if `obj` is undefined. `False` otherwise."""
     return isinstance(obj, Undefined)

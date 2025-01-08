@@ -49,6 +49,7 @@ from .builtin import CachingLoaderMixin
 from .loader import TemplateSource
 from .undefined import StrictUndefined
 from .undefined import Undefined
+from .undefined import FalsyStrictUndefined
 from .exceptions import TemplateNotFoundError
 from .messages import MessageTuple
 from .messages import extract_from_template
@@ -152,6 +153,7 @@ __all__ = (
     "CachingChoiceLoader",
     "CachingDictLoader",
     "CachingFileSystemLoader",
+    "CachingLoaderMixin",
     "ChoiceLoader",
     "CommentToken",
     "ConditionalBlockNode",
@@ -160,6 +162,8 @@ __all__ = (
     "DictLoader",
     "Environment",
     "Expression",
+    "extract_liquid",
+    "FalsyStrictUndefined",
     "FileSystemLoader",
     "InlineCommentToken",
     "is_comment_token",
@@ -188,6 +192,7 @@ __all__ = (
     "TagToken",
     "Template",
     "TemplateNotFoundError",
+    "TemplateSource",
     "Token",
     "tokenize",
     "TokenStream",
@@ -196,7 +201,4 @@ __all__ = (
     "Undefined",
     "unescape",
     "WhitespaceControl",
-    "extract_liquid",
-    "TemplateSource",
-    "CachingLoaderMixin",
 )
