@@ -1888,8 +1888,7 @@
 
 
 <h1 id="migration-guide">Migration guide</h1>
-<p>Liquid2 adds features, subtly changes the syntax of Liquid templates and changes the template engine's Python API. This is not "Python Liquid version 2", but a Python implementation of "Liquid2".</p>
-<p>At the moment, Liquid2 is one man's attempt at making Liquid "feel" and behave like a "proper language". Its default syntax and semantics are mostly backwards compatible with <a href="https://github.com/jg-rp/liquid">Python Liquid</a> and, by extension, Shopify/Liquid.</p>
+<p>When compared to <a href="https://github.com/jg-rp/liquid">Python Liquid</a> and <a href="https://github.com/Shopify/liquid">Shopify/Liquid</a>, Liquid2 adds features, subtly changes the syntax of Liquid templates and changes the template engine's Python API. This is not "Python Liquid version 2", but a Python implementation of "Liquid2", which is mostly backwards compatible with other implementations.</p>
 <h2 id="approach-to-compatibility-and-stability">Approach to compatibility and stability</h2>
 <p>With <a href="https://github.com/jg-rp/liquid">Python Liquid</a>, our primary objectives were render behavior stability and Shopify/Liquid compatibility, in that order. Later we introduced <code>liquid.future.Environment</code>, which sacrificed some stability for greater Shopify/Liquid compatibility as Shopify/Liquid and our understanding of it changed.</p>
 <p>Now, with Python Liquid2, render behavior stability is still the top priority, but the default environment deliberately deviates from Shopify/Liquid in several ways, "fixing" and adding often requested features that Shopify can't due to their large user base and the technical debt that comes with it.</p>

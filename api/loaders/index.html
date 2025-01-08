@@ -1445,6 +1445,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#liquid2.CachingLoaderMixin" class="md-nav__link">
+    <span class="md-ellipsis">
+      CachingLoaderMixin
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1867,6 +1876,15 @@
   <a href="#liquid2.CachingChoiceLoader" class="md-nav__link">
     <span class="md-ellipsis">
       CachingChoiceLoader
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#liquid2.CachingLoaderMixin" class="md-nav__link">
+    <span class="md-ellipsis">
+      CachingLoaderMixin
     </span>
   </a>
   
@@ -2393,7 +2411,7 @@ Could be "front matter" or other meta data.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><span title="typing.Union">Union</span>[str, <span title="pathlib.Path">Path</span>, <span title="typing.Iterable">Iterable</span>[<span title="typing.Union">Union</span>[str, <span title="pathlib.Path">Path</span>]]]</code>
+                      <code>str | <span title="pathlib.Path">Path</span> | <span title="typing.Iterable">Iterable</span>[str | <span title="pathlib.Path">Path</span>]</code>
                   </span>
               </p>
             </td>
@@ -2556,7 +2574,7 @@ Could be "front matter" or other meta data.</p>
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><span title="liquid2.builtin.loaders.mixins.CachingLoaderMixin">CachingLoaderMixin</span></code>, <code><a class="autorefs autorefs-internal" title="liquid2.builtin.loaders.file_system_loader.FileSystemLoader" href="#liquid2.FileSystemLoader">FileSystemLoader</a></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="liquid2.builtin.loaders.mixins.CachingLoaderMixin" href="#liquid2.CachingLoaderMixin">CachingLoaderMixin</a></code>, <code><a class="autorefs autorefs-internal" title="liquid2.builtin.loaders.file_system_loader.FileSystemLoader" href="#liquid2.FileSystemLoader">FileSystemLoader</a></code></p>
 
 
         <p>A file system loader that caches parsed templates in memory.</p>
@@ -2831,7 +2849,7 @@ the least recently used template.</p>
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><span title="liquid2.builtin.loaders.mixins.CachingLoaderMixin">CachingLoaderMixin</span></code>, <code><a class="autorefs autorefs-internal" title="liquid2.builtin.loaders.dict_loader.DictLoader" href="#liquid2.DictLoader">DictLoader</a></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="liquid2.builtin.loaders.mixins.CachingLoaderMixin" href="#liquid2.CachingLoaderMixin">CachingLoaderMixin</a></code>, <code><a class="autorefs autorefs-internal" title="liquid2.builtin.loaders.dict_loader.DictLoader" href="#liquid2.DictLoader">DictLoader</a></code></p>
 
 
         <p>A <code>DictLoader</code> that caches parsed templates in memory.</p>
@@ -2900,7 +2918,7 @@ the least recently used template.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><span title="typing.Union">Union</span>[str, <span title="types.ModuleType">ModuleType</span>]</code>
+                      <code>str | <span title="types.ModuleType">ModuleType</span></code>
                   </span>
               </p>
             </td>
@@ -2917,7 +2935,7 @@ templates.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><span title="typing.Union">Union</span>[str, <span title="typing.Iterable">Iterable</span>[str]]</code>
+                      <code>str | <span title="typing.Iterable">Iterable</span>[str]</code>
                   </span>
                   <span class="doc-param-default">
                     <b>DEFAULT:</b>
@@ -3189,7 +3207,7 @@ include a leading period.</p>
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><span title="liquid2.builtin.loaders.mixins.CachingLoaderMixin">CachingLoaderMixin</span></code>, <code><a class="autorefs autorefs-internal" title="liquid2.builtin.loaders.choice_loader.ChoiceLoader" href="#liquid2.ChoiceLoader">ChoiceLoader</a></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="liquid2.builtin.loaders.mixins.CachingLoaderMixin" href="#liquid2.CachingLoaderMixin">CachingLoaderMixin</a></code>, <code><a class="autorefs autorefs-internal" title="liquid2.builtin.loaders.choice_loader.ChoiceLoader" href="#liquid2.ChoiceLoader">ChoiceLoader</a></code></p>
 
 
         <p>A <code>ChoiceLoader</code> that caches parsed templates in memory.</p>
@@ -3284,6 +3302,50 @@ the least recently used template.</p>
           </tr>
       </tbody>
     </table>
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="liquid2.CachingLoaderMixin" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">liquid2.CachingLoaderMixin</span>
+
+
+</h2>
+
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="abc.ABC">ABC</span></code>, <code><span title="liquid2.builtin.loaders.mixins._CachingLoaderProtocol">_CachingLoaderProtocol</span></code></p>
+
+
+        <p>A mixin class that adds caching to a template loader.</p>
 
 
 
