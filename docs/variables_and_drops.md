@@ -71,7 +71,7 @@ print(render(source, **data))
 
 ## Paths to variables
 
-When referenced in a template, a variable is best viewed as a _path_ to a value, where each path has one or more _segments_. Segments can be property names separated by dots (`foo.bar`), array indexes using bracket notation (`store.products[1]`) or bracketed property names for situations where a the property name is held in a variable or contains reserved characters (`product.variant[var]` or `products["something with spaces"]`)
+When referenced in a template, a variable is best viewed as a _path_ to a value, where each path has one or more _segments_. Segments can be property names separated by dots (`foo.bar`), array indexes using bracket notation (`store.products[1]`) or bracketed property names for situations where the property name is held in a variable or contains reserved characters (`product.variant[var]` or `products["something with spaces"]`)
 
 Python Liquid uses [`__getitem__`](https://docs.python.org/3/reference/datamodel.html#object.__getitem__) internally for resolving property names and accessing items in a sequence. So, if your data is some combination of dictionaries and lists, for example, templates can reference objects as follows.
 

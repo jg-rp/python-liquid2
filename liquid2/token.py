@@ -375,9 +375,16 @@ def is_token_type(token: TokenT, t: TokenType) -> TypeGuard[Token]:
 
 class WhitespaceControl(Enum):
     PLUS = auto()
+    """Preserve all whitespace."""
+
     MINUS = auto()
+    """Trim all whitespace."""
+
     TILDE = auto()
+    """Trim immediate carriage return and newline characters only."""
+
     DEFAULT = auto()
+    """Use the environment's `default_trim` setting."""
 
     def __str__(self) -> str:
         if self == WhitespaceControl.PLUS:

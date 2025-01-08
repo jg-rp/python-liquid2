@@ -54,6 +54,8 @@ del env.tags["include"]
 
 By default, global template variables attached to instances of [`Template`](api/template.md) take priority over global template variables attached to an `Environment`. You can change this priority or otherwise manipulate the `globals` dictionary for a `Template` by overriding [`Environment.make_globals()`](api/environment.md#liquid2.Environment.make_globals).
 
+Also see [Render context data](render_context.md).
+
 ```python
 from typing import Mapping
 from liquid2 import Environment
@@ -71,51 +73,6 @@ class MyLiquidEnvironment(Environment):
         return dict(self.globals)
 ```
 
-## Customizing whitespace control
-
-[`Environment.trim()`](api/environment.md#liquid2.Environment.trim) is called when stripping whitespace from template content according to tag whitespace control characters (`-`, `+` and `~`). By default, `-` will trim all whitespace, `+` will retain all whitespace regardless of [`Environment.default_trim`](api/environment.md#liquid2.Environment.default_trim), and `~` will remove only `\r` and `\n` characters.
-
-Override [`Environment.trim()`](api/environment.md#liquid2.Environment.trim) to define your own whitespace control behavior.
-
-```python
-from liquid2 import Environment
-from liquid2 import WhitespaceControl
-
-class MyLiquidEnvironment(Environment):
-
-    def trim(
-        self,
-        text: str,
-        left_trim: WhitespaceControl,
-        right_trim: WhitespaceControl,
-    ) -> str:
-        """Return _text_ after applying whitespace control."""
-        if left_trim == WhitespaceControl.DEFAULT:
-            left_trim = self.default_trim
-
-        if right_trim == WhitespaceControl.DEFAULT:
-            right_trim = self.default_trim
-
-        if left_trim == right_trim:
-            if left_trim == WhitespaceControl.MINUS:
-                return text.strip()
-            if left_trim == WhitespaceControl.TILDE:
-                return text.strip("\r\n")
-            return text
-
-        if left_trim == WhitespaceControl.MINUS:
-            text = text.lstrip()
-        elif left_trim == WhitespaceControl.TILDE:
-            text = text.lstrip("\r\n")
-
-        if right_trim == WhitespaceControl.MINUS:
-            text = text.rstrip()
-        elif right_trim == WhitespaceControl.TILDE:
-            text = text.rstrip("\r\n")
-
-        return text
-```
-
 ## What's next?
 
-See [loading templates](loading_templates.md) for more information about configuring a template loader, and [undefined variables](variables_and_drops.md) for information about managing undefined variables.
+See [loading templates](loading_templates.md) for more information about configuring a template loader, [undefined variables](variables_and_drops.md#undefined-variables) for information about managing undefined variables and [whitespace control](whitespace_control.md) for information about customizing whitespace control behavior.

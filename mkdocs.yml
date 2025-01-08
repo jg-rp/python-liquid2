@@ -75,6 +75,7 @@ nav:
       - Undefined: "api/undefined.md"
       - Babel: "api/babel.md"
       - Tokens: "api/tokens.md"
+      - WhitespaceControl: "api/whitespace_control.md"
 
 markdown_extensions:
   - admonition
