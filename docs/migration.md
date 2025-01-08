@@ -1,8 +1,6 @@
 # Migration guide
 
-Liquid2 adds features, subtly changes the syntax of Liquid templates and changes the template engine's Python API. This is not "Python Liquid version 2", but a Python implementation of "Liquid2".
-
-At the moment, Liquid2 is one man's attempt at making Liquid "feel" and behave like a "proper language". Its default syntax and semantics are mostly backwards compatible with [Python Liquid](https://github.com/jg-rp/liquid) and, by extension, Shopify/Liquid.
+When compared to [Python Liquid](https://github.com/jg-rp/liquid) and [Shopify/Liquid](https://github.com/Shopify/liquid), Liquid2 adds features, subtly changes the syntax of Liquid templates and changes the template engine's Python API. This is not "Python Liquid version 2", but a Python implementation of "Liquid2", which is mostly backwards compatible with other implementations.
 
 ## Approach to compatibility and stability
 

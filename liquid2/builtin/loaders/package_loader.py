@@ -8,7 +8,6 @@ from importlib.resources import files
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Iterable
-from typing import Union
 
 from liquid2.exceptions import TemplateNotFoundError
 from liquid2.loader import BaseLoader
@@ -36,9 +35,9 @@ class PackageLoader(BaseLoader):
 
     def __init__(
         self,
-        package: Union[str, ModuleType],
+        package: str | ModuleType,
         *,
-        package_path: Union[str, Iterable[str]] = "templates",
+        package_path: str | Iterable[str] = "templates",
         encoding: str = "utf-8",
         ext: str = ".liquid",
     ) -> None:

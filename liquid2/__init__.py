@@ -45,6 +45,8 @@ from .builtin import CachingChoiceLoader
 from .builtin import CachingFileSystemLoader
 from .builtin import FileSystemLoader
 from .builtin import PackageLoader
+from .builtin import CachingLoaderMixin
+from .loader import TemplateSource
 from .undefined import StrictUndefined
 from .undefined import Undefined
 from .exceptions import TemplateNotFoundError
@@ -195,4 +197,6 @@ __all__ = (
     "unescape",
     "WhitespaceControl",
     "extract_liquid",
+    "TemplateSource",
+    "CachingLoaderMixin",
 )

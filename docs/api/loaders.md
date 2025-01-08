@@ -11,3 +11,5 @@
 
 ::: liquid2.ChoiceLoader
 ::: liquid2.CachingChoiceLoader
+
+::: liquid2.CachingLoaderMixin

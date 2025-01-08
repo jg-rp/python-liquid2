@@ -111,6 +111,7 @@ from .loaders.choice_loader import ChoiceLoader
 from .loaders.dict_loader import CachingDictLoader
 from .loaders.dict_loader import DictLoader
 from .loaders.file_system_loader import FileSystemLoader
+from .loaders.mixins import CachingLoaderMixin
 from .loaders.package_loader import PackageLoader
 from .output import Output
 from .tags.assign_tag import AssignTag
@@ -236,6 +237,7 @@ __all__ = (
     "Parameter",
     "WithTag",
     "JSON",
+    "CachingLoaderMixin",
 )
 
 
