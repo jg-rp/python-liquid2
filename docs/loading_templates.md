@@ -196,7 +196,7 @@ class SnippetsFileSystemLoader(CachingFileSystemLoader):
 
 Sometimes template source text comes with associated data. This could be meta data read from a database or _front matter_ read from the top of the file containing template source text. The [`TemplateSource`](api/loaders.md#liquid2.loader.TemplateSource) object returned from [`get_source()`](api/loaders.md#liquid2.loader.BaseLoader.get_source) facilitates these cases with `matter`, a dictionary mapping strings to arbitrary objects that will be merged with environment and template globals and bound to the resulting `Template` instance.
 
-Here's an example a template loader that reads front matter in YAML format.
+Here's an example of a template loader that reads front matter in YAML format.
 
 ```python
 import re
