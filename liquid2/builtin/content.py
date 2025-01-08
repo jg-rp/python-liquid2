@@ -67,7 +67,7 @@ class Content(Tag):
         token = stream.current()
         assert isinstance(token, ContentToken)
 
-        right_trim = self.env.default_trim
+        right_trim = WhitespaceControl.DEFAULT
 
         peeked = stream.peek()
         if isinstance(

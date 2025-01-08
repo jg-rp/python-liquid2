@@ -229,7 +229,6 @@ class Environment:
         right_trim: WhitespaceControl,
     ) -> str:
         """Return _text_ after applying whitespace control."""
-        # TODO: test me!
         if left_trim == WhitespaceControl.DEFAULT:
             left_trim = self.default_trim
 

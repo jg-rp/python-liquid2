@@ -44,8 +44,7 @@ class Parser:
         stream = TokenStream(tokens)
 
         default_trim = self.env.default_trim
-        left_trim = stream.trim_carry
-        stream.trim_carry = default_trim
+        left_trim = default_trim
 
         while True:
             token = stream.current()
@@ -62,14 +61,15 @@ class Parser:
                 left_trim = token.wc[-1]
                 nodes.append(output.parse(stream))
             elif is_tag_token(token):
-                left_trim = token.wc[-1]
-                stream.trim_carry = left_trim
+                stream.trim_carry = token.wc[-1]
                 try:
                     nodes.append(tags[token.name].parse(stream))
                 except KeyError as err:
                     raise LiquidSyntaxError(
                         f"unexpected tag '{token.name}'", token=stream.current()
                     ) from err
+
+                left_trim = stream.trim_carry
             elif is_lines_token(token):
                 left_trim = token.wc[-1]
                 nodes.append(lines.parse(stream))
@@ -96,7 +96,6 @@ class Parser:
 
         default_trim = self.env.default_trim
         left_trim = stream.trim_carry
-        stream.trim_carry = default_trim
 
         nodes: list[Node] = []
 
@@ -115,10 +114,9 @@ class Parser:
                 left_trim = token.wc[-1]
                 nodes.append(output.parse(stream))
             elif is_tag_token(token):
-                left_trim = token.wc[-1]
+                stream.trim_carry = token.wc[-1]
 
                 if token.name in end:
-                    stream.trim_carry = left_trim
                     break
 
                 try:
@@ -127,6 +125,8 @@ class Parser:
                     raise LiquidSyntaxError(
                         f"unexpected tag '{token.name}'", token=stream.current()
                     ) from err
+
+                left_trim = stream.trim_carry
             elif is_lines_token(token):
                 left_trim = token.wc[-1]
                 nodes.append(lines.parse(stream))

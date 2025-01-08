@@ -130,7 +130,7 @@ Template("{{ products.first.title }}!").render(products=products)
 
 ## Drops
 
-A _drop_ (as in "drop of liquid") is an instance of a Python class that implements the [Sequence](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence) or [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping) interfaces, or other [magic methods](#other-magic-methods).
+A _drop_ (as in "drop of liquid") is an instance of a Python class that implements the [Sequence](https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence) or [Mapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping) interface, or other [magic methods](#other-magic-methods).
 
 We use the Mapping interface to force ourselves to be explicit about which properties are exposed to template authors.
 
