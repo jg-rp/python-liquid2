@@ -802,7 +802,7 @@
         
   
   <span class="md-ellipsis">
-    Variables and drops
+    Variables, types and drops
   </span>
   
 
@@ -1416,6 +1416,27 @@
   
   
     <li class="md-nav__item">
+      <a href="../api/render_context/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Render context
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../api/filter/" class="md-nav__link">
         
   
@@ -1816,7 +1837,7 @@
 </span></code></pre></div>
 <h3 id="matter">Matter</h3>
 <p>Sometimes template source text comes with associated data. This could be meta data read from a database or <em>front matter</em> read from the top of the file containing template source text. The <a href="../api/loaders/#liquid2.loader.TemplateSource"><code>TemplateSource</code></a> object returned from <a href="../api/loaders/#liquid2.loader.BaseLoader.get_source"><code>get_source()</code></a> facilitates these cases with <code>matter</code>, a dictionary mapping strings to arbitrary objects that will be merged with environment and template globals and bound to the resulting <code>Template</code> instance.</p>
-<p>Here's an example a template loader that reads front matter in YAML format.</p>
+<p>Here's an example of a template loader that reads front matter in YAML format.</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 </span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
 </span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
