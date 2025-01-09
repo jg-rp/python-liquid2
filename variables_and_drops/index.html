@@ -454,53 +454,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../terminology/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Terminology
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../migration/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
     Migration guide
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../known_issues/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Known issues
   </span>
   
 
@@ -824,69 +782,6 @@
   
   <span class="md-ellipsis">
     Whitespace control
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../template_inheritance/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Template inheritance
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../auto_escape/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    HTML auto escape
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../resource_limits/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Resource limits
   </span>
   
 
@@ -1535,6 +1430,27 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/whitespace_control/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WhitespaceControl
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1792,7 +1708,7 @@
 </span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>        - z6
 </span></code></pre></div>
 <h2 id="paths-to-variables">Paths to variables</h2>
-<p>When referenced in a template, a variable is best viewed as a <em>path</em> to a value, where each path has one or more <em>segments</em>. Segments can be property names separated by dots (<code>foo.bar</code>), array indexes using bracket notation (<code>store.products[1]</code>) or bracketed property names for situations where a the property name is held in a variable or contains reserved characters (<code>product.variant[var]</code> or <code>products["something with spaces"]</code>)</p>
+<p>When referenced in a template, a variable is best viewed as a <em>path</em> to a value, where each path has one or more <em>segments</em>. Segments can be property names separated by dots (<code>foo.bar</code>), array indexes using bracket notation (<code>store.products[1]</code>) or bracketed property names for situations where the property name is held in a variable or contains reserved characters (<code>product.variant[var]</code> or <code>products["something with spaces"]</code>)</p>
 <p>Python Liquid uses <a href="https://docs.python.org/3/reference/datamodel.html#object.__getitem__"><code>__getitem__</code></a> internally for resolving property names and accessing items in a sequence. So, if your data is some combination of dictionaries and lists, for example, templates can reference objects as follows.</p>
 <div class="language-json highlight"><span class="filename">data</span><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">&quot;products&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
@@ -1837,7 +1753,7 @@
 <div class="language-text highlight"><span class="filename">output</span><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>!
 </span></code></pre></div>
 <h2 id="drops">Drops</h2>
-<p>A <em>drop</em> (as in "drop of liquid") is an instance of a Python class that implements the <a href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence">Sequence</a> or <a href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping">Mapping</a> interfaces, or other <a href="#other-magic-methods">magic methods</a>.</p>
+<p>A <em>drop</em> (as in "drop of liquid") is an instance of a Python class that implements the <a href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence">Sequence</a> or <a href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping">Mapping</a> interface, or other <a href="#other-magic-methods">magic methods</a>.</p>
 <p>We use the Mapping interface to force ourselves to be explicit about which properties are exposed to template authors.</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">abc</span>
 </span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
@@ -1955,7 +1871,7 @@
 </span><span id="__span-9-29"><a id="__codelineno-9-29" name="__codelineno-9-29" href="#__codelineno-9-29"></a><span class="nb">print</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="o">**</span><span class="n">context_data</span><span class="p">))</span>  <span class="c1"># one b</span>
 </span></code></pre></div>
 <h3 id="__html__"><code>__html__</code></h3>
-<p>When <a href="../auto_escape/">HTML auto-escaping</a> is enabled, an object can be output as an HTML-safe string by implementing the special <code>__html__()</code> method.</p>
+<p>When <a href="../environment/#html-auto-escape">HTML auto-escaping</a> is enabled, an object can be output as an HTML-safe string by implementing the special <code>__html__()</code> method.</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">liquid2</span><span class="w"> </span><span class="kn">import</span> <span class="n">Environment</span>
 </span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
 </span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>

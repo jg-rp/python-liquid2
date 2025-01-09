@@ -515,53 +515,11 @@
   
   
     <li class="md-nav__item">
-      <a href="terminology/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Terminology
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="migration/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
     Migration guide
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="known_issues/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Known issues
   </span>
   
 
@@ -733,69 +691,6 @@
   
   <span class="md-ellipsis">
     Whitespace control
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="template_inheritance/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Template inheritance
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="auto_escape/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    HTML auto escape
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="resource_limits/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Resource limits
   </span>
   
 
@@ -1444,6 +1339,27 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api/whitespace_control/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WhitespaceControl
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1522,7 +1438,7 @@
 <p><strong>Asynchronous:</strong> For situations where you have too many templates to fit in memory or those templates change frequently, they can be loaded asynchronously from file systems, databases or over a network. Similarly, template data can be fetch lazily at render time, also asynchronously.</p>
 </li>
 <li>
-<p><strong>Template inheritance:</strong> Python Liquid2 has built-in <a href="template_inheritance/">template inheritance</a> features. As well and <a href="tag_reference/#include">including</a> or <a href="tag_reference/#render">rendering</a> a partial template, you can <a href="tag_reference/#extends">extend</a> parent templates by defining template <a href="tag_reference/#block">blocks</a>.</p>
+<p><strong>Template inheritance:</strong> Python Liquid2 has built-in <a href="tag_reference/#extends">template inheritance</a> features. As well and <a href="tag_reference/#include">including</a> or <a href="tag_reference/#render">rendering</a> a partial template, you can <a href="tag_reference/#extends">extend</a> parent templates by defining template <a href="tag_reference/#block">blocks</a>.</p>
 </li>
 <li>
 <p><strong>Static analysis:</strong> Python Liquid2 exposes a syntax tree for each template and <a href="static_analysis/">built-in tools</a> for analyzing tag, filter and variable usage. You can also extract comment text and have the option of loading and analyzing included/rendered/extended templates too.</p>
@@ -1531,7 +1447,7 @@
 <p><strong>Internationalization and localization:</strong> Templates have built-in support for translator comments and extracting message catalogs, plus filters for formatting currency, dates, times and numbers for international users.</p>
 </li>
 <li>
-<p><strong>Compatible:</strong> Python Liquid2 is backwards compatible with <a href="https://github.com/Shopify/liquid">Shopify/Liquid</a>, the original authors of the Liquid template language, with a <a href="known_issues/">few exceptions</a>.</p>
+<p><strong>Compatible:</strong> Python Liquid2 mostly is backwards compatible with <a href="https://github.com/Shopify/liquid">Shopify/Liquid</a>, the original authors of the Liquid template language.</p>
 </li>
 </ul>
 <h2 id="get-started">Get started</h2>

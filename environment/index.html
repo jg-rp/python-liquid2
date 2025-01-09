@@ -454,53 +454,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../terminology/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Terminology
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../migration/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
     Migration guide
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../known_issues/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Known issues
   </span>
   
 
@@ -643,6 +601,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#html-auto-escape" class="md-nav__link">
+    <span class="md-ellipsis">
+      HTML auto escape
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#managing-tags-and-filters" class="md-nav__link">
     <span class="md-ellipsis">
       Managing tags and filters
@@ -661,9 +628,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#customizing-whitespace-control" class="md-nav__link">
+  <a href="#resource-limits" class="md-nav__link">
     <span class="md-ellipsis">
-      Customizing whitespace control
+      Resource limits
     </span>
   </a>
   
@@ -762,69 +729,6 @@
   
   <span class="md-ellipsis">
     Whitespace control
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../template_inheritance/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Template inheritance
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../auto_escape/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    HTML auto escape
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../resource_limits/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Resource limits
   </span>
   
 
@@ -1473,6 +1377,27 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/whitespace_control/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WhitespaceControl
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1516,6 +1441,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#html-auto-escape" class="md-nav__link">
+    <span class="md-ellipsis">
+      HTML auto escape
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#managing-tags-and-filters" class="md-nav__link">
     <span class="md-ellipsis">
       Managing tags and filters
@@ -1534,9 +1468,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#customizing-whitespace-control" class="md-nav__link">
+  <a href="#resource-limits" class="md-nav__link">
     <span class="md-ellipsis">
-      Customizing whitespace control
+      Resource limits
     </span>
   </a>
   
@@ -1599,73 +1533,46 @@
 </span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>    <span class="n">default_trim</span><span class="o">=</span><span class="n">WhitespaceControl</span><span class="o">.</span><span class="n">PLUS</span>
 </span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="p">)</span>
 </span></code></pre></div>
+<h2 id="html-auto-escape">HTML auto escape</h2>
+<p>When <code>auto_escape</code> is <code>True</code>, <a href="../render_context/">render context variables</a> will be automatically escaped to produce HTML-safe strings on output.</p>
+<p>You can be explicitly mark strings as <em>safe</em> by wrapping them in <code>Markup()</code> and <a href="../variables_and_drops/">drops</a> can implement the <a href="../variables_and_drops/#__html__">special <code>__html__()</code> method</a>.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">markupsafe</span><span class="w"> </span><span class="kn">import</span> <span class="n">Markup</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">liquid2</span><span class="w"> </span><span class="kn">import</span> <span class="n">Environment</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">env</span> <span class="o">=</span> <span class="n">Environment</span><span class="p">(</span><span class="n">auto_escape</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">template</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="s2">&quot;&lt;p&gt;Hello, {{ you }}&lt;/p&gt;&quot;</span><span class="p">)</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="nb">print</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">you</span><span class="o">=</span><span class="n">Markup</span><span class="p">(</span><span class="s2">&quot;&lt;em&gt;World!&lt;/em&gt;&quot;</span><span class="p">)))</span>
+</span></code></pre></div>
 <h2 id="managing-tags-and-filters">Managing tags and filters</h2>
 <p>As you'd expect, <a href="../api/builtin/#liquid2.builtin.register_default_tags_and_filters"><code>register_default_tags_and_filters()</code></a> registers all the default tags and filters with the environment. You are encouraged to override <code>setup_tags_and_filters()</code> in your <code>Environment</code> subclasses to add optional or custom tags and filters, remove unwanted default tags and filters, and possibly replace default implementation with your own.</p>
 <p>It's also OK to manipulate <a href="../api/environment/#liquid2.Environment.tags"><code>Environment.tags</code></a> and <a href="../api/environment/#liquid2.Environment.filters"><code>Environment.filters</code></a> directly after an <code>Environment</code> instance has been created. They are just dictionaries mapping tag names to instances of <a href="../api/tag/"><code>Tag</code></a> and filter names to callables, respectively.</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">liquid2</span><span class="w"> </span><span class="kn">import</span> <span class="n">Environment</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">env</span> <span class="o">=</span> <span class="n">Environment</span><span class="p">()</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="k">del</span> <span class="n">env</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="s2">&quot;include&quot;</span><span class="p">]</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">liquid2</span><span class="w"> </span><span class="kn">import</span> <span class="n">Environment</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">env</span> <span class="o">=</span> <span class="n">Environment</span><span class="p">()</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="k">del</span> <span class="n">env</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="s2">&quot;include&quot;</span><span class="p">]</span>
 </span></code></pre></div>
 <h2 id="managing-global-variables">Managing global variables</h2>
 <p>By default, global template variables attached to instances of <a href="../api/template/"><code>Template</code></a> take priority over global template variables attached to an <code>Environment</code>. You can change this priority or otherwise manipulate the <code>globals</code> dictionary for a <code>Template</code> by overriding <a href="../api/environment/#liquid2.Environment.make_globals"><code>Environment.make_globals()</code></a>.</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">liquid2</span><span class="w"> </span><span class="kn">import</span> <span class="n">Environment</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyLiquidEnvironment</span><span class="p">(</span><span class="n">Environment</span><span class="p">):</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">make_globals</span><span class="p">(</span>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>        <span class="bp">self</span><span class="p">,</span>
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>        <span class="nb">globals</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]:</span>
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Combine environment globals with template globals.&quot;&quot;&quot;</span>
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>        <span class="k">if</span> <span class="nb">globals</span><span class="p">:</span>
-</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>            <span class="c1"># Template globals take priority over environment globals.</span>
-</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>            <span class="k">return</span> <span class="p">{</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">globals</span><span class="p">,</span> <span class="o">**</span><span class="nb">globals</span><span class="p">}</span>
-</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">globals</span><span class="p">)</span>
-</span></code></pre></div>
-<h2 id="customizing-whitespace-control">Customizing whitespace control</h2>
-<p><a href="../api/environment/#liquid2.Environment.trim"><code>Environment.trim()</code></a> is called when stripping whitespace from template content according to tag whitespace control characters (<code>-</code>, <code>+</code> and <code>~</code>). By default, <code>-</code> will trim all whitespace, <code>+</code> will retain all whitespace regardless of <a href="../api/environment/#liquid2.Environment.default_trim"><code>Environment.default_trim</code></a>, and <code>~</code> will remove only <code>\r</code> and <code>\n</code> characters.</p>
-<p>Override <a href="../api/environment/#liquid2.Environment.trim"><code>Environment.trim()</code></a> to define your own whitespace control behavior.</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">liquid2</span><span class="w"> </span><span class="kn">import</span> <span class="n">Environment</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">liquid2</span><span class="w"> </span><span class="kn">import</span> <span class="n">WhitespaceControl</span>
+<p>Also see <a href="../render_context/">Render context data</a>.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">liquid2</span><span class="w"> </span><span class="kn">import</span> <span class="n">Environment</span>
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
 </span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyLiquidEnvironment</span><span class="p">(</span><span class="n">Environment</span><span class="p">):</span>
 </span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">trim</span><span class="p">(</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">make_globals</span><span class="p">(</span>
 </span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>        <span class="bp">self</span><span class="p">,</span>
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>        <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>        <span class="n">left_trim</span><span class="p">:</span> <span class="n">WhitespaceControl</span><span class="p">,</span>
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>        <span class="n">right_trim</span><span class="p">:</span> <span class="n">WhitespaceControl</span><span class="p">,</span>
-</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return _text_ after applying whitespace control.&quot;&quot;&quot;</span>
-</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>        <span class="k">if</span> <span class="n">left_trim</span> <span class="o">==</span> <span class="n">WhitespaceControl</span><span class="o">.</span><span class="n">DEFAULT</span><span class="p">:</span>
-</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>            <span class="n">left_trim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_trim</span>
-</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>
-</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>        <span class="k">if</span> <span class="n">right_trim</span> <span class="o">==</span> <span class="n">WhitespaceControl</span><span class="o">.</span><span class="n">DEFAULT</span><span class="p">:</span>
-</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>            <span class="n">right_trim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_trim</span>
-</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>
-</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>        <span class="k">if</span> <span class="n">left_trim</span> <span class="o">==</span> <span class="n">right_trim</span><span class="p">:</span>
-</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>            <span class="k">if</span> <span class="n">left_trim</span> <span class="o">==</span> <span class="n">WhitespaceControl</span><span class="o">.</span><span class="n">MINUS</span><span class="p">:</span>
-</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>                <span class="k">return</span> <span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-</span><span id="__span-3-22"><a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>            <span class="k">if</span> <span class="n">left_trim</span> <span class="o">==</span> <span class="n">WhitespaceControl</span><span class="o">.</span><span class="n">TILDE</span><span class="p">:</span>
-</span><span id="__span-3-23"><a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>                <span class="k">return</span> <span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="__span-3-24"><a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>            <span class="k">return</span> <span class="n">text</span>
-</span><span id="__span-3-25"><a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>
-</span><span id="__span-3-26"><a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a>        <span class="k">if</span> <span class="n">left_trim</span> <span class="o">==</span> <span class="n">WhitespaceControl</span><span class="o">.</span><span class="n">MINUS</span><span class="p">:</span>
-</span><span id="__span-3-27"><a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a>            <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()</span>
-</span><span id="__span-3-28"><a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a>        <span class="k">elif</span> <span class="n">left_trim</span> <span class="o">==</span> <span class="n">WhitespaceControl</span><span class="o">.</span><span class="n">TILDE</span><span class="p">:</span>
-</span><span id="__span-3-29"><a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a>            <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="__span-3-30"><a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a>
-</span><span id="__span-3-31"><a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a>        <span class="k">if</span> <span class="n">right_trim</span> <span class="o">==</span> <span class="n">WhitespaceControl</span><span class="o">.</span><span class="n">MINUS</span><span class="p">:</span>
-</span><span id="__span-3-32"><a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a>            <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
-</span><span id="__span-3-33"><a id="__codelineno-3-33" name="__codelineno-3-33" href="#__codelineno-3-33"></a>        <span class="k">elif</span> <span class="n">right_trim</span> <span class="o">==</span> <span class="n">WhitespaceControl</span><span class="o">.</span><span class="n">TILDE</span><span class="p">:</span>
-</span><span id="__span-3-34"><a id="__codelineno-3-34" name="__codelineno-3-34" href="#__codelineno-3-34"></a>            <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="__span-3-35"><a id="__codelineno-3-35" name="__codelineno-3-35" href="#__codelineno-3-35"></a>
-</span><span id="__span-3-36"><a id="__codelineno-3-36" name="__codelineno-3-36" href="#__codelineno-3-36"></a>        <span class="k">return</span> <span class="n">text</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>        <span class="nb">globals</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]:</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Combine environment globals with template globals.&quot;&quot;&quot;</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>        <span class="k">if</span> <span class="nb">globals</span><span class="p">:</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>            <span class="c1"># Template globals take priority over environment globals.</span>
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>            <span class="k">return</span> <span class="p">{</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">globals</span><span class="p">,</span> <span class="o">**</span><span class="nb">globals</span><span class="p">}</span>
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">globals</span><span class="p">)</span>
 </span></code></pre></div>
+<h2 id="resource-limits">Resource limits</h2>
+<p>TODO:</p>
 <h2 id="whats-next">What's next?</h2>
-<p>See <a href="../loading_templates/">loading templates</a> for more information about configuring a template loader, and <a href="../variables_and_drops/">undefined variables</a> for information about managing undefined variables.</p>
+<p>See <a href="../loading_templates/">loading templates</a> for more information about configuring a template loader, <a href="../variables_and_drops/#undefined-variables">undefined variables</a> for information about managing undefined variables and <a href="../whitespace_control/">whitespace control</a> for information about customizing whitespace control behavior.</p>
 
 
 

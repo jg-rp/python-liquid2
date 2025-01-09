@@ -16,7 +16,7 @@
         <link rel="prev" href="../variables_and_drops/">
       
       
-        <link rel="next" href="../template_inheritance/">
+        <link rel="next" href="../babel/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -76,6 +76,11 @@
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
+      
+        
+        <a href="#default-trim" class="md-skip">
+          Skip to content
+        </a>
       
     </div>
     <div data-md-component="announce">
@@ -449,53 +454,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../terminology/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Terminology
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../migration/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
     Migration guide
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../known_issues/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Known issues
   </span>
   
 
@@ -674,6 +637,17 @@
       
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Whitespace control
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -684,69 +658,50 @@
 
       </a>
       
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../template_inheritance/" class="md-nav__link">
         
-  
-  <span class="md-ellipsis">
-    Template inheritance
-  </span>
-  
 
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
   
   
-    <li class="md-nav__item">
-      <a href="../auto_escape/" class="md-nav__link">
-        
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#default-trim" class="md-nav__link">
+    <span class="md-ellipsis">
+      Default trim
+    </span>
+  </a>
   
-  <span class="md-ellipsis">
-    HTML auto escape
-  </span>
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#customizing-whitespace-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      Customizing whitespace control
+    </span>
+  </a>
   
-
-      </a>
-    </li>
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#suppressing-blank-control-flow-blocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Suppressing blank control flow blocks
+    </span>
+  </a>
   
-
-              
-            
-              
-                
+</li>
+      
+    </ul>
   
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../resource_limits/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Resource limits
-  </span>
-  
-
-      </a>
+</nav>
+      
     </li>
   
 
@@ -1391,6 +1346,27 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/whitespace_control/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WhitespaceControl
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1416,6 +1392,41 @@
   
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#default-trim" class="md-nav__link">
+    <span class="md-ellipsis">
+      Default trim
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#customizing-whitespace-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      Customizing whitespace control
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#suppressing-blank-control-flow-blocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Suppressing blank control flow blocks
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1431,7 +1442,95 @@
 
   <h1>Whitespace control</h1>
 
-
+<p>By default, all whitespace immediately before and after a tag is preserved. This can result in a lot of unwanted whitespace.</p>
+<div class="language-liquid2 highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>&lt;ul&gt;
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="p">{%</span><span class="w"> </span><span class="kr">for</span><span class="w"> </span><span class="nv">x</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="p">..</span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="p">%}</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  &lt;li&gt;<span class="p">{{</span><span class="w"> </span><span class="nv">x</span><span class="w"> </span><span class="p">}}</span>&lt;/li&gt;
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p">{%</span><span class="w"> </span><span class="kr">endfor</span><span class="w"> </span><span class="p">%}</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>&lt;/ul&gt;
+</span></code></pre></div>
+<div class="language-text highlight"><span class="filename">output</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>&lt;ul&gt;
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  &lt;li&gt;1&lt;/li&gt;
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>  &lt;li&gt;2&lt;/li&gt;
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>  &lt;li&gt;3&lt;/li&gt;
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>  &lt;li&gt;4&lt;/li&gt;
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>&lt;/ul&gt;
+</span></code></pre></div>
+<p>By inserting special characters inside tags and output statements, template authors can choose what whitespace trimming rules to apply. <code>-</code> is used to remove all whitespace until the next printing character, and <code>~</code> will trim immediate carriage returns and newlines, leaving spaces and tabs.</p>
+<p>There's also <code>+</code>, which has no effect with the <a href="#default-trim">default trim</a> mode.</p>
+<div class="language-liquid2 highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>&lt;ul&gt;
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="p">{%</span><span class="w"> </span><span class="kr">for</span><span class="w"> </span><span class="nv">x</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="p">..</span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="p">~%}</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  &lt;li&gt;<span class="p">{{</span><span class="w"> </span><span class="nv">x</span><span class="w"> </span><span class="p">}}</span>&lt;/li&gt;
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="p">{%</span><span class="w"> </span><span class="kr">endfor</span><span class="w"> </span><span class="p">-%}</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>&lt;/ul&gt;
+</span></code></pre></div>
+<div class="language-text highlight"><span class="filename">output</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>&lt;ul&gt;
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>  &lt;li&gt;1&lt;/li&gt;
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>  &lt;li&gt;2&lt;/li&gt;
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>  &lt;li&gt;3&lt;/li&gt;
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>  &lt;li&gt;4&lt;/li&gt;
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>&lt;/ul&gt;
+</span></code></pre></div>
+<h2 id="default-trim">Default trim</h2>
+<p>You can change the default whitespace trimming mode using the <a href="../api/environment/"><code>default_trim</code></a> argument when constructing an <a href="../environment/"><code>Environment</code></a>.</p>
+<p>Setting <code>default_trim</code> to <a href="../api/whitespace_control/#liquid2.WhitespaceControl.MINUS"><code>WhitespaceControl.MINUS</code></a> will automatically remove all whitespace unless it is explicitly overridden by the template author using <code>+</code> or <code>~</code>.</p>
+<p>Setting <code>default_trim</code> to <a href="../api/whitespace_control/#liquid2.WhitespaceControl.TILDE"><code>WhitespaceControl.TILDE</code></a> will automatically remove immediate carriage returns an newlines unless it is explicitly overridden by the template author using <code>+</code> or <code>-</code>.</p>
+<h2 id="customizing-whitespace-control">Customizing whitespace control</h2>
+<p><a href="../api/environment/#liquid2.Environment.trim"><code>Environment.trim()</code></a> is called when stripping whitespace from template content. You can override <code>trim()</code> in an <a href="../environment/"><code>Environment</code></a> subclass to define your own whitespace control behavior, interpreting <code>-</code>, <code>+</code> and <code>~</code> however you see fit.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">liquid2</span><span class="w"> </span><span class="kn">import</span> <span class="n">Environment</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">liquid2</span><span class="w"> </span><span class="kn">import</span> <span class="n">WhitespaceControl</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyLiquidEnvironment</span><span class="p">(</span><span class="n">Environment</span><span class="p">):</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">trim</span><span class="p">(</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>        <span class="bp">self</span><span class="p">,</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>        <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>        <span class="n">left_trim</span><span class="p">:</span> <span class="n">WhitespaceControl</span><span class="p">,</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>        <span class="n">right_trim</span><span class="p">:</span> <span class="n">WhitespaceControl</span><span class="p">,</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return _text_ after applying whitespace control.&quot;&quot;&quot;</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>        <span class="k">if</span> <span class="n">left_trim</span> <span class="o">==</span> <span class="n">WhitespaceControl</span><span class="o">.</span><span class="n">DEFAULT</span><span class="p">:</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>            <span class="n">left_trim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_trim</span>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>        <span class="k">if</span> <span class="n">right_trim</span> <span class="o">==</span> <span class="n">WhitespaceControl</span><span class="o">.</span><span class="n">DEFAULT</span><span class="p">:</span>
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>            <span class="n">right_trim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_trim</span>
+</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>
+</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>        <span class="k">if</span> <span class="n">left_trim</span> <span class="o">==</span> <span class="n">right_trim</span><span class="p">:</span>
+</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>            <span class="k">if</span> <span class="n">left_trim</span> <span class="o">==</span> <span class="n">WhitespaceControl</span><span class="o">.</span><span class="n">MINUS</span><span class="p">:</span>
+</span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>                <span class="k">return</span> <span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+</span><span id="__span-4-22"><a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a>            <span class="k">if</span> <span class="n">left_trim</span> <span class="o">==</span> <span class="n">WhitespaceControl</span><span class="o">.</span><span class="n">TILDE</span><span class="p">:</span>
+</span><span id="__span-4-23"><a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a>                <span class="k">return</span> <span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-4-24"><a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a>            <span class="k">return</span> <span class="n">text</span>
+</span><span id="__span-4-25"><a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a>
+</span><span id="__span-4-26"><a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a>        <span class="k">if</span> <span class="n">left_trim</span> <span class="o">==</span> <span class="n">WhitespaceControl</span><span class="o">.</span><span class="n">MINUS</span><span class="p">:</span>
+</span><span id="__span-4-27"><a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a>            <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()</span>
+</span><span id="__span-4-28"><a id="__codelineno-4-28" name="__codelineno-4-28" href="#__codelineno-4-28"></a>        <span class="k">elif</span> <span class="n">left_trim</span> <span class="o">==</span> <span class="n">WhitespaceControl</span><span class="o">.</span><span class="n">TILDE</span><span class="p">:</span>
+</span><span id="__span-4-29"><a id="__codelineno-4-29" name="__codelineno-4-29" href="#__codelineno-4-29"></a>            <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-4-30"><a id="__codelineno-4-30" name="__codelineno-4-30" href="#__codelineno-4-30"></a>
+</span><span id="__span-4-31"><a id="__codelineno-4-31" name="__codelineno-4-31" href="#__codelineno-4-31"></a>        <span class="k">if</span> <span class="n">right_trim</span> <span class="o">==</span> <span class="n">WhitespaceControl</span><span class="o">.</span><span class="n">MINUS</span><span class="p">:</span>
+</span><span id="__span-4-32"><a id="__codelineno-4-32" name="__codelineno-4-32" href="#__codelineno-4-32"></a>            <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
+</span><span id="__span-4-33"><a id="__codelineno-4-33" name="__codelineno-4-33" href="#__codelineno-4-33"></a>        <span class="k">elif</span> <span class="n">right_trim</span> <span class="o">==</span> <span class="n">WhitespaceControl</span><span class="o">.</span><span class="n">TILDE</span><span class="p">:</span>
+</span><span id="__span-4-34"><a id="__codelineno-4-34" name="__codelineno-4-34" href="#__codelineno-4-34"></a>            <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-4-35"><a id="__codelineno-4-35" name="__codelineno-4-35" href="#__codelineno-4-35"></a>
+</span><span id="__span-4-36"><a id="__codelineno-4-36" name="__codelineno-4-36" href="#__codelineno-4-36"></a>        <span class="k">return</span> <span class="n">text</span>
+</span></code></pre></div>
+<h2 id="suppressing-blank-control-flow-blocks">Suppressing blank control flow blocks</h2>
+<p>It is assumed that a conditional block containing no template content or output statements should not render its whitespace. For example, the newlines between the tags and spaces before <code>assign</code> here are automatically suppressed, regardless of the <a href="#default-trim">default trim</a> mode.</p>
+<div class="language-liquid2 highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="p">{%</span><span class="w"> </span><span class="kr">if</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">%}</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>    <span class="p">{%</span><span class="w"> </span><span class="nt">assign</span><span class="w"> </span><span class="na">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">y</span><span class="w"> </span><span class="p">%}</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="p">{%</span><span class="w"> </span><span class="kr">endif</span><span class="w"> </span><span class="p">%}</span>
+</span></code></pre></div>
+<p>You can disable this feature by subclassing <a href="../api/environment/"><code>Environment</code></a> and setting the <code>suppress_blank_control_flow_blocks</code> class attribute to <code>False</code>.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">liquid2</span><span class="w"> </span><span class="kn">import</span> <span class="n">Environment</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyEnvironment</span><span class="p">(</span><span class="n">Environment</span><span class="p">):</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>    <span class="n">suppress_blank_control_flow_blocks</span> <span class="o">=</span> <span class="kc">False</span>
+</span></code></pre></div>
 
 
 

@@ -13,10 +13,10 @@
         <link rel="canonical" href="https://jg-rp.github.io/python-liquid2/migration/">
       
       
-        <link rel="prev" href="../terminology/">
+        <link rel="prev" href="../conventions/">
       
       
-        <link rel="next" href="../known_issues/">
+        <link rel="next" href="../rendering_templates/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -456,27 +456,6 @@
                 
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="../terminology/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Terminology
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
     
   
   
@@ -710,9 +689,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#template-and-expression-parsing" class="md-nav__link">
+  <a href="#custom-tags" class="md-nav__link">
     <span class="md-ellipsis">
-      Template and expression parsing
+      Custom tags
     </span>
   </a>
   
@@ -745,27 +724,6 @@
   
 </nav>
       
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../known_issues/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Known issues
-  </span>
-  
-
-      </a>
     </li>
   
 
@@ -933,69 +891,6 @@
   
   <span class="md-ellipsis">
     Whitespace control
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../template_inheritance/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Template inheritance
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../auto_escape/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    HTML auto escape
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../resource_limits/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Resource limits
   </span>
   
 
@@ -1644,6 +1539,27 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/whitespace_control/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    WhitespaceControl
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1862,9 +1778,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#template-and-expression-parsing" class="md-nav__link">
+  <a href="#custom-tags" class="md-nav__link">
     <span class="md-ellipsis">
-      Template and expression parsing
+      Custom tags
     </span>
   </a>
   
@@ -1916,7 +1832,7 @@
 <p>In most cases these fixes and features are backwards compatible with Shopify/Liquid, requiring little or no modification to legacy Liquid templates. To ease transition from legacy templates to Liquid2 templates, we include a <code>liquid2.shopify.Environment</code>, which is configured to include some legacy tags that didn't make it in to the default environment.</p>
 <h3 id="why-is-render-stability-so-important">Why is render stability so important?</h3>
 <p>When developing a conventional website, for example, templates are developed along side application code. Template authors and application developers might be different people or different teams, but templates are known at deployment time, and all templates can probably be parsed upfront and held in memory. In this scenario it's a pain if your template render engine introduces behavioral changes, but it's manageable.</p>
-<p>Python Liquid caters for situations where templates change and grow with an application's user base. Not only can templates change after the application is deployed, but the number of templates could be huge, far more than can be expected to fit in memory all at once.</p>
+<p>Python Liquid2 caters for situations where templates change and grow with an application's user base. Not only can templates change after the application is deployed, but the number of templates could be huge, far more than can be expected to fit in memory all at once.</p>
 <p>Behavioral stability is essential when application users are responsible for maintaining templates. It is impractical or unreasonable to expect authors to update their templates on demand.</p>
 <p>Whether shopify/Liquid compatibility is important to you or not, if you're developing a multi-tenant application where users are responsible for maintaining templates, you should seriously consider building in an opt-in upgrade path for template authors to transition to updated syntax and features.</p>
 <h2 id="new-features">New features</h2>
@@ -2037,21 +1953,22 @@
 <h2 id="api-changes">API changes</h2>
 <p>These are the most notable changes. Please raise an <a href="https://github.com/jg-rp/python-liquid2/issues">issue</a> or start a discussion if I've missed anything or you need help with migration.</p>
 <ul>
-<li>Package level <code>Template</code> can no longer be used as a convenience function for creating a template from a string. Use <code>parse()</code> or <code>DEFAULT_ENVIRONMENT.from_string()</code> instead.</li>
+<li>Package level <code>Template</code> can no longer be used as a convenience function for creating a template from a string. Use <a href="../api/convenience/#liquid2.parse"><code>parse()</code></a>, <a href="../api/convenience/#liquid2.render"><code>render()</code></a> or <a href="../api/environment/#liquid2.Environment.from_string"><code>DEFAULT_ENVIRONMENT.from_string()</code></a> instead.</li>
 <li><code>StrictUndefined</code> now plays nicely with the <code>default</code> filter. Previously we had a separate <code>StrictDefaultUndefined</code> class.</li>
-<li><code>FileSystemLoader</code> now takes an optional default file extension to use when looking for files that don't already have an extension. Previously there was a separate <code>FileExtensionLoader</code>.</li>
+<li><a href="../api/loaders/#liquid2.FileSystemLoader"><code>FileSystemLoader</code></a> now takes an optional default file extension to use when looking for files that don't already have an extension. Previously there was a separate <code>FileExtensionLoader</code>.</li>
 <li><code>AwareBoundTemplate</code> (a template with a built-in <code>template</code> drop) has been removed, but can be added as a feature later if there is a demand.</li>
-<li>The <code>auto_reload</code> and <code>cache_size</code> arguments to <code>Environment</code> have been removed. Now caching is handle by template loaders, not the environment. For example, pass a <code>CachingFileSystemLoader</code> as the <code>loader</code> argument to <code>Environment</code> instead of a <code>FileSystemLoader</code>.</li>
+<li>The <code>auto_reload</code> and <code>cache_size</code> arguments to <code>Environment</code> have been removed. Now caching is handle by template loaders, not the environment. For example, pass a <a href="../api/loaders/#liquid2.CachingFileSystemLoader"><code>CachingFileSystemLoader</code></a> as the <code>loader</code> argument to <code>Environment</code> instead of a <code>FileSystemLoader</code>.</li>
 <li>The <code>strict_filters</code> argument to <code>Environment</code> has been removed. Unknown filters now always raise an <code>UnknownFilterError</code>.</li>
 <li><code>TemplateNotFound</code> has been renamed to <code>TemplateNotFoundError</code>.</li>
-<li><code>Context</code> has been renamed to <code>RenderContext</code> and now takes a mandatory <code>template</code> argument instead of <code>env</code>. All other arguments to <code>RenderContext</code> are now keyword only.</li>
+<li><code>Context</code> has been renamed to <a href="../api/render_context/"><code>RenderContext</code></a> and now takes a mandatory <code>template</code> argument instead of <code>env</code>. All other arguments to <code>RenderContext</code> are now keyword only.</li>
 <li><code>FilterValueError</code> and <code>FilterArgumentError</code> have been removed. <code>LiquidValueError</code> and <code>LiquidTypeError</code> should be used instead. In some cases where <code>FilterValueError</code> was deliberately ignored before, <code>LiquidValueError</code> is now raised.</li>
 <li>The exception <code>NoSuchFilterFunc</code>, raised when rendering a template that uses a filter that is not defined in <code>Environment.filters</code>, has been renamed to <code>UnknownFilterError</code>.</li>
-<li>The <code>@liquid_filter</code> decorator has been removed. Now filter implementations are expected to raise a <code>LiquidTypeError</code> in the even of an argument with an unacceptable type.</li>
+<li>The <code>@liquid_filter</code> decorator has been removed. Now filter implementations are expected to raise a <code>LiquidTypeError</code> in the event of an argument with an unacceptable type.</li>
 </ul>
-<h3 id="template-and-expression-parsing">Template and expression parsing</h3>
+<h3 id="custom-tags">Custom tags</h3>
 <p>The lexer has been completely rewritten and the token's it produces bare little resemblance to those produced by any of the several parsing functions from Python Liquid. Now we have a single lexer that scans source text content, tags, statements and expressions in a single pass, and a parser that delegates the parsing of those tokens to classes implementing <code>Tag</code>.</p>
 <p>As before, <code>Tag</code> instances are responsible for returning <code>Node</code>s from <code>Tag.parse()</code>. And nodes still have the familiar <code>render_to_output()</code> abstract method.</p>
+<p>As a result of these changes, custom tags are now limited to using tokens recognized by the lexer. Previously, custom tags would be passed their expression as a string to be parsed however you see fit, now tags are passed a sequence of tokens.</p>
 <p>For now I recommend familiarizing yourself with the different <a class="autorefs autorefs-internal" href="../api/tokens/#liquid2.token.TokenT">tokens</a> generated by the lexer, and refer to built-in tag implementations for examples of using various <code>Expression.parse()</code> static methods to parse expressions. Note that the <code>TokenStream</code> interface has changed too.</p>
 <p>As always, open an <a href="https://github.com/jg-rp/python-liquid2/issues">issue</a> or start a discussion if you need any help with migration.</p>
 <h2 id="performance">Performance</h2>
