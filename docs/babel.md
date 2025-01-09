@@ -1,4 +1,4 @@
-The tags and filters described here are enabled by default in Python Liquid2, but they are all configurable, so you may wish to replace the defaults.
+This page covers i18n and l10n filter and tag configuration, and how we support translation message catalogs. See the [filter reference](filter_reference.md) and [tag reference](tag_reference.md) for usage examples.
 
 ## Currency
 
@@ -92,13 +92,82 @@ env = Environment()
 env.filters["datetime"] = DateTime(timezone_var="tz")
 ```
 
-## Decimal / number
+## Decimal
 
-TODO
+The `decimal` filter returns the input number formatted as a decimal for the current locale. For usage examples see [`decimal`](filter_reference.md#decimal) in the filter reference.
+
+### Options
+
+`decimal` defaults to looking for a locale in a render context variable called `locale`. It uses the locale's standard format and falls back to `en_US` if that variable does not exist.
+
+```python
+from liquid2 import parse
+
+# Parse a number from a string in the default (en_US) input locale.
+template = parse("""\
+{{ '10,000.23' | decimal }}
+{{ '10,000.23' | decimal: group_separator: false }}
+""")
+
+print(template.render(locale="de"))
+print(template.render(locale="en_GB"))
+```
+
+```plain title="output"
+10.000,23
+10000,23
+
+10,000.23
+10000.23
+```
+
+To configure `decimal`, register a new instance of [`Number`](api/builtin.md#liquid2.builtin.Number) with an [`Environment`](environment.md#managing-tags-and-filters), then render your templates from that.
+
+```python
+from liquid2.builtin import Number
+from liquid2 import Environment
+
+env = Environment()
+env.filters["decimal"] = Number(default_locale="en_GB")
+```
 
 ## Unit
 
-TODO
+The `unit` filter returns he input number formatted with the given units according to the current locale. For usage examples see [`unit`](filter_reference.md#unit) in the filter reference.
+
+### Options
+
+`unit` defaults to looking for a locale in a render context variable called `locale`, a length in a render context variable called `unit_length`, and a decimal format in a render context variable called `unit_format`.
+
+```python
+from liquid2 import parse
+
+template = parse("""\
+{{ 12 | unit: 'length-meter', format: '#,##0.00' }}
+{{ 150 | unit: 'kilowatt', denominator_unit: 'hour' }}
+""")
+
+print(template.render(unit_length="long"))
+print(template.render(locale="de", unit_length="long"))
+```
+
+```plain title="output"
+12.00 meters
+150 kilowatts per hour
+
+12,00 Meter
+150 Kilowatt pro Stunde
+```
+
+To configure `unit`, register a new instance of [`Unit`](api/builtin.md#liquid2.builtin.Unit) with an [`Environment`](environment.md#managing-tags-and-filters), then render your templates from that.
+
+```python
+from liquid2.builtin import Unit
+from liquid2 import Environment
+
+env = Environment()
+env.filters["unit"] = Unit(locale_var="_locale")
+```
 
 ## Translations
 
@@ -110,11 +179,20 @@ Liquid Babel also offers a [`{% translate %}`](tag_reference.md#translate) tag. 
 
 ### Filters
 
-TODO
+[`gettext`](filter_reference.md#gettext), [`ngettext`](filter_reference.md#ngettext), [`npgettext`](filter_reference.md#npgettext), [`pgettext`](filter_reference.md#pgettext) and [`t`](filter_reference.md#t) filters all default to looking for [translations](#message-catalogs) in a render context variable called `translations`, falling back to an instance of [`NullTranslations`](https://docs.python.org/3.10/library/gettext.html#the-nulltranslations-class) if `translations` can not be resolved.
 
-#### Options
+```python
+from liquid2 import parse
 
-TODO
+# You'll need to load an appropriate Translations object.
+# `get_translations()` is defined elsewhere.
+translations = get_translations(locale="de")
+
+template = parse("{{ 'Hello, World!' | t }}")
+print(template.render(translations=translations))  # Hallo Welt!
+```
+
+To configure [`gettext`](filter_reference.md#gettext), [`ngettext`](filter_reference.md#ngettext), [`npgettext`](filter_reference.md#npgettext), [`pgettext`](filter_reference.md#pgettext) or [`t`](filter_reference.md#t), register a new instance of [`GetText`](api/builtin.md#liquid2.builtin.GetText), [`NGetText`](api/builtin.md#liquid2.builtin.NGetText), [`NPGetText`](api/builtin.md#liquid2.builtin.NPGetText), [`PGetText`](api/builtin.md#liquid2.builtin.PGetText) or [`Translate`](api/builtin.md#liquid2.builtin.Translate) with an [`Environment`](environment.md#managing-tags-and-filters), then render your templates from that. All of these classes inherit from [`BaseTranslateFilter`](api/builtin.md#liquid2.builtin.BaseTranslateFilter) and accept the same constructor arguments.
 
 ### Message catalogs
 
@@ -138,3 +216,107 @@ class Translations(Protocol):
 ```
 
 It could be a [`GNUTranslations`](https://docs.python.org/3.10/library/gettext.html#the-gnutranslations-class) instance, a [Babel `Translations`](https://babel.pocoo.org/en/latest/support.html#extended-translations-class) instance, or any object implementing `gettext`, `ngettext`, `pgettext` and `npgettext` methods.
+
+### Message variables
+
+Translatable message text can contain placeholders for variables. When using variables in strings to be translated by filters, variables are defined using percent-style formatting. Only the `s` modifier is supported and every variable must have a name. In this example `you` is the variable name.
+
+```liquid
+{{ "Hello, %(you)s!" | t }}
+```
+
+Filter keyword arguments are merged with the current render context before being used to replace variables in message text. All variables are converted to their string representation before substitution. Dotted property/attribute access is not supported inside message variables.
+
+```liquid
+{{ "Hello, %(you)s!" | t: you: user.name }}
+```
+
+The [`translate`](tag_reference.md#translate) block tag recognizes simplified Liquid output statements as translation message variables. These variables must be valid identifiers without dotted or bracketed property/attribute access, and no filters.
+
+```liquid
+{% translate %}
+    Hello, {{ you }}!
+{% endtranslate %}
+```
+
+Keyword arguments passed to the [`translate`](tag_reference.md#translate) tag will be merged with the current render context before being used to replace variables in message text.
+
+```liquid
+{% translate you: user.name, count: users.size %}
+    Hello, {{ you }}!
+{% plural %}
+    Hello, {{ you }}s!
+{% endtranslate %}
+```
+
+### Message Extraction
+
+Use the [`extract_from_templates()`](api/messages.md#liquid2.extract_from_template) function to build a message [catalog](https://babel.pocoo.org/en/latest/api/messages/catalog.html#catalogs) from one or more templates. You are then free to make use of [Babel's PO file features](https://babel.pocoo.org/en/latest/api/messages/pofile.html), or convert the catalog to a more convenient internal representation.
+
+```python
+import io
+
+from babel.messages.pofile import write_po
+
+from liquid2 import parse
+from liquid2.messages import extract_from_templates
+
+source = """
+{% # Translators: some comment %}
+{{ 'Hello, World!' | t }}
+{% comment %}Translators: other comment{% endcomment %}
+{% translate count: 2 %}
+    Hello, {{ you }}!
+{% plural %}
+    Hello, all!
+{% endtranslate %}
+"""
+
+template = parse(source, name="something.liquid")
+catalog = extract_from_templates(template)
+
+buf = io.BytesIO()
+write_po(buf, catalog, omit_header=True)
+print(buf.getvalue().decode("utf-8"))
+```
+
+```plain title="output"
+#. Translators: some comment
+#: something.liquid:3
+msgid "Hello, World!"
+msgstr ""
+
+#. Translators: other comment
+#: something.liquid:5
+#, python-format
+msgid "Hello, %(you)s!"
+msgid_plural "Hello, all!"
+msgstr[0] ""
+msgstr[1] ""
+```
+
+### Translator Comments
+
+When a Liquid comment tag immediately precedes a translatable filter or tag, and the comment starts with a string in `comment_tags`, that comment will be included as a translator comment with the message. Use the `comment_tags` argument to [`extract_liquid()`](api/convenience.md#liquid2.extract_liquid), or [`extract_from_templates()`](api/messages.md#liquid2.extract_from_template) to change translator comment prefixes. The default is `["Translators:"]`.
+
+```python
+from liquid2 import parse
+from liquid2.messages import extract_from_templates
+
+source = """
+{% # Translators: some comment %}
+{{ 'Hello, World!' | t }}
+{% comment %}Translators: other comment{% endcomment %}
+{% translate count: 2 %}
+    Hello, {{ you }}!
+{% plural %}
+    Hello, all!
+{% endtranslate %}
+"""
+
+template = parse(source, name="something.liquid")
+catalog = extract_from_templates(template, strip_comment_tags=True)
+
+message = catalog.get("Hello, World!")
+print(message.auto_comments[0])  # some comment
+```

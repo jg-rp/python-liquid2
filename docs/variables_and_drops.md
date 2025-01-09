@@ -293,6 +293,39 @@ print(template.render(products=ListDrop(["Shoe", "Hat", "Ball"])))
 </ul>
 ```
 
+### `__getitem_async__`
+
+If an instance of a drop that implements `__getitem_async__()` appears in a [`render_async()`](api/template.md#liquid2.Template.render_async) context, `__getitem_async__()` will be awaited instead of calling `__getitem__()`.
+
+```python
+class AsyncCollection(abc.Mapping):
+    def __init__(self, val):
+        self.keys = ["products"]
+        self.cached_products = []
+
+    def __len__(self):
+        return 1
+
+    def __iter__(self):
+        return iter(self["products"])
+
+    async def __aiter__(self):
+        # Note that Liquid's built-in `for` loop does not yet support async iteration.
+        return iter(self.__getitem_async__("products"))
+
+    def __getitem__(self, k):
+        if not self.cached_products:
+            # Blocking IO here
+            self.cached_products = get_stuff_from_database()
+        return self.cache_products
+
+    async def __getitem_async__(self, k):
+        if not self.cached_products:
+            # Do async IO here.
+            self.cached_products = await get_stuff_from_database_async()
+        return self.cache_products
+```
+
 ### Other magic methods
 
 Other Python [magic methods](https://docs.python.org/3/reference/datamodel.html) will work with Liquid filters and special properties too.
