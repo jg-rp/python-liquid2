@@ -168,7 +168,7 @@ foo is equal to {{ foo }}.
 foo is now equal to {{ foo }}.
 ```
 
-The _expression_ on the right-hand side of the assignment operator (`=`) follows the syntax described in [Output](#output) above. It can be a any [primitive expression](#primitive-expressions), it can include [filters](#filters) or be a [ternary expression](#ternary-expressions).
+The _expression_ on the right-hand side of the assignment operator (`=`) follows the syntax described in [Output](#output) above. It can be any [primitive expression](#primitive-expressions), it can include [filters](#filters) or be a [ternary expression](#ternary-expressions).
 
 ## capture
 
@@ -288,7 +288,7 @@ Hello, {{ you }}!
 %}
 ```
 
-Just like output statements and the [`assign`](#assign) tag, the expression can be a any [primitive expression](#primitive-expressions), it can include [filters](#filters) or be a [ternary expression](#ternary-expressions).
+Just like output statements and the [`assign`](#assign) tag, the expression can be any [primitive expression](#primitive-expressions), it can include [filters](#filters) or be a [ternary expression](#ternary-expressions).
 
 <!-- md:liquid2 -->
 

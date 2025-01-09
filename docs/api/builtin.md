@@ -1,1 +1,11 @@
 ::: liquid2.builtin.register_default_tags_and_filters
+::: liquid2.builtin.Currency
+::: liquid2.builtin.DateTime
+::: liquid2.builtin.Number
+::: liquid2.builtin.Unit
+::: liquid2.builtin.BaseTranslateFilter
+::: liquid2.builtin.GetText
+::: liquid2.builtin.NGetText
+::: liquid2.builtin.NPGetText
+::: liquid2.builtin.PGetText
+::: liquid2.builtin.Translate

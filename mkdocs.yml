@@ -7,10 +7,11 @@ theme:
   palette:
     primary: white
   features:
-    - navigation.tabs
-    - navigation.instant
     - content.code.copy
     - navigation.top
+    - navigation.sections
+    - navigation.tabs
+    - navigation.prune
 
 repo_name: jg-rp/python-liquid2
 repo_url: https://github.com/jg-rp/python-liquid2
@@ -69,6 +70,7 @@ nav:
       - Tag: "api/tag.md"
       - Undefined: "api/undefined.md"
       - Babel: "api/babel.md"
+      - Messages: "api/messages.md"
       - Tokens: "api/tokens.md"
       - WhitespaceControl: "api/whitespace_control.md"
 

@@ -52,6 +52,7 @@ from .undefined import Undefined
 from .undefined import FalsyStrictUndefined
 from .exceptions import TemplateNotFoundError
 from .messages import MessageTuple
+from .messages import Translations
 from .messages import extract_from_template
 
 from .__about__ import __version__
@@ -201,4 +202,5 @@ __all__ = (
     "Undefined",
     "unescape",
     "WhitespaceControl",
+    "Translations",
 )

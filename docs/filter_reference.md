@@ -372,7 +372,7 @@ a#x#b#y#z#c#d
 <number> | currency[: group_separator: <boolean>] -> <string>
 ```
 
-Currency (aka money) formatting. Return the input number formatted as currency for the current locale.
+Currency (aka money) formatting. Return the input number formatted as currency for the current locale. See also [`money`](#money).
 
 ```liquid2
 {{ 100457.99 | currency }}

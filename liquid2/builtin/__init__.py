@@ -100,6 +100,7 @@ from .filters.string import truncatewords
 from .filters.string import upcase
 from .filters.string import url_decode
 from .filters.string import url_encode
+from .filters.translate import BaseTranslateFilter
 from .filters.translate import GetText
 from .filters.translate import NGetText
 from .filters.translate import NPGetText
@@ -238,6 +239,7 @@ __all__ = (
     "WithTag",
     "JSON",
     "CachingLoaderMixin",
+    "BaseTranslateFilter",
 )
 
 
