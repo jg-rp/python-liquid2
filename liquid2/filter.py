@@ -18,12 +18,16 @@ from .undefined import is_undefined
 
 
 def bool_arg(value: object) -> bool:
-    """Return _True_ if _value_ is liquid truthy."""
+    """Return _True_ if _value_ is liquid truthy, or _False_ otherwise."""
     return value is None or value is False or (is_undefined(value) and value.poke())
 
 
 def mapping_arg(value: object) -> Mapping[Any, Any]:
-    """Make sure _value_ is a mapping type."""
+    """Make sure _value_ is a mapping type.
+
+    Raises:
+        LiquidTypeError: If _value_ can't be coerced to a mapping.
+    """
     if is_undefined(value):
         value.poke()
         return {}
@@ -37,7 +41,7 @@ def mapping_arg(value: object) -> Mapping[Any, Any]:
 
 
 def int_arg(val: Any, default: int | None = None) -> int:
-    """Return `val` as an int or `default` if `val` can't be cast to an int."""
+    """Return _val_ as an int, or _default_ if _val_ can't be cast to an int."""
     try:
         return to_int(val)
     except ValueError as err:
@@ -50,10 +54,7 @@ def int_arg(val: Any, default: int | None = None) -> int:
 
 
 def num_arg(val: Any, default: float | int | None = None) -> float | int:
-    """Return `val` as an int or float.
-
-    If `val` can't be cast to an int or float, return `default`.
-    """
+    """Return _val_ as an int or float, or _default_ if casting fails."""
     if isinstance(val, (int, float)):
         return val
 
@@ -83,10 +84,7 @@ def num_arg(val: Any, default: float | int | None = None) -> float | int:
 
 
 def decimal_arg(val: Any, default: int | Decimal | None = None) -> int | Decimal:
-    """Return _val_ as an int or decimal.
-
-    If _val_ can't be cast to an int or decimal, return `default`.
-    """
+    """Return _val_ as an int or decimal, or _default_ is casting fails."""
     if isinstance(val, int):
         return val
     if isinstance(val, float):
@@ -118,27 +116,13 @@ def decimal_arg(val: Any, default: int | Decimal | None = None) -> int | Decimal
 
 
 def with_context(_filter: Callable[..., Any]) -> Callable[..., Any]:
-    """Pass the active render context to decorated filter functions.
-
-    If a function is decorated with `with_context`, that function should
-    accept a `context` keyword argument, being the active render context.
-
-    Args:
-        _filter: The filter function to decorate.
-    """
+    """Ensure the wrapped callable is passed a `context` keyword argument."""
     _filter.with_context = True  # type: ignore
     return _filter
 
 
 def with_environment(_filter: Callable[..., Any]) -> Callable[..., Any]:
-    """Pass the active environment to decorated filter functions.
-
-    If a function is decorated with `with_environment`, that function should
-    accept an `environment` keyword argument, being the active environment.
-
-    Args:
-        _filter: The filter function to decorate.
-    """
+    """Ensure the wrapped callable is passed an `environment` keyword argument."""
     _filter.with_environment = True  # type: ignore
     return _filter
 
@@ -177,7 +161,7 @@ def sequence_filter(_filter: Callable[..., Any]) -> Callable[..., Any]:
 
 
 def math_filter(_filter: Callable[..., Any]) -> Callable[..., Any]:
-    """Raise a `LiquidTypeError` if the filter value can not be a number."""
+    """Raise a `LiquidTypeError` if the filter value can not be cast to a number."""
 
     @wraps(_filter)
     def wrapper(val: object, *args: Any, **kwargs: Any) -> Any:

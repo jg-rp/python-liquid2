@@ -64,7 +64,7 @@ nav:
       - Builtin: "api/builtin.md"
       - AST: "api/ast.md"
       - Render context: "api/render_context.md"
-      - Filters: "api/filter.md"
+      - Filter helpers: "api/filter.md"
       - Tag: "api/tag.md"
       - Undefined: "api/undefined.md"
       - Babel: "api/babel.md"
