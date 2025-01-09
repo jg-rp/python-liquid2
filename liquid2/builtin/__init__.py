@@ -294,6 +294,7 @@ def register_default_tags_and_filters(env: Environment) -> None:  # noqa: PLR091
     env.filters["upcase"] = upcase
     env.filters["strip"] = strip
     env.filters["rstrip"] = rstrip
+    env.filters["safe"] = safe
     env.filters["strip_html"] = strip_html
     env.filters["strip_newlines"] = strip_newlines
     env.filters["truncate"] = truncate

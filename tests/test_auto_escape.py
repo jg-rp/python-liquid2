@@ -64,6 +64,15 @@ def test_enable_auto_escape_with_literal_markup() -> None:
     )
 
 
+def test_override_auto_escape_with_literal_markup() -> None:
+    env = Environment(auto_escape=True)
+    template = env.from_string(r"{% if true %}<br>{{ content | safe }}<br>{% endif %}")
+    assert (
+        template.render(content='<script>alert("XSS!");</script>')
+        == '<br><script>alert("XSS!");</script><br>'
+    )
+
+
 def test_capture_auto_escaped_markup() -> None:
     env = Environment(auto_escape=True)
     template = env.from_string(

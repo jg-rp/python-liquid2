@@ -37,6 +37,21 @@ env = MyLiquidEnvironment(
 )
 ```
 
+## HTML auto escape
+
+When `auto_escape` is `True`, [render context variables](render_context.md) will be automatically escaped to produce HTML-safe strings on output.
+
+You can be explicitly mark strings as _safe_ by wrapping them in `Markup()` and [drops](variables_and_drops.md) can implement the [special `__html__()` method](variables_and_drops.md#__html__).
+
+```python
+from markupsafe import Markup
+from liquid2 import Environment
+
+env = Environment(auto_escape=True)
+template = env.from_string("<p>Hello, {{ you }}</p>")
+print(template.render(you=Markup("<em>World!</em>")))
+```
+
 ## Managing tags and filters
 
 As you'd expect, [`register_default_tags_and_filters()`](api/builtin.md#liquid2.builtin.register_default_tags_and_filters) registers all the default tags and filters with the environment. You are encouraged to override `setup_tags_and_filters()` in your `Environment` subclasses to add optional or custom tags and filters, remove unwanted default tags and filters, and possibly replace default implementation with your own.
@@ -72,6 +87,10 @@ class MyLiquidEnvironment(Environment):
             return {**self.globals, **globals}
         return dict(self.globals)
 ```
+
+## Resource limits
+
+TODO:
 
 ## What's next?
 

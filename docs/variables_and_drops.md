@@ -262,7 +262,7 @@ print(template.render(**context_data))  # one b
 
 ### `__html__`
 
-When [HTML auto-escaping](auto_escape.md) is enabled, an object can be output as an HTML-safe string by implementing the special `__html__()` method.
+When [HTML auto-escaping](environment.md#html-auto-escape) is enabled, an object can be output as an HTML-safe string by implementing the special `__html__()` method.
 
 ```python
 from liquid2 import Environment

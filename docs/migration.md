@@ -14,7 +14,7 @@ In most cases these fixes and features are backwards compatible with Shopify/Liq
 
 When developing a conventional website, for example, templates are developed along side application code. Template authors and application developers might be different people or different teams, but templates are known at deployment time, and all templates can probably be parsed upfront and held in memory. In this scenario it's a pain if your template render engine introduces behavioral changes, but it's manageable.
 
-Python Liquid caters for situations where templates change and grow with an application's user base. Not only can templates change after the application is deployed, but the number of templates could be huge, far more than can be expected to fit in memory all at once.
+Python Liquid2 caters for situations where templates change and grow with an application's user base. Not only can templates change after the application is deployed, but the number of templates could be huge, far more than can be expected to fit in memory all at once.
 
 Behavioral stability is essential when application users are responsible for maintaining templates. It is impractical or unreasonable to expect authors to update their templates on demand.
 
@@ -203,23 +203,25 @@ liquid2.exceptions.LiquidSyntaxError: expected IN, found WORD
 
 These are the most notable changes. Please raise an [issue](https://github.com/jg-rp/python-liquid2/issues) or start a discussion if I've missed anything or you need help with migration.
 
-- Package level `Template` can no longer be used as a convenience function for creating a template from a string. Use `parse()` or `DEFAULT_ENVIRONMENT.from_string()` instead.
+- Package level `Template` can no longer be used as a convenience function for creating a template from a string. Use [`parse()`](api/convenience.md#liquid2.parse), [`render()`](api/convenience.md#liquid2.render) or [`DEFAULT_ENVIRONMENT.from_string()`](api/environment.md#liquid2.Environment.from_string) instead.
 - `StrictUndefined` now plays nicely with the `default` filter. Previously we had a separate `StrictDefaultUndefined` class.
-- `FileSystemLoader` now takes an optional default file extension to use when looking for files that don't already have an extension. Previously there was a separate `FileExtensionLoader`.
+- [`FileSystemLoader`](api/loaders.md#liquid2.FileSystemLoader) now takes an optional default file extension to use when looking for files that don't already have an extension. Previously there was a separate `FileExtensionLoader`.
 - `AwareBoundTemplate` (a template with a built-in `template` drop) has been removed, but can be added as a feature later if there is a demand.
-- The `auto_reload` and `cache_size` arguments to `Environment` have been removed. Now caching is handle by template loaders, not the environment. For example, pass a `CachingFileSystemLoader` as the `loader` argument to `Environment` instead of a `FileSystemLoader`.
+- The `auto_reload` and `cache_size` arguments to `Environment` have been removed. Now caching is handle by template loaders, not the environment. For example, pass a [`CachingFileSystemLoader`](api/loaders.md#liquid2.CachingFileSystemLoader) as the `loader` argument to `Environment` instead of a `FileSystemLoader`.
 - The `strict_filters` argument to `Environment` has been removed. Unknown filters now always raise an `UnknownFilterError`.
 - `TemplateNotFound` has been renamed to `TemplateNotFoundError`.
-- `Context` has been renamed to `RenderContext` and now takes a mandatory `template` argument instead of `env`. All other arguments to `RenderContext` are now keyword only.
+- `Context` has been renamed to [`RenderContext`](api/render_context.md) and now takes a mandatory `template` argument instead of `env`. All other arguments to `RenderContext` are now keyword only.
 - `FilterValueError` and `FilterArgumentError` have been removed. `LiquidValueError` and `LiquidTypeError` should be used instead. In some cases where `FilterValueError` was deliberately ignored before, `LiquidValueError` is now raised.
 - The exception `NoSuchFilterFunc`, raised when rendering a template that uses a filter that is not defined in `Environment.filters`, has been renamed to `UnknownFilterError`.
-- The `@liquid_filter` decorator has been removed. Now filter implementations are expected to raise a `LiquidTypeError` in the even of an argument with an unacceptable type.
+- The `@liquid_filter` decorator has been removed. Now filter implementations are expected to raise a `LiquidTypeError` in the event of an argument with an unacceptable type.
 
-### Template and expression parsing
+### Custom tags
 
 The lexer has been completely rewritten and the token's it produces bare little resemblance to those produced by any of the several parsing functions from Python Liquid. Now we have a single lexer that scans source text content, tags, statements and expressions in a single pass, and a parser that delegates the parsing of those tokens to classes implementing `Tag`.
 
 As before, `Tag` instances are responsible for returning `Node`s from `Tag.parse()`. And nodes still have the familiar `render_to_output()` abstract method.
+
+As a result of these changes, custom tags are now limited to using tokens recognized by the lexer. Previously, custom tags would be passed their expression as a string to be parsed however you see fit, now tags are passed a sequence of tokens.
 
 For now I recommend familiarizing yourself with the different [tokens][liquid2.token.TokenT] generated by the lexer, and refer to built-in tag implementations for examples of using various `Expression.parse()` static methods to parse expressions. Note that the `TokenStream` interface has changed too.
 

@@ -75,6 +75,80 @@ An inline comment is a tag called `#`. Everything after the hash up to the end t
 -%}
 ```
 
+## Output
+
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+{{ <expression> }}
+```
+
+An expression surrounded by double curly braces, `{{` and `}}`, is an _output statement_. When rendered, the expression will be evaluated and the result inserted into the output text.
+
+In this example the expression is a variable, which will be resolved to a value and the value's string representation will output, but output statements can contain any primitive expression.
+
+```liquid2
+Hello, {{ you }}!
+```
+
+### Primitive expressions
+
+| Primitive expression | Examples                                                                                       |
+| -------------------- | ---------------------------------------------------------------------------------------------- |
+| Boolean literal      | `true` or `false`                                                                              |
+| Null literal         | `null` or `nil`                                                                                |
+| Integer literal      | `123` or `1e2` <!-- md:liquid2 -->                                                             |
+| Float literal        | `1.23` or `1.2e3` <!-- md:liquid2 -->                                                          |
+| String literal       | `"Hello"` or `'g\'day'` <!-- md:liquid2 --> or `#!liquid2 'Hello, ${you}'` <!-- md:liquid2 --> |
+| Range                | `(1..5)` or `(x..y)`                                                                           |
+| A path to a variable | `foo` or `foo.bar` or `foo.bar[0]` or `foo["some thing"].bar`                                  |
+
+### Filters
+
+<!-- md:version 0.1.0 -->
+<!-- md:shopify -->
+
+```
+{{ <expression> | <filter> [| <filter> ...] }}
+```
+
+Values can be modified prior to output using filters. Filters are applied to an expression using the pipe symbol (`|`), followed by the filter's name and, possibly, some filter arguments. Filter arguments appear after a colon (`:`) and are separated by commas (`,`).
+
+Multiple filters can be chained together, effectively piping the output of one filter into the input of another.
+
+```liquid2
+{{ user_name | upcase }}
+{{ 42 | plus: 7 | modulo: 3 }}
+```
+
+### Ternary expressions
+
+<!-- md:version 0.1.0 -->
+<!-- md:liquid2 -->
+
+```
+{{ <expression> if <expression> else <expression> }}
+```
+
+Inline conditional expressions can be used as an alternative to the longer form [`{% if %}` tag](#if).
+
+```liquid2
+{{ "bar" if x.y == z else "baz" }}
+```
+
+Filters can be applied to either branch.
+
+```liquid2
+{{ "bar" | upcase if x else "baz" | capitalize }}
+```
+
+Or applied to the result of the conditional expression as a whole using _tail filters_. Notice the double pipe symbol (`||`).
+
+```liquid2
+{{ "bar" if x else "baz" || upcase | append: "!" }}
+```
+
 ## assign
 
 <!-- md:version 0.1.0 -->
@@ -94,65 +168,7 @@ foo is equal to {{ foo }}.
 foo is now equal to {{ foo }}.
 ```
 
-The _expression_ on the right-hand side of the assignment operator (`=`) can be any Liquid _primitive_.
-
-| Primitive expression | Examples                                                                                       |
-| -------------------- | ---------------------------------------------------------------------------------------------- |
-| Boolean literal      | `true` or `false`                                                                              |
-| Null literal         | `null` or `nil`                                                                                |
-| Integer literal      | `123` or `1e2` <!-- md:liquid2 -->                                                             |
-| Float literal        | `1.23` or `1.2e3` <!-- md:liquid2 -->                                                          |
-| String literal       | `"Hello"` or `'g\'day'` <!-- md:liquid2 --> or `#!liquid2 'Hello, ${you}'` <!-- md:liquid2 --> |
-| Range                | `(1..5)` or `(x..y)`                                                                           |
-| A path to a variable | `foo` or `foo.bar` or `foo.bar[0]` or `foo["some thing"].bar`                                  |
-
-### Filters
-
-<!-- md:version 0.1.0 -->
-<!-- md:shopify -->
-
-```
-{% assign <identifier> = <expression> | <filter> [| <filter> ...] %}
-```
-
-Values can be modified prior to assignment using filters. Filters are applied to an expression using the pipe symbol (`|`), followed by the filter's name and, possibly, some filter arguments. Filter arguments appear after a colon (`:`) and are separated by commas (,).
-
-Multiple filters can be chained together, effectively piping the output of one filter into the input of another.
-
-```liquid2
-{% assign foo = "bar" | upcase %}
-foo is equal to {{ foo }}.
-
-{% assign foo = 42 | plus: 7 | modulo: 3 %}
-foo is now equal to {{ foo }}.
-```
-
-### Ternary expressions
-
-<!-- md:version 0.1.0 -->
-<!-- md:liquid2 -->
-
-```
-{% assign <identifier> = <expression> if <expression> else <expression> %}
-```
-
-Inline conditional expressions can be used as an alternative to the longer form [`{% if %}` tag](#if).
-
-```liquid2
-{% assign foo = "bar" if x.y == z else "baz" %}
-```
-
-Filters can be applied to either branch.
-
-```liquid2
-{% assign foo = "bar" | upcase if x else "baz" | capitalize %}
-```
-
-Or to the result of the conditional expression as a whole using _tail filters_. Notice the double pipe symbol (`||`).
-
-```liquid2
-{% assign foo = "bar" if x else "baz" || upcase | append: "!" %}
-```
+The _expression_ on the right-hand side of the assignment operator (`=`) follows the syntax described in [Output](#output) above. It can be a any [primitive expression](#primitive-expressions), it can include [filters](#filters) or be a [ternary expression](#ternary-expressions).
 
 ## capture
 
@@ -256,7 +272,7 @@ The `decrement` tag renders the next value in a named counter, reducing the coun
 <!-- md:shopify -->
 
 ```
-{% echo <expression> | <filter> [| <filter> ...] %}
+{% echo <expression> %}
 ```
 
 The `echo` tag is equivalent to output statements, an expression surrounded by `{{` and `}}`, just in tag form. It is mostly used inside [`{% liquid %}`](#liquid) tags where plain output statements are not allowed.
@@ -272,16 +288,9 @@ Hello, {{ you }}!
 %}
 ```
 
-### Ternary expressions
+Just like output statements and the [`assign`](#assign) tag, the expression can be a any [primitive expression](#primitive-expressions), it can include [filters](#filters) or be a [ternary expression](#ternary-expressions).
 
-<!-- md:version 0.1.0 -->
 <!-- md:liquid2 -->
-
-```
-{% echo <expression> if <expression> else <expression> %}
-```
-
-Just like output statements and the [`assign`](#assign) tag, you can use inline conditional expressions inside `echo` tags.
 
 ```liquid2
 {% echo "bar" | upcase if x else "baz" | capitalize %}
@@ -345,6 +354,35 @@ If the optional `required` argument is given, the block must be overridden by a 
       Default footer
     {% endblock footer %}
   </div>
+</body>
+```
+
+#### Super blocks
+
+A `block` object is available inside every `{% block %}` tag. It has just one property, `super`. If a `{% block %}` is overriding a parent block, `{{ block.super }}` will render the parent's implementation of that block.
+
+In this example we use `{{ block.super }}` in the `footer` block to output the base template's footer with a year appended to it.
+
+```liquid2 title="base"
+<head>
+  {% block head %}{% endblock %}
+<head>
+<body>
+  <div id="content">{% block content required %}{% endblock %}</div>
+  <div id="footer">{% block footer %}Default footer{% endblock %}</div>
+</body>
+```
+
+```liquid2 title="child"
+{% extends "base" %}
+{% block content %}Hello, World!{% endblock %}
+{% block footer %}{{ block.super }} - 2025{% endblock %}
+```
+
+```html title="output"
+<body>
+  <div id="content">Hello, World!</div>
+  <div id="footer">Default footer - 2025</div>
 </body>
 ```
 
