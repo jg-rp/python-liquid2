@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://jg-rp.github.io/python-liquid2/api/tag/">
+        <link rel="canonical" href="https://jg-rp.github.io/python-liquid2/api/messages/">
       
       
-        <link rel="prev" href="../filter/">
+        <link rel="prev" href="../babel/">
       
       
-        <link rel="next" href="../undefined/">
+        <link rel="next" href="../tokens/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -24,7 +24,7 @@
     
     
       
-        <title>Tag - Python Liquid2</title>
+        <title>Messages - Python Liquid2</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#liquid2.tag.Tag" class="md-skip">
+        <a href="#liquid2.Translations" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Tag
+              Messages
             
           </span>
         </div>
@@ -741,28 +741,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    Tag
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../tag/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -771,48 +753,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#liquid2.tag.Tag" class="md-nav__link">
-    <span class="md-ellipsis">
-      Tag
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Tag">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#liquid2.tag.Tag.parse" class="md-nav__link">
-    <span class="md-ellipsis">
-      parse
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -864,10 +804,28 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../messages/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Messages
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -876,6 +834,93 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#liquid2.Translations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Translations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Translations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Translations.gettext" class="md-nav__link">
+    <span class="md-ellipsis">
+      gettext
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Translations.ngettext" class="md-nav__link">
+    <span class="md-ellipsis">
+      ngettext
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Translations.npgettext" class="md-nav__link">
+    <span class="md-ellipsis">
+      npgettext
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Translations.pgettext" class="md-nav__link">
+    <span class="md-ellipsis">
+      pgettext
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#liquid2.MessageTuple" class="md-nav__link">
+    <span class="md-ellipsis">
+      MessageTuple
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#liquid2.extract_from_template" class="md-nav__link">
+    <span class="md-ellipsis">
+      extract_from_template
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -955,19 +1000,46 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#liquid2.tag.Tag" class="md-nav__link">
+  <a href="#liquid2.Translations" class="md-nav__link">
     <span class="md-ellipsis">
-      Tag
+      Translations
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Tag">
+    <nav class="md-nav" aria-label="Translations">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#liquid2.tag.Tag.parse" class="md-nav__link">
+  <a href="#liquid2.Translations.gettext" class="md-nav__link">
     <span class="md-ellipsis">
-      parse
+      gettext
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Translations.ngettext" class="md-nav__link">
+    <span class="md-ellipsis">
+      ngettext
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Translations.npgettext" class="md-nav__link">
+    <span class="md-ellipsis">
+      npgettext
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#liquid2.Translations.pgettext" class="md-nav__link">
+    <span class="md-ellipsis">
+      pgettext
     </span>
   </a>
   
@@ -975,6 +1047,24 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#liquid2.MessageTuple" class="md-nav__link">
+    <span class="md-ellipsis">
+      MessageTuple
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#liquid2.extract_from_template" class="md-nav__link">
+    <span class="md-ellipsis">
+      extract_from_template
+    </span>
+  </a>
   
 </li>
       
@@ -993,14 +1083,14 @@
                   
 
 
-  <h1>Tag</h1>
+  <h1>Messages</h1>
 
 <div class="doc doc-object doc-class">
 
 
 
-<h2 id="liquid2.tag.Tag" class="doc doc-heading">
-            <span class="doc doc-object-name doc-class-name">liquid2.tag.Tag</span>
+<h2 id="liquid2.Translations" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">liquid2.Translations</span>
 
 
 </h2>
@@ -1008,10 +1098,15 @@
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><span title="abc.ABC">ABC</span></code></p>
+              Bases: <code><span title="typing_extensions.Protocol">Protocol</span></code></p>
 
 
-        <p>Base class for all built-in and custom template tags.</p>
+        <p>Message catalog interface.</p>
+<p>An object implementing this protocol is expected to be available in
+a render context.</p>
+<p>Could be a <code>GNUTranslations</code> instance from the <code>gettext</code> module,
+a Babel <code>Translations</code> object, or any object implementing <code>gettext</code>,
+<code>ngettext</code>, <code>pgettext</code> and <code>npgettext</code> methods.</p>
 
 
 
@@ -1034,21 +1129,76 @@
 <div class="doc doc-object doc-function">
 
 
-<h3 id="liquid2.tag.Tag.parse" class="doc doc-heading">
-            <span class="doc doc-object-name doc-function-name">parse</span>
+<h3 id="liquid2.Translations.gettext" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">gettext</span>
 
-
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
-  </span>
 
 </h3>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">parse</span><span class="p">(</span><span class="n">stream</span><span class="p">:</span> <span class="n">TokenStream</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Node</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">gettext</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
 
-        <p>Return a parse tree node by parsing tokens from the given stream.</p>
+        <p>Lookup the message in the catalog.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="liquid2.Translations.ngettext" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">ngettext</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">ngettext</span><span class="p">(</span><span class="n">singular</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">plural</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Do plural-forms message lookup.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="liquid2.Translations.npgettext" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">npgettext</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">npgettext</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">context</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">singular</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">plural</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Do plural-forms context and message lookup.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="liquid2.Translations.pgettext" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">pgettext</span>
+
+
+</h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">pgettext</span><span class="p">(</span><span class="n">context</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Lookup the context and message in the catalog.</p>
 
     </div>
 
@@ -1057,6 +1207,73 @@
 
 
   </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="liquid2.MessageTuple" class="doc doc-heading">
+            <span class="doc doc-object-name doc-class-name">liquid2.MessageTuple</span>
+
+
+</h2>
+
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="typing.NamedTuple">NamedTuple</span></code></p>
+
+
+        <p>The tuple expected to be returned from babel extraction methods.</p>
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="liquid2.extract_from_template" class="doc doc-heading">
+            <span class="doc doc-object-name doc-function-name">liquid2.extract_from_template</span>
+
+
+</h2>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">extract_from_template</span><span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">template</span><span class="p">:</span> <span class="n">Template</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">keywords</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">comment_tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">MessageTuple</span><span class="p">]</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents first">
+
+        <p>Extract translation messages from a Liquid template.</p>
 
     </div>
 
