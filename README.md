@@ -1,4 +1,4 @@
-<h1 align="center">Python Liquid2 (unreleased)</h1>
+<h1 align="center">Python Liquid2</h1>
 
 <p align="center">
 Liquid templates for Python, with some extra features.
