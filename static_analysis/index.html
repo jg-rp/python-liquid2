@@ -77,6 +77,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#variables" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -572,6 +577,17 @@
       
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Static template analysis
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -581,6 +597,104 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Variables
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#variable-paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      Variable paths
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#variable-segments" class="md-nav__link">
+    <span class="md-ellipsis">
+      Variable segments
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#global-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Global variables
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#global-variable-paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      Global variable paths
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#global-variable-segments" class="md-nav__link">
+    <span class="md-ellipsis">
+      Global variable segments
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#filter-names" class="md-nav__link">
+    <span class="md-ellipsis">
+      Filter names
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tag-names" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tag names
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#variable-tag-and-filter-locations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Variable, tag and filter locations
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -807,6 +921,95 @@
   
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Variables
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#variable-paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      Variable paths
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#variable-segments" class="md-nav__link">
+    <span class="md-ellipsis">
+      Variable segments
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#global-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Global variables
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#global-variable-paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      Global variable paths
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#global-variable-segments" class="md-nav__link">
+    <span class="md-ellipsis">
+      Global variable segments
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#filter-names" class="md-nav__link">
+    <span class="md-ellipsis">
+      Filter names
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tag-names" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tag names
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#variable-tag-and-filter-locations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Variable, tag and filter locations
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -822,7 +1025,157 @@
 
   <h1>Static template analysis</h1>
 
-
+<p>Instances of <a href="../api/template/"><code>Template</code></a>, as returned by <a href="../api/convenience/#liquid2.parse"><code>parse()</code></a>, <a href="../api/environment/#liquid2.Environment.from_string"><code>from_string()</code></a> and <a href="../api/environment/#liquid2.Environment.get_template"><code>get_template()</code></a>, include several methods for inspecting a template's variable, tag a filter usage, without rendering the template.</p>
+<p>By default, all of these methods will try to load and analyze <a href="../tag_reference/#include">included</a>, <a href="../tag_reference/#render">rendered</a> and <a href="../tag_reference/#extends">extended</a> templates too. Set the <code>include_partials</code> keyword only argument to <code>False</code> to disable automatic loading and analysis of partial/parent templates.</p>
+<h2 id="variables">Variables</h2>
+<p><a href="../api/template/#liquid2.Template.variables"><code>variables()</code></a> and <a href="../api/template/#liquid2.Template.variables_async"><code>variables_async()</code></a> return a list of distinct variables used in the template, without <a href="../variables_and_drops/#paths-to-variables">path segments</a>. The list will include variables that are <em>local</em> to the template, like those crated with <code>{% assign %}</code> and <code>{% capture %}</code>, or are in scope from <code>{% for %}</code> tags.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">liquid2</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">source</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="s2">Hello, {{ you }}!</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="s2">{</span><span class="si">% a</span><span class="s2">ssign x = &#39;foo&#39; | upcase %}</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="s2">{</span><span class="si">% f</span><span class="s2">or ch in x %}</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="s2">    - {{ ch }}</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="s2">{</span><span class="si">% e</span><span class="s2">ndfor %}</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="s2">Goodbye, {{ you.first_name | capitalize }} {{ you.last_name }}</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="s2">Goodbye, {{ you.first_name }} {{ you.last_name }}</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="s2">&quot;&quot;&quot;</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="n">template</span> <span class="o">=</span> <span class="n">parse</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="nb">print</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">variables</span><span class="p">())</span>
+</span></code></pre></div>
+<div class="language-text highlight"><span class="filename">output</span><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>[&#39;you&#39;, &#39;x&#39;, &#39;ch&#39;]
+</span></code></pre></div>
+<h2 id="variable-paths">Variable paths</h2>
+<p><a href="../api/template/#liquid2.Template.variable_paths"><code>variable_paths()</code></a> and <a href="../api/template/#liquid2.Template.variable_paths_async"><code>variable_paths_async()</code></a> return a list of variables used in the template, including all path segments. The list will include variables that are <em>local</em> to the template, like those crated with <code>{% assign %}</code> and <code>{% capture %}</code>, or are in scope from <code>{% for %}</code> tags.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># ... continued from above</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nb">print</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">variable_paths</span><span class="p">())</span>
+</span></code></pre></div>
+<div class="language-text highlight"><span class="filename">output</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>[&#39;you.first_name&#39;, &#39;you&#39;, &#39;you.last_name&#39;, &#39;x&#39;, &#39;ch&#39;]
+</span></code></pre></div>
+<h2 id="variable-segments">Variable segments</h2>
+<p><a href="../api/template/#liquid2.Template.variable_segments"><code>variable_segments()</code></a> and <a href="../api/template/#liquid2.Template.variable_segments_async"><code>variable_segments_async()</code></a> return a list of variables used in the template, each as a list of segments. The list will include variables that are <em>local</em> to the template, like those crated with <code>{% assign %}</code> and <code>{% capture %}</code>, or are in scope from <code>{% for %}</code> tags.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># ... continued from above</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="nb">print</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">variable_segments</span><span class="p">())</span>
+</span></code></pre></div>
+<div class="language-text highlight"><span class="filename">output</span><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>[
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>    [&quot;you&quot;, &quot;last_name&quot;],
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    [&quot;you&quot;],
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    [&quot;you&quot;, &quot;first_name&quot;],
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>    [&quot;ch&quot;],
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>    [&quot;x&quot;],
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>]
+</span></code></pre></div>
+<h2 id="global-variables">Global variables</h2>
+<p><a href="../api/template/#liquid2.Template.global_variables"><code>global_variables()</code></a> and <a href="../api/template/#liquid2.Template.global_variables_async"><code>global_variables_async()</code></a> return a list of variables used in the template, without path segments and excluding variables that are local to the template.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># ... continued from above</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="nb">print</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">global_variables</span><span class="p">())</span>
+</span></code></pre></div>
+<div class="language-text highlight"><span class="filename">output</span><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>[&#39;you&#39;]
+</span></code></pre></div>
+<h2 id="global-variable-paths">Global variable paths</h2>
+<p><a href="../api/template/#liquid2.Template.global_variable_paths"><code>global_variable_paths()</code></a> and <a href="../api/template/#liquid2.Template.global_variable_paths_async"><code>global_variable_paths_async()</code></a> return a list of variables used in the template, with path segments and excluding variables that are local to the template.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># ... continued from above</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="nb">print</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">global_variable_paths</span><span class="p">())</span>
+</span></code></pre></div>
+<div class="language-text highlight"><span class="filename">output</span><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>[&#39;you&#39;, &#39;you.first_name&#39;, &#39;you.last_name&#39;]
+</span></code></pre></div>
+<h2 id="global-variable-segments">Global variable segments</h2>
+<p><a href="../api/template/#liquid2.Template.global_variable_segments"><code>global_variable_segments()</code></a> and <a href="../api/template/#liquid2.Template.global_variable_segments_async"><code>global_variable_segments_async()</code></a> return a list of variables used in the template, each as a list of segments, excluding variables that are local to the template.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># ... continued from above</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="nb">print</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">global_variable_segments</span><span class="p">())</span>
+</span></code></pre></div>
+<div class="language-text highlight"><span class="filename">output</span><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>[
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>    [&#39;you&#39;, &#39;last_name&#39;],
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>    [&#39;you&#39;, &#39;first_name&#39;],
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>    [&#39;you&#39;],
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>]
+</span></code></pre></div>
+<h2 id="filter-names">Filter names</h2>
+<p><a href="../api/template/#liquid2.Template.filter_names"><code>filter_names()</code></a> and <a href="../api/template/#liquid2.Template.filter_names_async"><code>filter_names_async()</code></a> return names of filters used in the template.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># ... continued from above</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="nb">print</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">filter_names</span><span class="p">())</span>
+</span></code></pre></div>
+<div class="language-text highlight"><span class="filename">output</span><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>[&#39;upcase&#39;, &#39;capitalize&#39;]
+</span></code></pre></div>
+<h2 id="tag-names">Tag names</h2>
+<p><a href="../api/template/#liquid2.Template.tag_names"><code>tag_names()</code></a> and <a href="../api/template/#liquid2.Template.tag_names_async"><code>tag_names_async()</code></a> return the names of tags used in the template.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># ... continued from above</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="nb">print</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">tag_names</span><span class="p">())</span>
+</span></code></pre></div>
+<div class="language-text highlight"><span class="filename">output</span><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>[&#39;assign&#39;, &#39;for&#39;]
+</span></code></pre></div>
+<h2 id="variable-tag-and-filter-locations">Variable, tag and filter locations</h2>
+<p><a href="../api/template/#liquid2.Template.analyze"><code>analyze()</code></a> and <a href="../api/template/#liquid2.Template.analyze_async"><code>analyze_async()</code></a> return an instance of <a href="../api/template/#liquid2.static_analysis.TemplateAnalysis"><code>TemplateAnalysis</code></a>. It contains all of the information provided by the methods described above, but includes the location of each variable, tag and filter, each of which can appear many times across many templates.</p>
+<p>Using the same example template show at the top of this page, pretty printing <code>template.analyze()</code> gives us the following output.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>TemplateAnalysis(variables={&#39;ch&#39;: [Variable(segments=[&#39;ch&#39;],
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>                                            span=Span(template_name=&#39;&#39;,
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>                                                      start=78,
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>                                                      end=80))],
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>                            &#39;x&#39;: [Variable(segments=[&#39;x&#39;],
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>                                           span=Span(template_name=&#39;&#39;,
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>                                                     start=64,
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>                                                     end=65))],
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>                            &#39;you&#39;: [Variable(segments=[&#39;you&#39;],
+</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>                                             span=Span(template_name=&#39;&#39;,
+</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>                                                       start=10,
+</span><span id="__span-16-12"><a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>                                                       end=13)),
+</span><span id="__span-16-13"><a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>                                    Variable(segments=[&#39;you&#39;, &#39;first_name&#39;],
+</span><span id="__span-16-14"><a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a>                                             span=Span(template_name=&#39;&#39;,
+</span><span id="__span-16-15"><a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a>                                                       start=110,
+</span><span id="__span-16-16"><a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a>                                                       end=124)),
+</span><span id="__span-16-17"><a id="__codelineno-16-17" name="__codelineno-16-17" href="#__codelineno-16-17"></a>                                    Variable(segments=[&#39;you&#39;, &#39;last_name&#39;],
+</span><span id="__span-16-18"><a id="__codelineno-16-18" name="__codelineno-16-18" href="#__codelineno-16-18"></a>                                             span=Span(template_name=&#39;&#39;,
+</span><span id="__span-16-19"><a id="__codelineno-16-19" name="__codelineno-16-19" href="#__codelineno-16-19"></a>                                                       start=144,
+</span><span id="__span-16-20"><a id="__codelineno-16-20" name="__codelineno-16-20" href="#__codelineno-16-20"></a>                                                       end=157)),
+</span><span id="__span-16-21"><a id="__codelineno-16-21" name="__codelineno-16-21" href="#__codelineno-16-21"></a>                                    Variable(segments=[&#39;you&#39;, &#39;first_name&#39;],
+</span><span id="__span-16-22"><a id="__codelineno-16-22" name="__codelineno-16-22" href="#__codelineno-16-22"></a>                                             span=Span(template_name=&#39;&#39;,
+</span><span id="__span-16-23"><a id="__codelineno-16-23" name="__codelineno-16-23" href="#__codelineno-16-23"></a>                                                       start=173,
+</span><span id="__span-16-24"><a id="__codelineno-16-24" name="__codelineno-16-24" href="#__codelineno-16-24"></a>                                                       end=187)),
+</span><span id="__span-16-25"><a id="__codelineno-16-25" name="__codelineno-16-25" href="#__codelineno-16-25"></a>                                    Variable(segments=[&#39;you&#39;, &#39;last_name&#39;],
+</span><span id="__span-16-26"><a id="__codelineno-16-26" name="__codelineno-16-26" href="#__codelineno-16-26"></a>                                             span=Span(template_name=&#39;&#39;,
+</span><span id="__span-16-27"><a id="__codelineno-16-27" name="__codelineno-16-27" href="#__codelineno-16-27"></a>                                                       start=194,
+</span><span id="__span-16-28"><a id="__codelineno-16-28" name="__codelineno-16-28" href="#__codelineno-16-28"></a>                                                       end=207))]},
+</span><span id="__span-16-29"><a id="__codelineno-16-29" name="__codelineno-16-29" href="#__codelineno-16-29"></a>                 globals={&#39;you&#39;: [Variable(segments=[&#39;you&#39;],
+</span><span id="__span-16-30"><a id="__codelineno-16-30" name="__codelineno-16-30" href="#__codelineno-16-30"></a>                                           span=Span(template_name=&#39;&#39;,
+</span><span id="__span-16-31"><a id="__codelineno-16-31" name="__codelineno-16-31" href="#__codelineno-16-31"></a>                                                     start=10,
+</span><span id="__span-16-32"><a id="__codelineno-16-32" name="__codelineno-16-32" href="#__codelineno-16-32"></a>                                                     end=13)),
+</span><span id="__span-16-33"><a id="__codelineno-16-33" name="__codelineno-16-33" href="#__codelineno-16-33"></a>                                  Variable(segments=[&#39;you&#39;, &#39;first_name&#39;],
+</span><span id="__span-16-34"><a id="__codelineno-16-34" name="__codelineno-16-34" href="#__codelineno-16-34"></a>                                           span=Span(template_name=&#39;&#39;,
+</span><span id="__span-16-35"><a id="__codelineno-16-35" name="__codelineno-16-35" href="#__codelineno-16-35"></a>                                                     start=110,
+</span><span id="__span-16-36"><a id="__codelineno-16-36" name="__codelineno-16-36" href="#__codelineno-16-36"></a>                                                     end=124)),
+</span><span id="__span-16-37"><a id="__codelineno-16-37" name="__codelineno-16-37" href="#__codelineno-16-37"></a>                                  Variable(segments=[&#39;you&#39;, &#39;last_name&#39;],
+</span><span id="__span-16-38"><a id="__codelineno-16-38" name="__codelineno-16-38" href="#__codelineno-16-38"></a>                                           span=Span(template_name=&#39;&#39;,
+</span><span id="__span-16-39"><a id="__codelineno-16-39" name="__codelineno-16-39" href="#__codelineno-16-39"></a>                                                     start=144,
+</span><span id="__span-16-40"><a id="__codelineno-16-40" name="__codelineno-16-40" href="#__codelineno-16-40"></a>                                                     end=157)),
+</span><span id="__span-16-41"><a id="__codelineno-16-41" name="__codelineno-16-41" href="#__codelineno-16-41"></a>                                  Variable(segments=[&#39;you&#39;, &#39;first_name&#39;],
+</span><span id="__span-16-42"><a id="__codelineno-16-42" name="__codelineno-16-42" href="#__codelineno-16-42"></a>                                           span=Span(template_name=&#39;&#39;,
+</span><span id="__span-16-43"><a id="__codelineno-16-43" name="__codelineno-16-43" href="#__codelineno-16-43"></a>                                                     start=173,
+</span><span id="__span-16-44"><a id="__codelineno-16-44" name="__codelineno-16-44" href="#__codelineno-16-44"></a>                                                     end=187)),
+</span><span id="__span-16-45"><a id="__codelineno-16-45" name="__codelineno-16-45" href="#__codelineno-16-45"></a>                                  Variable(segments=[&#39;you&#39;, &#39;last_name&#39;],
+</span><span id="__span-16-46"><a id="__codelineno-16-46" name="__codelineno-16-46" href="#__codelineno-16-46"></a>                                           span=Span(template_name=&#39;&#39;,
+</span><span id="__span-16-47"><a id="__codelineno-16-47" name="__codelineno-16-47" href="#__codelineno-16-47"></a>                                                     start=194,
+</span><span id="__span-16-48"><a id="__codelineno-16-48" name="__codelineno-16-48" href="#__codelineno-16-48"></a>                                                     end=207))]},
+</span><span id="__span-16-49"><a id="__codelineno-16-49" name="__codelineno-16-49" href="#__codelineno-16-49"></a>                 locals={&#39;x&#39;: [Variable(segments=[&#39;x&#39;],
+</span><span id="__span-16-50"><a id="__codelineno-16-50" name="__codelineno-16-50" href="#__codelineno-16-50"></a>                                        span=Span(template_name=&#39;&#39;,
+</span><span id="__span-16-51"><a id="__codelineno-16-51" name="__codelineno-16-51" href="#__codelineno-16-51"></a>                                                  start=28,
+</span><span id="__span-16-52"><a id="__codelineno-16-52" name="__codelineno-16-52" href="#__codelineno-16-52"></a>                                                  end=29))]},
+</span><span id="__span-16-53"><a id="__codelineno-16-53" name="__codelineno-16-53" href="#__codelineno-16-53"></a>                 filters={&#39;capitalize&#39;: [Span(template_name=&#39;&#39;,
+</span><span id="__span-16-54"><a id="__codelineno-16-54" name="__codelineno-16-54" href="#__codelineno-16-54"></a>                                              start=127,
+</span><span id="__span-16-55"><a id="__codelineno-16-55" name="__codelineno-16-55" href="#__codelineno-16-55"></a>                                              end=137)],
+</span><span id="__span-16-56"><a id="__codelineno-16-56" name="__codelineno-16-56" href="#__codelineno-16-56"></a>                          &#39;upcase&#39;: [Span(template_name=&#39;&#39;, start=40, end=46)]},
+</span><span id="__span-16-57"><a id="__codelineno-16-57" name="__codelineno-16-57" href="#__codelineno-16-57"></a>                 tags={&#39;assign&#39;: [Span(template_name=&#39;&#39;, start=18, end=49)],
+</span><span id="__span-16-58"><a id="__codelineno-16-58" name="__codelineno-16-58" href="#__codelineno-16-58"></a>                       &#39;for&#39;: [Span(template_name=&#39;&#39;, start=51, end=68)]})
+</span></code></pre></div>
 
 
 

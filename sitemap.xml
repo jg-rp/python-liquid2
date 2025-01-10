@@ -2,142 +2,142 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/babel/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/conventions/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/custom_filters/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/custom_loaders/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/custom_tags/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/environment/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/filter_reference/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/loading_templates/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/migration/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/optional_filters/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/optional_tags/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/quick_start/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/render_context/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/rendering_templates/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/static_analysis/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/syntax/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/tag_reference/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/variables_and_drops/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/whitespace_control/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/api/ast/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/api/babel/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/api/builtin/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/api/convenience/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/api/environment/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/api/exceptions/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/api/filter/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/api/loaders/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/api/messages/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/api/render_context/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/api/tag/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/api/template/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/api/tokens/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/api/undefined/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
     <url>
          <loc>https://jg-rp.github.io/python-liquid2/api/whitespace_control/</loc>
-         <lastmod>2025-01-09</lastmod>
+         <lastmod>2025-01-10</lastmod>
     </url>
 </urlset>
