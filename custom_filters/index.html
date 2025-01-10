@@ -1024,7 +1024,7 @@
 </span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="c1"># ...</span>
 </span></code></pre></div>
 <h2 id="replace-a-filter">Replace a filter</h2>
-<p>To replace a default filter implementation with you own, simply update the <a href="../api/environment/#liquid2.Environment.filters"><code>filters</code></a> dictionary on your <a href="../environment/">environment</a>.</p>
+<p>To replace a default filter implementation with your own, simply update the <a href="../api/environment/#liquid2.Environment.filters"><code>filters</code></a> dictionary on your <a href="../environment/">environment</a>.</p>
 <p>Here we replace the default <code>slice</code> filter with one which uses start and stop values instead of start and length, and is a bit more forgiving in terms of allowed inputs.</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">liquid2</span><span class="w"> </span><span class="kn">import</span> <span class="n">Environment</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">liquid2.filter</span><span class="w"> </span><span class="kn">import</span> <span class="n">int_arg</span>

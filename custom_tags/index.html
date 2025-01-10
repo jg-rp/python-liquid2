@@ -1096,9 +1096,29 @@
 </span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="nb">print</span><span class="p">(</span><span class="n">template</span><span class="o">.</span><span class="n">render</span><span class="p">())</span> <span class="c1"># Hello, Sally</span>
 </span></code></pre></div>
 <h2 id="replace-a-tag">Replace a tag</h2>
-<p>TODO:</p>
+<p>To replace a default tag implementation with your own, simply update the <a href="../api/environment/#liquid2.Environment.tags"><code>tags</code></a> dictionary on your <a href="../environment/">environment</a>.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">liquid2</span><span class="w"> </span><span class="kn">import</span> <span class="n">Environment</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">.my_tag</span><span class="w"> </span><span class="kn">import</span> <span class="n">MyTag</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">env</span> <span class="o">=</span> <span class="n">Environment</span><span class="p">()</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">env</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="s2">&quot;my_tag_name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">MyTag</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="c1"># ...</span>
+</span></code></pre></div>
 <h2 id="remove-a-tag">Remove a tag</h2>
-<p>TODO:</p>
+<p>Remove a built-in tag by deleting it from your <a href="../environment/">environment's</a> <a href="../api/environment/#liquid2.Environment.tags"><code>tags</code></a> dictionary. The example removes the <a href="../tag_reference/#macro-and-call"><code>macro</code></a> <code>call</code> tags.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">liquid</span><span class="w"> </span><span class="kn">import</span> <span class="n">Environment</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">env</span> <span class="o">=</span> <span class="n">Environment</span><span class="p">()</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="k">del</span> <span class="n">env</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="s2">&quot;macro&quot;</span><span class="p">]</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="k">del</span> <span class="n">env</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="s2">&quot;call&quot;</span><span class="p">]</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="c1"># ...</span>
+</span></code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>You can add, remove and replace tags on <code>liquid2.DEFAULT_ENVIRONMENT</code> too. Convenience functions <a href="../api/convenience/#liquid2.parse"><code>parse()</code></a> and <a href="../api/convenience/#liquid2.render"><code>render()</code></a> use <code>DEFAULT_ENVIRONMENT</code></p>
+</div>
 
 
 

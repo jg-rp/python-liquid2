@@ -77,6 +77,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#output" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -423,6 +428,17 @@
       
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Liquid Syntax
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -432,6 +448,68 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#output" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Filters
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tags" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tags
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comments" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comments
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#content" class="md-nav__link">
+    <span class="md-ellipsis">
+      Content
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -681,6 +759,59 @@
   
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#output" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Filters
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tags" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tags
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comments" class="md-nav__link">
+    <span class="md-ellipsis">
+      Comments
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#content" class="md-nav__link">
+    <span class="md-ellipsis">
+      Content
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -696,7 +827,57 @@
 
   <h1>Liquid Syntax</h1>
 
-
+<p>Liquid is a template language, where source text (the template) contains placeholders for variables, conditional expressions for including or excluding blocks of text, and loops for repeating blocks of text. Plus other syntax for manipulating variables and combining multiple templates into a single output.</p>
+<p>Output text is the result of <em>rendering</em> a template given some data model. It is that data model that provides the variables and objects referenced in a template's expressions.</p>
+<p>Liquid is most commonly used with HTML or Markdown, but can be used with any text-based content. Consider this example template.</p>
+<div class="language-liquid2 highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>&lt;main&gt;
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  &lt;h2&gt;<span class="p">{{</span><span class="w"> </span><span class="nv">page_heading</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="nf">default</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Welcome to Our Benchmark Test&quot;</span><span class="w"> </span><span class="p">}}</span>&lt;/h2&gt;
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  &lt;p&gt;<span class="p">{{</span><span class="w"> </span><span class="nv">intro_text</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="nf">default</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;This is a dynamically generated page.&quot;</span><span class="w"> </span><span class="p">}}</span>&lt;/p&gt;
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  <span class="p">{#</span><span class="c"> About us section </span><span class="p">#}</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  &lt;section&gt;
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    &lt;h3&gt;About Us&lt;/h3&gt;
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="p">{%</span><span class="w"> </span><span class="kr">if</span><span class="w"> </span><span class="nv">site_description</span><span class="w"> </span><span class="p">%}</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>      &lt;p&gt;<span class="p">{{</span><span class="w"> </span><span class="nv">site_description</span><span class="w"> </span><span class="p">}}</span>&lt;/p&gt;
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="p">{%</span><span class="w"> </span><span class="kr">endif</span><span class="w"> </span><span class="p">%}</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>  &lt;section&gt;
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>  &lt;section&gt;
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    &lt;h3&gt;Items List&lt;/h3&gt;
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="p">{%</span><span class="w"> </span><span class="nt">assign</span><span class="w"> </span><span class="na">items_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">items</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="nf">size</span><span class="w"> </span><span class="p">%}</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="p">{%</span><span class="w"> </span><span class="kr">if</span><span class="w"> </span><span class="nv">items_size</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="p">%}</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>      <span class="p">{%</span><span class="w"> </span><span class="kr">for</span><span class="w"> </span><span class="nv">item</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="nv">items</span><span class="w"> </span><span class="p">%}</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>        &lt;div class=&quot;item&quot;&gt;
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>          &lt;h4&gt;<span class="p">{{</span><span class="w"> </span><span class="nv">item</span><span class="p">.</span><span class="nv">title</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="nf">capitalize</span><span class="w"> </span><span class="p">}}</span>&lt;/h4&gt;
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>          &lt;p&gt;<span class="p">{{</span><span class="w"> </span><span class="nv">item</span><span class="p">.</span><span class="nv">description</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="nf">escape</span><span class="w"> </span><span class="p">}}</span>&lt;/p&gt;
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>          &lt;p&gt;Price: <span class="p">{{</span><span class="w"> </span><span class="nv">item</span><span class="p">.</span><span class="nv">price</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="nf">ceil</span><span class="w"> </span><span class="p">}}</span> USD&lt;/p&gt;
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>          <span class="p">{%</span><span class="w"> </span><span class="kr">if</span><span class="w"> </span><span class="nv">item</span><span class="p">.</span><span class="nv">price</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">50</span><span class="w"> </span><span class="p">%}</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>            &lt;p&gt;This is a premium item.&lt;/p&gt;
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>            <span class="p">{%</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">%}</span>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>            &lt;p&gt;This is a budget-friendly item.&lt;/p&gt;
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>          <span class="p">{%</span><span class="w"> </span><span class="kr">endif</span><span class="w"> </span><span class="p">%}</span>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>        &lt;/div&gt;
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>      <span class="p">{%</span><span class="w"> </span><span class="kr">endfor</span><span class="w"> </span><span class="p">%}</span>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>    <span class="p">{%</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">%}</span>
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>      &lt;p&gt;No items are available at the moment.&lt;/p&gt;
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>    <span class="p">{%</span><span class="w"> </span><span class="kr">endif</span><span class="w"> </span><span class="p">%}</span>
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>  &lt;/section&gt;
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>&lt;/main&gt;
+</span></code></pre></div>
+<h2 id="output">Output</h2>
+<p><code>{{ site_description }}</code> and <code>{{ item.title | capitalize }}</code> are examples of <a href="../tag_reference/#output">output statements</a>. Expressions surrounded by double curly braces, <code>{{</code> and <code>}}</code>, will be evaluated and the result inserted into the output text.</p>
+<h2 id="filters">Filters</h2>
+<p><code>capitalize</code> in <code>{{ item.title | capitalize }}</code> and <code>ceil</code> in <code>{{ item.price | ceil }}</code> are examples of <a href="../tag_reference/#filters">filters</a>. Filters modify the expression to their left prior to output or assignment.</p>
+<h2 id="tags">Tags</h2>
+<p><code>{% if site_description %}</code>, <code>{% endif %}</code> and <code>{% assign items_size = items | size %}</code> are examples of <a href="../tag_reference/">tags</a>. After the start tag delimiter (<code>{%</code>) there must be a tag name. Everything up to the closing tag delimiter (<code>%}</code>) is the tags's expression.</p>
+<p>Not all tags accept an expression, but all tag must have a name.</p>
+<p>Together <code>{% if site_description %}</code> and <code>{% endif %}</code> form a <em>block tag</em>. Block tags have an opening tag, some Liquid in between, and an end tag. In the case of the <a href="../tag_reference/#if"><code>if tag</code></a>, the block is only rendered if the tag's expression evaluates to true.</p>
+<p><code>{% assign items_size = items | size %}</code> is an <em>inline tag</em>. It does not have an <em>end tag</em> and it does not output anything, although some inline tags do produce an output.</p>
+<h2 id="comments">Comments</h2>
+<p><code>{# About us section #}</code> is an example of a <a href="../tag_reference/#comments">comment</a>. Text between <code>{#</code> and <code>#}</code> will not be parsed or rendered.</p>
+<h2 id="content">Content</h2>
+<p><code>&lt;main&gt;</code> and <code>\n    &lt;h3&gt;About Us&lt;/h3&gt;</code> are examples of template content. That's anything not inside <code>{%</code> and <code>%}</code> or <code>{#</code> and <code>#}</code> or <code>{{</code> and <code>}}</code>. With the exception of <a href="../whitespace_control/">whitespace control</a>, template content is output unchanged.</p>
 
 
 

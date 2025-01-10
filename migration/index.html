@@ -707,15 +707,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#performance" class="md-nav__link">
-    <span class="md-ellipsis">
-      Performance
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#package-dependencies" class="md-nav__link">
     <span class="md-ellipsis">
       Package dependencies
@@ -1141,15 +1132,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#performance" class="md-nav__link">
-    <span class="md-ellipsis">
-      Performance
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#package-dependencies" class="md-nav__link">
     <span class="md-ellipsis">
       Package dependencies
@@ -1292,12 +1274,14 @@
 </span></code></pre></div>
 <h2 id="features-that-have-been-removed">Features that have been removed</h2>
 <ul>
-<li>We no longer offer "lax" or "warn" parsing modes, previously controlled by the <code>tolerance</code> argument to <code>Environment</code>. The assertion is that errors should be loud and we should be made aware as early as possible, whether you're an experienced developer or not.</li>
+<li>We no longer offer "lax" or "warn" modes, previously controlled by the <code>tolerance</code> argument to <code>Environment</code>. The assertion is that errors should be loud and we should be made aware as early as possible, whether you're an experienced developer or not.</li>
 <li>It's not currently possible to change Liquid markup delimiters (<code>{{</code>, <code>}}</code>, <code>{%</code> and <code>%}</code>).</li>
 <li>Async filters have not been implemented, but can be if there is a demand.</li>
 <li>Contextual template analysis has not been implemented, but can be if there is a demand.</li>
 <li>Template tag analysis (analyzing tokens instead of a syntax tree) has not been implemented, but can be if there is a demand.</li>
 <li>Liquid Babel used to allow simple, zero-argument filters in the arguments to the <code>translate</code> tag. The <code>translate</code> tag bundled in to Liquid2 does not allow the use of filters here.</li>
+<li>There's no Django template backend or Flask extension for Python Liquid2. Open an issue if these are things that would be useful to you.</li>
+<li>The <a href="https://github.com/jg-rp/liquid-jsonpath">Liquid JSONPath</a> project has not yet been ported to Python Liquid2. Open an issue if yuo'd like to see JSONPath syntax added to Liquid2.</li>
 </ul>
 <h2 id="api-changes">API changes</h2>
 <p>These are the most notable changes. Please raise an <a href="https://github.com/jg-rp/python-liquid2/issues">issue</a> or start a discussion if I've missed anything or you need help with migration.</p>
@@ -1313,18 +1297,16 @@
 <li><code>FilterValueError</code> and <code>FilterArgumentError</code> have been removed. <code>LiquidValueError</code> and <code>LiquidTypeError</code> should be used instead. In some cases where <code>FilterValueError</code> was deliberately ignored before, <code>LiquidValueError</code> is now raised.</li>
 <li>The exception <code>NoSuchFilterFunc</code>, raised when rendering a template that uses a filter that is not defined in <code>Environment.filters</code>, has been renamed to <code>UnknownFilterError</code>.</li>
 <li>The <code>@liquid_filter</code> decorator has been removed. Now filter implementations are expected to raise a <code>LiquidTypeError</code> in the event of an argument with an unacceptable type.</li>
+<li><a href="../api/environment/#liquid2.Environment.tags"><code>Environment.tags</code></a> is now a mapping of tag names to <code>Tag</code> instances. It used to be a mapping of names to <code>Tag</code> classes.</li>
 </ul>
 <h3 id="custom-tags">Custom tags</h3>
-<p>The lexer has been completely rewritten and the token's it produces bare little resemblance to those produced by any of the several parsing functions from Python Liquid. Now we have a single lexer that scans source text content, tags, statements and expressions in a single pass, and a parser that delegates the parsing of those tokens to classes implementing <code>Tag</code>.</p>
+<p><a href="../custom_tags/">docs</a></p>
+<p>The lexer has been completely rewritten and the token's it produces bear little resemblance to those produced by any of the several parsing functions from Python Liquid. Now we have a single lexer that scans source text content, tags, statements and expressions in a single pass, and a parser that delegates the parsing of those tokens to classes implementing <code>Tag</code>.</p>
+<p>These changes were necessary to support "proper" string literals with escaping, Unicode support and interpolation.</p>
 <p>As before, <code>Tag</code> instances are responsible for returning <code>Node</code>s from <code>Tag.parse()</code>. And nodes still have the familiar <code>render_to_output()</code> abstract method.</p>
 <p>As a result of these changes, custom tags are now limited to using tokens recognized by the lexer. Previously, custom tags would be passed their expression as a string to be parsed however you see fit, now tags are passed a sequence of tokens.</p>
-<p>For now I recommend familiarizing yourself with the different <a class="autorefs autorefs-internal" href="../api/tokens/#liquid2.token.TokenT">tokens</a> generated by the lexer, and refer to built-in tag implementations for examples of using various <code>Expression.parse()</code> static methods to parse expressions. Note that the <code>TokenStream</code> interface has changed too.</p>
+<p>For now I recommend familiarizing yourself with the different <a class="autorefs autorefs-internal" href="../api/tokens/#liquid2.token.TokenT">tokens</a> generated by the lexer and have a look at the <a href="../custom_tags/">custom tags docs</a>. Note that the <a href="../api/tokens/#liquid2.TokenStream"><code>TokenStream</code></a> interface has changed too.</p>
 <p>As always, open an <a href="https://github.com/jg-rp/python-liquid2/issues">issue</a> or start a discussion if you need any help with migration.</p>
-<h2 id="performance">Performance</h2>
-<p>TODO:</p>
-<ul>
-<li>Benchmarks show Python Liquid2 to be more JIT friendly</li>
-</ul>
 <h2 id="package-dependencies">Package dependencies</h2>
 <p>The following packages are dependencies of Python Liquid2.</p>
 <ul>
