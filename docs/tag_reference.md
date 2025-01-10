@@ -673,7 +673,7 @@ Also, inside `liquid` tags, any line starting with a hash will be considered a c
 %}
 ```
 
-## macro
+## macro and call
 
 <!-- md:version 0.1.0 -->
 <!-- md:liquid2 -->

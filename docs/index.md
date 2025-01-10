@@ -22,4 +22,4 @@ Python Liquid2 is a flexible, non-evaluating Liquid template engine. We cater fo
 
 Have a look at the [quick start](quick_start.md) guide and browse through the built-in [tags](tag_reference.md) and [filters](filter_reference.md).
 
-If you're coming from Python Liquid version 1, check out the [migration guide](migration.md).
+If you're coming from Python Liquid, check out the [migration guide](migration.md).

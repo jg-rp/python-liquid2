@@ -2,7 +2,7 @@
 
 For one-off templates using nothing but the default [tags](tag_reference.md) and [filters](filter_reference.md), and without the possibility of [including](tag_reference.md#include), [rendering](tag_reference.md#render) or [extending](tag_reference.md#extends) other templates, use the package-level [`render()`](api/convenience.md#liquid2.render) function.
 
-It takes template source text as a string and any number of keyword arguments that will be made available as template variables, returning a string.
+It takes template source text as a string and any number of keyword arguments that will be available to templates as variables. `render()` returns a string.
 
 ```python
 from liquid2 import render

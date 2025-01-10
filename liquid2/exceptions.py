@@ -238,10 +238,6 @@ class ContinueLoop(LiquidInterrupt):
     """Exception raised when a ContinueNode is rendered."""
 
 
-class CacheCapacityValueError(ValueError):
-    """An exception raised when the LRU cache is given a zero or negative capacity."""
-
-
 class TranslationError(LiquidError):
     """Base exception for translation errors."""
 

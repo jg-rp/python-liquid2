@@ -156,8 +156,32 @@ print(template.render()) # Hello, Sally
 
 ## Replace a tag
 
-TODO:
+To replace a default tag implementation with your own, simply update the [`tags`](api/environment.md#liquid2.Environment.tags) dictionary on your [environment](environment.md).
+
+```python
+from liquid2 import Environment
+from .my_tag import MyTag
+
+env = Environment()
+env.tags["my_tag_name"] = MyTag(env)
+
+# ...
+```
 
 ## Remove a tag
 
-TODO:
+Remove a built-in tag by deleting it from your [environment's](environment.md) [`tags`](api/environment.md#liquid2.Environment.tags) dictionary. The example removes the [`macro`](tag_reference.md#macro-and-call) `call` tags.
+
+```python
+from liquid import Environment
+
+env = Environment()
+del env.tags["macro"]
+del env.tags["call"]
+
+# ...
+```
+
+!!! tip
+
+    You can add, remove and replace tags on `liquid2.DEFAULT_ENVIRONMENT` too. Convenience functions [`parse()`](api/convenience.md#liquid2.parse) and [`render()`](api/convenience.md#liquid2.render) use `DEFAULT_ENVIRONMENT`

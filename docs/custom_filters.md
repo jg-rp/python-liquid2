@@ -96,7 +96,7 @@ def strip_newlines(val: str, *, environment: Environment) -> str:
 
 ## Replace a filter
 
-To replace a default filter implementation with you own, simply update the [`filters`](api/environment.md#liquid2.Environment.filters) dictionary on your [environment](environment.md).
+To replace a default filter implementation with your own, simply update the [`filters`](api/environment.md#liquid2.Environment.filters) dictionary on your [environment](environment.md).
 
 Here we replace the default `slice` filter with one which uses start and stop values instead of start and length, and is a bit more forgiving in terms of allowed inputs.
 
