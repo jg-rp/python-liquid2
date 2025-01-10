@@ -4,9 +4,24 @@
 Liquid templates for Python, with some extra features.
 </p>
 
-> [!WARNING]
-> This is a preview. Some features and the [documentation](https://jg-rp.github.io/python-liquid2/) are incomplete.
-> You can preview the draft migration guide [here](https://jg-rp.github.io/python-liquid2/migration/).
+<p align="center">
+  <a href="https://github.com/jg-rp/python-liquid2/blob/main/LICENSE.txt">
+    <img src="https://img.shields.io/pypi/l/python-liquid2?style=flat-square" alt="License">
+  </a>
+  <a href="https://github.com/jg-rp/python-liquid2/actions">
+    <img src="https://img.shields.io/github/actions/workflow/status/jg-rp/python-liquid2/tests.yaml?branch=main&label=tests&style=flat-square" alt="Tests">
+  </a>
+  <a href="https://pypi.org/project/python-liquid2">
+    <img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dm/python-liquid2?style=flat-square">
+  </a>
+  <br>
+  <a href="https://pypi.org/project/python-liquid2">
+    <img src="https://img.shields.io/pypi/v/python-liquid2.svg?style=flat-square" alt="PyPi - Version">
+  </a>
+  <a href="https://pypi.org/project/python-liquid2">
+    <img src="https://img.shields.io/pypi/pyversions/python-liquid2.svg?style=flat-square" alt="Python versions">
+  </a>
+</p>
 
 ---
 
