@@ -36,8 +36,13 @@ class Span:
     """The location of a variable, tag or filter in a template."""
 
     template_name: str
+    """The template name."""
+
     start: int
+    """A start index into the template source text."""
+
     end: int
+    """A stop index into the template source text."""
 
 
 Segments: TypeAlias = list[Union[int, str, "Segments"]]
@@ -51,7 +56,10 @@ class Variable:
     """
 
     segments: Segments
+    """The variable's segments."""
+
     span: Span = field(hash=False, compare=False)
+    """The variable's location."""
 
     def __str__(self) -> str:
         return self._segments_str(self.segments)

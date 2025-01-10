@@ -1,4 +1,4 @@
-This page covers i18n and l10n filter and tag configuration, and how we support translation message catalogs. See the [filter reference](filter_reference.md) and [tag reference](tag_reference.md) for usage examples.
+This page covers i18n and l10n filter and tag configuration, and how we support translations and translation message catalogs. See the [filter reference](filter_reference.md) and [tag reference](tag_reference.md) for usage examples.
 
 ## Currency
 
