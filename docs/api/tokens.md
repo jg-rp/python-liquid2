@@ -21,3 +21,4 @@
 ::: liquid2.token.is_raw_token
 ::: liquid2.token.is_tag_token
 ::: liquid2.token.is_token_type
+::: liquid2.TokenStream

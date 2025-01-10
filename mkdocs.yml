@@ -48,7 +48,6 @@ nav:
       - Static template analysis: "static_analysis.md"
       - Custom filters: "custom_filters.md"
       - Custom tags: "custom_tags.md"
-      - Custom template loaders: "custom_loaders.md"
   - Tag reference:
       - Default tags: "tag_reference.md"
       - Optional tags: "optional_tags.md"

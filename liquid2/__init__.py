@@ -54,6 +54,7 @@ from .exceptions import TemplateNotFoundError
 from .messages import MessageTuple
 from .messages import Translations
 from .messages import extract_from_template
+from .tag import Tag
 
 from .__about__ import __version__
 
@@ -203,4 +204,5 @@ __all__ = (
     "unescape",
     "WhitespaceControl",
     "Translations",
+    "Tag",
 )

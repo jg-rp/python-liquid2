@@ -6,7 +6,7 @@ Python Liquid2 is a flexible, non-evaluating Liquid template engine. We cater fo
 
 ## Features
 
-- **Flexible:** Add to, remove or replace built-in [tags](tag_reference.md) and [filters](filter_reference.md) to suite your needs. Also choose from several built-in [template loaders](loading_templates.md) or define your own [custom template loader](custom_loaders.md).
+- **Flexible:** Add to, remove or replace built-in [tags](tag_reference.md) and [filters](filter_reference.md) to suite your needs. Also choose from several built-in [template loaders](loading_templates.md) or define your own [custom template loader](loading_templates.md#custom-loaders).
 
 - **Asynchronous:** For situations where you have too many templates to fit in memory or those templates change frequently, they can be loaded asynchronously from file systems, databases or over a network. Similarly, template data can be fetch lazily at render time, also asynchronously.
 

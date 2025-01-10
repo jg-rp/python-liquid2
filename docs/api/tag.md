@@ -1,1 +1,1 @@
-::: liquid2.tag.Tag
+::: liquid2.Tag
