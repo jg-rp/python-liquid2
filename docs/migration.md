@@ -161,6 +161,10 @@ Filter and tag named arguments can be separated by a `:` or `=`. Previously only
 
 Template inheritance is now built-in. Previously [`{% extends %}`](tag_reference.md#extends) and [`{% block %}`](tag_reference.md#block) tags were available from a separate package.
 
+### Macros
+
+[`macro and call`](tag_reference.md#macro-and-call) tags are enabled by default.
+
 ### i18n and l10n
 
 Internationalization and localization tags and filters are now built in and enabled by default. Previously these were in a separate package.
