@@ -4,7 +4,7 @@ When compared to [Python Liquid](https://github.com/jg-rp/liquid) and [Shopify/L
 
 ## Approach to compatibility and stability
 
-With [Python Liquid](https://github.com/jg-rp/liquid), our primary objectives were render behavior stability and Shopify/Liquid compatibility, in that order. Later we introduced `liquid.future.Environment`, which sacrificed some stability for greater Shopify/Liquid compatibility as Shopify/Liquid and our understanding of it changed.
+With [Python Liquid](https://github.com/jg-rp/liquid), our primary objectives are render behavior stability and Shopify/Liquid compatibility, in that order. We also have `liquid.future.Environment`, which sacrificed some stability for greater Shopify/Liquid compatibility as Shopify/Liquid and our understanding of it changed.
 
 Now, with Python Liquid2, render behavior stability is still the top priority, but the default environment deliberately deviates from Shopify/Liquid in several ways, "fixing" and adding often requested features that Shopify can't due to their large user base and the technical debt that comes with it.
 
@@ -23,6 +23,8 @@ Whether shopify/Liquid compatibility is important to you or not, if you're devel
 ## New features
 
 ### More whitespace control
+
+([docs](whitespace_control.md))
 
 Along with a [`default_trim`](api/environment.md#liquid2.Environment.default_trim) configuration option, tags and the output statement now support `+`, `-` and `~` for controlling whitespace in templates. By default, `~` will remove newlines but retain space and tab characters.
 
@@ -81,7 +83,7 @@ String literals support interpolation using JavaScript-style `${` and `}` delimi
 
 `${` can be escaped with `\${` to prevent variable substitution.
 
-Liquid template strings are effectively a shorthand alternative to `capture` tags or chains of `append` filters. These two tags equivalent.
+Liquid template strings are effectively a shorthand alternative to `capture` tags or chains of `append` filters. These two tags are equivalent.
 
 ```liquid2
 {% capture greeting %}
@@ -159,13 +161,17 @@ Filter and tag named arguments can be separated by a `:` or `=`. Previously only
 
 ### Template inheritance
 
-Template inheritance is now built-in. Previously [`{% extends %}`](tag_reference.md#extends) and [`{% block %}`](tag_reference.md#block) tags were available from a separate package.
+([docs](tag_reference.md#extends))
+
+Template inheritance is now built in. Previously [`{% extends %}`](tag_reference.md#extends) and [`{% block %}`](tag_reference.md#block) tags were available from a separate package.
 
 ### Macros
 
 [`macro and call`](tag_reference.md#macro-and-call) tags are enabled by default.
 
 ### i18n and l10n
+
+([docs](babel.md))
 
 Internationalization and localization tags and filters are now built in and enabled by default. Previously these were in a separate package.
 
@@ -176,6 +182,8 @@ See [currency](filter_reference.md#currency), [datetime](filter_reference.md#dat
 Instances of `Template` are now serializable. Use `str(template)` or `pickle.dump(template)`.
 
 ### Better exceptions
+
+([docs](api/exceptions.md))
 
 Error messages have been improved and exceptions inheriting from `LiquidError` expose line and column numbers, and have `detailed_message()` and error `context()` methods.
 
@@ -203,7 +211,7 @@ liquid2.exceptions.LiquidSyntaxError: expected IN, found WORD
 - Template tag analysis (analyzing tokens instead of a syntax tree) has not been implemented, but can be if there is a demand.
 - Liquid Babel used to allow simple, zero-argument filters in the arguments to the `translate` tag. The `translate` tag bundled in to Liquid2 does not allow the use of filters here.
 - There's no Django template backend or Flask extension for Python Liquid2. Open an issue if these are things that would be useful to you.
-- The [Liquid JSONPath](https://github.com/jg-rp/liquid-jsonpath) project has not yet been ported to Python Liquid2. Open an issue if yuo'd like to see JSONPath syntax added to Liquid2.
+- The [Liquid JSONPath](https://github.com/jg-rp/liquid-jsonpath) project has not yet been ported to Python Liquid2. Open an issue if you'd like to see JSONPath syntax added to Liquid2.
 
 ## API changes
 
@@ -226,7 +234,7 @@ These are the most notable changes. Please raise an [issue](https://github.com/j
 
 [docs](custom_tags.md)
 
-The lexer has been completely rewritten and the token's it produces bear little resemblance to those produced by any of the several parsing functions from Python Liquid. Now we have a single lexer that scans source text content, tags, statements and expressions in a single pass, and a parser that delegates the parsing of those tokens to classes implementing `Tag`.
+The lexer has been completely rewritten and the tokens it produces bear little resemblance to those produced by any of the several parsing functions from Python Liquid. Now we have a single lexer that scans source text content, tags, statements and expressions in a single pass, and a parser that delegates the parsing of those tokens to classes implementing `Tag`.
 
 These changes were necessary to support "proper" string literals with escaping, Unicode support and interpolation.
 
