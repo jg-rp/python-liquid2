@@ -337,8 +337,12 @@ class ArrayLiteral(Expression):
         items: list[Expression] = [left]
         while stream.current().type_ == TokenType.COMMA:
             stream.next()  # ignore comma
-            items.append(parse_primitive(stream.current()))
-            stream.next()
+            try:
+                items.append(parse_primitive(stream.current()))
+                stream.next()
+            except LiquidSyntaxError:
+                # Trailing commas are OK.
+                break
         return ArrayLiteral(left.token, items)
 
 
@@ -1590,8 +1594,10 @@ class LoopExpression(Expression):
         stream.next()
         stream.expect(TokenType.IN)
         stream.next()  # Move past 'in'
-        iterable = parse_primitive(stream.current())
-        stream.next()  # Move past identifier
+        iterable = parse_primitive(stream.next())
+        if stream.current().type_ == TokenType.COMMA:
+            # Array literal syntax
+            iterable = ArrayLiteral.parse(stream, iterable)
 
         reversed_ = False
         offset: Expression | None = None

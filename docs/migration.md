@@ -49,7 +49,7 @@ Here we use `~` to remove the newline after the opening `for` tag, but preserve 
 
 ### Array construction syntax
 
-If the left-hand side of a filtered expression (those found in output statements, the `assign` tag and the `echo` tag) is a comma separated list of primitive expressions, an array-like object will be created with those items.
+Filtered expression (those found in output statements, the `assign` tag and the `echo` tag) and `for` tag expressions support array literal syntax. We don't use the traditional `[item1, item2, ...]` syntax with square brackets because square brackets are already used for variables (`["some variable with spaces"]` is a valid variable).
 
 ```liquid2
 {% assign my_array = a, b, '42', false -%}
@@ -62,8 +62,7 @@ or, using a `{% liquid %}` tag:
 
 ```liquid2
 {% liquid
-    assign my_array = a, b, '42', false
-    for item in my_array
+    for item in a, b, '42', false
         echo "- ${item}\n"
     endfor %}
 ```
