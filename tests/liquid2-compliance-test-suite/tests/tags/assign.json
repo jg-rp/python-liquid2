@@ -124,7 +124,7 @@
       "invalid": true
     },
     {
-      "name": "comma separated value",
+      "name": "array literal",
       "template": "{% assign a = b, c, 'd' %}{{ a }}",
       "data": {
         "b": 1,
@@ -133,13 +133,27 @@
       "result": "12d"
     },
     {
-      "name": "comma separated value, filtered",
+      "name": "array literal, filtered",
       "template": "{% assign a = b, c, 'd' | join: '#' %}{{ a }}",
       "data": {
         "b": 1,
         "c": 2
       },
       "result": "1#2#d"
+    },
+    {
+      "name": "array literal, leading comma",
+      "template": "{% assign a = , b, c, 'd' %}{{ a }}",
+      "invalid": true
+    },
+    {
+      "name": "array literal, trailing comma",
+      "template": "{% assign a = b, c, 'd',  %}{{ a }}",
+      "data": {
+        "b": 1,
+        "c": 2
+      },
+      "result": "12d"
     }
   ]
 }

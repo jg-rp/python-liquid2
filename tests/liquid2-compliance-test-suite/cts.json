@@ -4513,7 +4513,7 @@
       "invalid": true
     },
     {
-      "name": "tags, assign, comma separated value",
+      "name": "tags, assign, array literal",
       "template": "{% assign a = b, c, 'd' %}{{ a }}",
       "data": {
         "b": 1,
@@ -4522,13 +4522,27 @@
       "result": "12d"
     },
     {
-      "name": "tags, assign, comma separated value, filtered",
+      "name": "tags, assign, array literal, filtered",
       "template": "{% assign a = b, c, 'd' | join: '#' %}{{ a }}",
       "data": {
         "b": 1,
         "c": 2
       },
       "result": "1#2#d"
+    },
+    {
+      "name": "tags, assign, array literal, leading comma",
+      "template": "{% assign a = , b, c, 'd' %}{{ a }}",
+      "invalid": true
+    },
+    {
+      "name": "tags, assign, array literal, trailing comma",
+      "template": "{% assign a = b, c, 'd',  %}{{ a }}",
+      "data": {
+        "b": 1,
+        "c": 2
+      },
+      "result": "12d"
     },
     {
       "name": "tags, block comment, comment block",
@@ -5838,6 +5852,27 @@
         ]
       },
       "result": "a1-2 a2-2 b3-4 b4-4 b5-4 b6-4 "
+    },
+    {
+      "name": "tags, for, array literal",
+      "template": "{% for a in b, 2, true %}{{ a }},{% endfor %}",
+      "data": {
+        "b": 1
+      },
+      "result": "1,2,true,"
+    },
+    {
+      "name": "tags, for, array literal, trailing comma",
+      "template": "{% for a in b, 2, true, %}{{ a }},{% endfor %}",
+      "data": {
+        "b": 1
+      },
+      "result": "1,2,true,"
+    },
+    {
+      "name": "tags, for, array literal, leading comma",
+      "template": "{% for a in , b, 2, true %}{{ a }},{% endfor %}",
+      "invalid": true
     },
     {
       "name": "tags, if, literal true",

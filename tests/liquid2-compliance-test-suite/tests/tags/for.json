@@ -262,6 +262,23 @@
         "b": [1, 2, 3, 4, 5, 6]
       },
       "result": "a1-2 a2-2 b3-4 b4-4 b5-4 b6-4 "
+    },
+    {
+      "name": "array literal",
+      "template": "{% for a in b, 2, true %}{{ a }},{% endfor %}",
+      "data": { "b": 1 },
+      "result": "1,2,true,"
+    },
+    {
+      "name": "array literal, trailing comma",
+      "template": "{% for a in b, 2, true, %}{{ a }},{% endfor %}",
+      "data": { "b": 1 },
+      "result": "1,2,true,"
+    },
+    {
+      "name": "array literal, leading comma",
+      "template": "{% for a in , b, 2, true %}{{ a }},{% endfor %}",
+      "invalid": true
     }
   ]
 }
