@@ -642,6 +642,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#macros" class="md-nav__link">
+    <span class="md-ellipsis">
+      Macros
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#i18n-and-l10n" class="md-nav__link">
     <span class="md-ellipsis">
       i18n and l10n
@@ -1067,6 +1076,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#macros" class="md-nav__link">
+    <span class="md-ellipsis">
+      Macros
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#i18n-and-l10n" class="md-nav__link">
     <span class="md-ellipsis">
       i18n and l10n
@@ -1158,7 +1176,7 @@
 <h1 id="migration-guide">Migration guide</h1>
 <p>When compared to <a href="https://github.com/jg-rp/liquid">Python Liquid</a> and <a href="https://github.com/Shopify/liquid">Shopify/Liquid</a>, Liquid2 adds features, subtly changes the syntax of Liquid templates and changes the template engine's Python API. This is not "Python Liquid version 2", but a Python implementation of "Liquid2", which is mostly backwards compatible with other implementations.</p>
 <h2 id="approach-to-compatibility-and-stability">Approach to compatibility and stability</h2>
-<p>With <a href="https://github.com/jg-rp/liquid">Python Liquid</a>, our primary objectives were render behavior stability and Shopify/Liquid compatibility, in that order. Later we introduced <code>liquid.future.Environment</code>, which sacrificed some stability for greater Shopify/Liquid compatibility as Shopify/Liquid and our understanding of it changed.</p>
+<p>With <a href="https://github.com/jg-rp/liquid">Python Liquid</a>, our primary objectives are render behavior stability and Shopify/Liquid compatibility, in that order. We also have <code>liquid.future.Environment</code>, which sacrificed some stability for greater Shopify/Liquid compatibility as Shopify/Liquid and our understanding of it changed.</p>
 <p>Now, with Python Liquid2, render behavior stability is still the top priority, but the default environment deliberately deviates from Shopify/Liquid in several ways, "fixing" and adding often requested features that Shopify can't due to their large user base and the technical debt that comes with it.</p>
 <p>In most cases these fixes and features are backwards compatible with Shopify/Liquid, requiring little or no modification to legacy Liquid templates. To ease transition from legacy templates to Liquid2 templates, we include a <code>liquid2.shopify.Environment</code>, which is configured to include some legacy tags that didn't make it in to the default environment.</p>
 <h3 id="why-is-render-stability-so-important">Why is render stability so important?</h3>
@@ -1168,6 +1186,7 @@
 <p>Whether shopify/Liquid compatibility is important to you or not, if you're developing a multi-tenant application where users are responsible for maintaining templates, you should seriously consider building in an opt-in upgrade path for template authors to transition to updated syntax and features.</p>
 <h2 id="new-features">New features</h2>
 <h3 id="more-whitespace-control">More whitespace control</h3>
+<p>(<a href="../whitespace_control/">docs</a>)</p>
 <p>Along with a <a href="../api/environment/#liquid2.Environment.default_trim"><code>default_trim</code></a> configuration option, tags and the output statement now support <code>+</code>, <code>-</code> and <code>~</code> for controlling whitespace in templates. By default, <code>~</code> will remove newlines but retain space and tab characters.</p>
 <p>Here we use <code>~</code> to remove the newline after the opening <code>for</code> tag, but preserve indentation before <code>&lt;li&gt;</code>.</p>
 <div class="language-liquid2 highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>&lt;ul&gt;
@@ -1206,7 +1225,7 @@
 <h3 id="string-interpolation">String interpolation</h3>
 <p>String literals support interpolation using JavaScript-style <code>${</code> and <code>}</code> delimiters. Liquid template strings don't use backticks like JavaScript. Any single or double quoted string can use <code>${variable_name}</code> placeholders for automatic variable substitution.</p>
 <p><code>${</code> can be escaped with <code>\${</code> to prevent variable substitution.</p>
-<p>Liquid template strings are effectively a shorthand alternative to <code>capture</code> tags or chains of <code>append</code> filters. These two tags equivalent.</p>
+<p>Liquid template strings are effectively a shorthand alternative to <code>capture</code> tags or chains of <code>append</code> filters. These two tags are equivalent.</p>
 <div class="language-liquid2 highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="p">{%</span><span class="w"> </span><span class="nt">capture</span><span class="w"> </span><span class="nv">greeting</span><span class="w"> </span><span class="p">%}</span>
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>Hello, <span class="p">{{</span><span class="w"> </span><span class="nv">you</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="nf">capitalize</span><span class="w"> </span><span class="p">}}</span>!
 </span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="p">{%</span><span class="w"> </span><span class="nt">endcapture</span><span class="w"> </span><span class="p">%}</span>
@@ -1253,13 +1272,18 @@
 <h3 id="common-argument-delimiters">Common argument delimiters</h3>
 <p>Filter and tag named arguments can be separated by a <code>:</code> or <code>=</code>. Previously only <code>:</code> was allowed.</p>
 <h3 id="template-inheritance">Template inheritance</h3>
-<p>Template inheritance is now built-in. Previously <a href="../tag_reference/#extends"><code>{% extends %}</code></a> and <a href="../tag_reference/#block"><code>{% block %}</code></a> tags were available from a separate package.</p>
+<p>(<a href="../tag_reference/#extends">docs</a>)</p>
+<p>Template inheritance is now built in. Previously <a href="../tag_reference/#extends"><code>{% extends %}</code></a> and <a href="../tag_reference/#block"><code>{% block %}</code></a> tags were available from a separate package.</p>
+<h3 id="macros">Macros</h3>
+<p><a href="../tag_reference/#macro-and-call"><code>macro and call</code></a> tags are enabled by default.</p>
 <h3 id="i18n-and-l10n">i18n and l10n</h3>
+<p>(<a href="../babel/">docs</a>)</p>
 <p>Internationalization and localization tags and filters are now built in and enabled by default. Previously these were in a separate package.</p>
 <p>See <a href="../filter_reference/#currency">currency</a>, <a href="../filter_reference/#datetime">datetime</a>, <a href="../filter_reference/#money">money</a>, <a href="../filter_reference/#decimal">decimal</a>, <a href="../filter_reference/#unit">unit</a>, <a href="../filter_reference/#gettext">gettext</a>, <a href="../filter_reference/#t">t</a> and <a href="../tag_reference/#translate">translate</a>.</p>
 <h3 id="serializable-templates">Serializable templates</h3>
 <p>Instances of <code>Template</code> are now serializable. Use <code>str(template)</code> or <code>pickle.dump(template)</code>.</p>
 <h3 id="better-exceptions">Better exceptions</h3>
+<p>(<a href="../api/exceptions/">docs</a>)</p>
 <p>Error messages have been improved and exceptions inheriting from <code>LiquidError</code> expose line and column numbers, and have <code>detailed_message()</code> and error <code>context()</code> methods.</p>
 <div class="language-liquid2 highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="p">{%</span><span class="w"> </span><span class="nt">assign</span><span class="w"> </span><span class="na">foo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="mi">0</span><span class="p">..</span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="p">%}</span>
 </span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="p">{%</span><span class="w"> </span><span class="kr">for</span><span class="w"> </span><span class="nv">x</span><span class="w"> </span><span class="nv">foo</span><span class="w"> </span><span class="p">%}</span>
@@ -1281,7 +1305,7 @@
 <li>Template tag analysis (analyzing tokens instead of a syntax tree) has not been implemented, but can be if there is a demand.</li>
 <li>Liquid Babel used to allow simple, zero-argument filters in the arguments to the <code>translate</code> tag. The <code>translate</code> tag bundled in to Liquid2 does not allow the use of filters here.</li>
 <li>There's no Django template backend or Flask extension for Python Liquid2. Open an issue if these are things that would be useful to you.</li>
-<li>The <a href="https://github.com/jg-rp/liquid-jsonpath">Liquid JSONPath</a> project has not yet been ported to Python Liquid2. Open an issue if yuo'd like to see JSONPath syntax added to Liquid2.</li>
+<li>The <a href="https://github.com/jg-rp/liquid-jsonpath">Liquid JSONPath</a> project has not yet been ported to Python Liquid2. Open an issue if you'd like to see JSONPath syntax added to Liquid2.</li>
 </ul>
 <h2 id="api-changes">API changes</h2>
 <p>These are the most notable changes. Please raise an <a href="https://github.com/jg-rp/python-liquid2/issues">issue</a> or start a discussion if I've missed anything or you need help with migration.</p>
@@ -1301,7 +1325,7 @@
 </ul>
 <h3 id="custom-tags">Custom tags</h3>
 <p><a href="../custom_tags/">docs</a></p>
-<p>The lexer has been completely rewritten and the token's it produces bear little resemblance to those produced by any of the several parsing functions from Python Liquid. Now we have a single lexer that scans source text content, tags, statements and expressions in a single pass, and a parser that delegates the parsing of those tokens to classes implementing <code>Tag</code>.</p>
+<p>The lexer has been completely rewritten and the tokens it produces bear little resemblance to those produced by any of the several parsing functions from Python Liquid. Now we have a single lexer that scans source text content, tags, statements and expressions in a single pass, and a parser that delegates the parsing of those tokens to classes implementing <code>Tag</code>.</p>
 <p>These changes were necessary to support "proper" string literals with escaping, Unicode support and interpolation.</p>
 <p>As before, <code>Tag</code> instances are responsible for returning <code>Node</code>s from <code>Tag.parse()</code>. And nodes still have the familiar <code>render_to_output()</code> abstract method.</p>
 <p>As a result of these changes, custom tags are now limited to using tokens recognized by the lexer. Previously, custom tags would be passed their expression as a string to be parsed however you see fit, now tags are passed a sequence of tokens.</p>
