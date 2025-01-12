@@ -87,6 +87,8 @@ class Lexer:
         "COMMA": r",",
         "PIPE": r"\|",
         "LBRACKET": r"\[",
+        "EXCLAIM": r"!",
+        "QUESTION": r"\?",
     }
 
     NUMBERS: dict[str, str] = {
@@ -135,6 +137,8 @@ class Lexer:
         "COLON": TokenType.COLON,
         "COMMA": TokenType.COMMA,
         "PIPE": TokenType.PIPE,
+        "EXCLAIM": TokenType.EXCLAIM,
+        "QUESTION": TokenType.QUESTION,
     }
 
     MARKUP: dict[str, str] = {
@@ -687,7 +691,7 @@ class Lexer:
                 self.accept_range()
                 self.in_range = False
         else:
-            msg = f"unexpected token {self.source[self.start:self.pos]!r}"
+            msg = f"unexpected token {self.source[self.start : self.pos]!r}"
             raise LiquidSyntaxError(
                 msg,
                 token=ErrorToken(
@@ -708,7 +712,7 @@ class Lexer:
         if self.pos != self.start:
             msg = (
                 "must emit or ignore before consuming whitespace "
-                f"({self.source[self.start: self.pos]!r}:{self.pos})"
+                f"({self.source[self.start : self.pos]!r}:{self.pos})"
             )
             raise Exception(msg)
 
@@ -723,7 +727,7 @@ class Lexer:
         if self.pos != self.start:
             msg = (
                 "must emit or ignore before consuming whitespace "
-                f"({self.source[self.start: self.pos]!r}:{self.pos})"
+                f"({self.source[self.start : self.pos]!r}:{self.pos})"
             )
             raise Exception(msg)
 
@@ -739,7 +743,7 @@ class Lexer:
         if self.pos != self.start:
             msg = (
                 "must emit or ignore before consuming whitespace "
-                f"({self.source[self.start: self.pos]!r}:{self.pos})"
+                f"({self.source[self.start : self.pos]!r}:{self.pos})"
             )
             raise Exception(msg)
 
@@ -784,9 +788,9 @@ class Lexer:
             match = self.MARKUP_RULES.match(self.source, pos=self.pos)
 
             if not match:
-                assert self.pos == len(
-                    self.source
-                ), f"{self.pos}:{self.source[self.pos: 10]!r}.."
+                assert self.pos == len(self.source), (
+                    f"{self.pos}:{self.source[self.pos : 10]!r}.."
+                )
                 return None
 
             kind = match.lastgroup

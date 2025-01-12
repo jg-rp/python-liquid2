@@ -689,7 +689,7 @@ class TernaryFilteredExpression(Expression):
         """Return a new TernaryFilteredExpression parsed from tokens in _stream_."""
         stream.expect(TokenType.IF)
         stream.next()  # move past `if`
-        condition = BooleanExpression.parse(stream)
+        condition = BooleanExpression.parse(stream, inline=True)
         alternative: Expression | None = None
         filters: list[Filter] | None = None
         tail_filters: list[Filter] | None = None
@@ -949,9 +949,15 @@ class BooleanExpression(Expression):
         return is_truthy(await self.expression.evaluate_async(context))
 
     @staticmethod
-    def parse(stream: TokenStream) -> BooleanExpression:
-        """Return a new BooleanExpression parsed from tokens in _stream_."""
+    def parse(stream: TokenStream, *, inline: bool = False) -> BooleanExpression:
+        """Return a new BooleanExpression parsed from tokens in _stream_.
+
+        If _inline_ is `False`, we expect the stream to be empty after parsing
+        a Boolean expression and will raise a syntax error if it's not.
+        """
         expr = parse_boolean_primitive(stream)
+        if not inline:
+            stream.expect_eos()
         return BooleanExpression(expr.token, expr)
 
     def children(self) -> list[Expression]:

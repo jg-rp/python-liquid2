@@ -107,7 +107,7 @@ test_cases = [
     Case(
         description="unknown infix operator",
         template="{% if 1 =! 2 %}ok{% endif %}",
-        expect_msg="unexpected '!'",
+        expect_msg="unexpected token ASSIGN",
     ),
     Case(
         description="bad 'unless' expression",
@@ -120,7 +120,7 @@ test_cases = [
         expect_msg=r"unexpected '\$'",
     ),
     Case(
-        description="unknown infix operator",
+        description="unknown symbol",
         template="{% if 1 ~ 2 %}ok{% endif %}",
         expect_msg="unexpected '~'",
     ),

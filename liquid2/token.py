@@ -423,6 +423,7 @@ class TokenType(Enum):
     DOUBLE_QUOTE_TEMPLATE_STRING = auto()
     ELSE = auto()
     EQ = auto()
+    EXCLAIM = auto()  # '!', not used in any default expression
     FALSE = auto()
     FLOAT = auto()
     FOR = auto()
@@ -439,6 +440,7 @@ class TokenType(Enum):
     NULL = auto()
     OR_WORD = auto()  # or
     PIPE = auto()
+    QUESTION = auto()  # '?', not used in any default expression
     REQUIRED = auto()
     RPAREN = auto()
     SINGLE_QUOTE_STRING = auto()
