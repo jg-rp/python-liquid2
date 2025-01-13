@@ -1,6 +1,6 @@
 # Python Liquid2 Change Log
 
-## Version 0.2.0 (unreleased)
+## Version 0.2.0
 
 **Features**
 
