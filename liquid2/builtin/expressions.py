@@ -1594,16 +1594,41 @@ class LoopExpression(Expression):
 
     @staticmethod
     def parse(stream: TokenStream) -> LoopExpression:
-        """Parse tokens from _stream_ in to a LoopExpression."""
+        """Parse tokens from _stream_ as a for loop expression."""
         token = stream.current()
         identifier = parse_identifier(token)
         stream.next()
         stream.expect(TokenType.IN)
         stream.next()  # Move past 'in'
         iterable = parse_primitive(stream.next())
+
+        # We're looking for a comma that isn't followed by a known keyword.
+        # This means we have an array literal.
         if stream.current().type_ == TokenType.COMMA:
-            # Array literal syntax
-            iterable = ArrayLiteral.parse(stream, iterable)
+            peeked = stream.peek()
+            if not (
+                is_token_type(peeked, TokenType.WORD)
+                and peeked.value
+                in (
+                    "limit",
+                    "reversed",
+                    "cols",
+                    "offset",
+                )
+            ):
+                # Array literal syntax
+                iterable = ArrayLiteral.parse(stream, iterable)
+                # Arguments are not allowed to follow an array literal.
+                stream.expect_eos()
+                return LoopExpression(
+                    token,
+                    identifier,
+                    iterable,
+                    limit=None,
+                    offset=None,
+                    reversed_=False,
+                    cols=None,
+                )
 
         reversed_ = False
         offset: Expression | None = None
@@ -1652,7 +1677,6 @@ class LoopExpression(Expression):
                 )
 
         stream.expect_eos()
-        assert token is not None
         return LoopExpression(
             token,
             identifier,

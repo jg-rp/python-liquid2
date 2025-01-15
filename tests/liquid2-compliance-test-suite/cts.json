@@ -5875,6 +5875,53 @@
       "invalid": true
     },
     {
+      "name": "tags, for, array literal, limit",
+      "template": "{% for a in b, 2, true, limit:2 %}{{ a }},{% endfor %}",
+      "data": {
+        "b": 1
+      },
+      "invalid": true
+    },
+    {
+      "name": "tags, for, limit, leading comma",
+      "template": "{% for a in b, limit:2 %}{{ a }},{% endfor %}",
+      "data": {
+        "b": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "result": "1,2,"
+    },
+    {
+      "name": "tags, for, offset, leading comma",
+      "template": "{% for a in b, offset:2 %}{{ a }},{% endfor %}",
+      "data": {
+        "b": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "result": "3,4,"
+    },
+    {
+      "name": "tags, for, reversed, leading comma",
+      "template": "{% for a in b, reversed %}{{ a }},{% endfor %}",
+      "data": {
+        "b": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "result": "4,3,2,1,"
+    },
+    {
       "name": "tags, if, literal true",
       "template": "{% if true %}a{% endif %}",
       "data": {},

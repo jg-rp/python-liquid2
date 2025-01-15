@@ -170,6 +170,21 @@ foo is now equal to {{ foo }}.
 
 The _expression_ on the right-hand side of the assignment operator (`=`) follows the syntax described in [Output](#output) above. It can be any [primitive expression](#primitive-expressions), it can include [filters](#filters) or be a [ternary expression](#ternary-expressions).
 
+### Array literals
+
+<!-- md:version 0.1.0 -->
+<!-- md:liquid2 -->
+
+```
+{% assign <identifier> = <expression>[, <expression> ...] %}
+```
+
+If a comma separated list of [primitive expressions](#primitive-expressions) is given after the assignment operator (`=`), _identifier_ will be set to an array-like object containing the result of evaluating each expression.
+
+```liquid2
+{% assign my_array = "foo", "bar", 42, some.variable %}
+```
+
 ## capture
 
 <!-- md:version 0.1.0 -->
@@ -508,6 +523,35 @@ A `forloop` object is available inside every `for` tag block.
     {% else %}
       {{ product.title }} - {{ forloop.index0 }}
     {% endif %}
+{% endfor %}
+```
+
+### Array literals
+
+<!-- md:version 0.2.0 -->
+<!-- md:liquid2 -->
+
+```
+{% for <identifier> in <expression>, [<expression>, ...] %}
+  <liquid markup>
+  [ {% else %} <liquid markup> ]
+{% endfor %}
+```
+
+Use a comma separated list of [primitive expressions](#primitive-expressions) after `in` to iterate over the result of evaluating each expression.
+
+```liquid2
+{% for thing in products[1], 42, true, "something" %}
+  - {{ thing }}
+{% endfor %}
+```
+
+Arguments `limit`, `offset` and `reversed` are not allowed after an array literal, but you can assign the array to a variable first, then use `limit`, `offset` and/or `reversed`.
+
+```liquid2
+{% assign my_array = products[1], 42, true, "something" %}
+{% for thing in my_array limit:2 %}
+  - {{ thing }}
 {% endfor %}
 ```
 

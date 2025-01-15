@@ -1,5 +1,11 @@
 # Python Liquid2 Change Log
 
+## Version 0.2.1 (unreleased)
+
+**Fixes**
+
+- Fixed `{% for %}` tag expressions with a comma between the iterable and `limit`, `offset` or `reversed`. Previously we were assuming a comma immediately following the iterable would mean we are iterating an array literal. We're also explicitly disallowing `limit`, `offset` and `reversed` arguments after an array literal.
+
 ## Version 0.2.0
 
 **Features**
