@@ -69,6 +69,7 @@ class Lexer:
     ESCAPES = frozenset(["b", "f", "n", "r", "t", "u", "/", "\\", "$"])
 
     SYMBOLS: dict[str, str] = {
+        "ARROW": r"=>",
         "GE": r">=",
         "LE": r"<=",
         "EQ": r"==",
@@ -139,6 +140,7 @@ class Lexer:
         "PIPE": TokenType.PIPE,
         "EXCLAIM": TokenType.EXCLAIM,
         "QUESTION": TokenType.QUESTION,
+        "ARROW": TokenType.ARROW,
     }
 
     MARKUP: dict[str, str] = {
