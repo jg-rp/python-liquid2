@@ -33,6 +33,7 @@ from liquid2 import is_template_string_token
 from liquid2 import is_token_type
 from liquid2.exceptions import LiquidSyntaxError
 from liquid2.exceptions import LiquidTypeError
+from liquid2.exceptions import UnknownFilterError
 from liquid2.expression import Expression
 from liquid2.limits import to_int
 from liquid2.unescape import unescape
@@ -724,6 +725,7 @@ class Filter:
 
     def __init__(
         self,
+        env: Environment,
         token: TokenT,
         name: str,
         arguments: list[KeywordArgument | PositionalArgument],
@@ -732,10 +734,24 @@ class Filter:
         self.name = name
         self.args = arguments
 
+        if env.validate_filter_arguments:
+            self.validate_filter_arguments(env)
+
     def __str__(self) -> str:
         if self.args:
             return f"{self.name}: {''.join(str(arg) for arg in self.args)}"
         return self.name
+
+    def validate_filter_arguments(self, env: Environment) -> None:
+        try:
+            func = env.filters[self.name]
+        except KeyError as err:
+            raise UnknownFilterError(
+                f"unknown filter '{self.name}'", token=self.token
+            ) from err
+
+        if hasattr(func, "validate"):
+            func.validate(env, self.token, self.name, self.args)
 
     def evaluate(self, left: object, context: RenderContext) -> object:
         func = context.filter(self.name, token=self.token)
@@ -860,7 +876,7 @@ class Filter:
 
                     stream.next()
 
-            filters.append(Filter(filter_token, filter_name, filter_arguments))
+            filters.append(Filter(env, filter_token, filter_name, filter_arguments))
 
         return filters
 
