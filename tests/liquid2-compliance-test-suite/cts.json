@@ -2179,6 +2179,78 @@
       "result": "foo"
     },
     {
+      "name": "filters, map, array of objects, lambda expression",
+      "template": "{{ a | map: i => i.user.title | join: '#' }}",
+      "data": {
+        "a": [
+          {
+            "user": {
+              "title": "foo"
+            }
+          },
+          {
+            "user": {
+              "title": "bar"
+            }
+          },
+          {
+            "user": {
+              "title": "baz"
+            }
+          }
+        ]
+      },
+      "result": "foo#bar#baz"
+    },
+    {
+      "name": "filters, map, array of objects, lambda expression, parentheses",
+      "template": "{{ a | map: (i) => i.user.title | join: '#' }}",
+      "data": {
+        "a": [
+          {
+            "user": {
+              "title": "foo"
+            }
+          },
+          {
+            "user": {
+              "title": "bar"
+            }
+          },
+          {
+            "user": {
+              "title": "baz"
+            }
+          }
+        ]
+      },
+      "result": "foo#bar#baz"
+    },
+    {
+      "name": "filters, map, array of objects, lambda expression, two params",
+      "template": "{{ a | map: (i, j) => i.user.title | join: '#' }}",
+      "data": {
+        "a": [
+          {
+            "user": {
+              "title": "foo"
+            }
+          },
+          {
+            "user": {
+              "title": "bar"
+            }
+          },
+          {
+            "user": {
+              "title": "baz"
+            }
+          }
+        ]
+      },
+      "result": "foo#bar#baz"
+    },
+    {
       "name": "filters, minus, integer value and integer arg",
       "template": "{{ 10 | minus: 2 }}",
       "data": {},

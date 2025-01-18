@@ -6,10 +6,12 @@ import re
 import sys
 from decimal import Decimal
 from itertools import islice
+from itertools import zip_longest
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Collection
 from typing import Generic
+from typing import Iterable
 from typing import Iterator
 from typing import Mapping
 from typing import Sequence
@@ -409,6 +411,85 @@ class TemplateString(Expression):
 
     def children(self) -> list[Expression]:
         return self.template
+
+
+class ArrowFunction(Expression):
+    __slots__ = ("params", "expression")
+
+    def __init__(self, token: TokenT, params: list[Identifier], expression: Expression):
+        super().__init__(token)
+        self.params = params
+        self.expression = expression
+
+    def __str__(self) -> str:
+        if len(self.params) == 1:
+            return f"{self.params[0]} => {self.expression}"
+        return f"({', '.join(self.params)}) => {self.expression}"
+
+    def __hash__(self) -> int:
+        return hash((tuple(self.params), hash(self.expression)))
+
+    def __sizeof__(self) -> int:
+        return sys.getsizeof(self.expression)
+
+    def evaluate(self, _context: RenderContext) -> object:
+        return self
+
+    def children(self) -> list[Expression]:
+        # XXX: This expression has its own scope, a scope that is not controlled by a
+        # tag.
+        return [self.expression]
+
+    def getitem(self, context: RenderContext, args: Iterable[object]) -> object:
+        with context.extend(dict(zip_longest(self.params, args))):
+            # XXX: Ignoring potential `None` keys.
+            return self.expression.evaluate(context)
+
+    async def getitem_async(
+        self, context: RenderContext, args: Iterable[object]
+    ) -> object:
+        # TODO: now we need async filters
+        with context.extend(dict(zip_longest(self.params, args))):
+            # XXX: Ignoring potential `None` keys.
+            return await self.expression.evaluate_async(context)
+
+    @staticmethod
+    def parse(env: Environment, stream: TokenStream) -> ArrowFunction:
+        """Parse an arrow function from tokens in _stream_."""
+        token = stream.next()
+
+        if is_token_type(token, TokenType.WORD):
+            # A single param function without parens.
+            stream.expect(TokenType.ARROW)
+            stream.next()
+            expr = parse_boolean_primitive(env, stream)
+            stream.backup()
+            return ArrowFunction(
+                token,
+                [parse_identifier(token)],
+                expr,
+            )
+
+        assert token.type_ == TokenType.LPAREN
+        params: list[Identifier] = []
+
+        while stream.current().type_ != TokenType.RPAREN:
+            params.append(parse_identifier(stream.next()))
+            if stream.current().type_ == TokenType.COMMA:
+                stream.next()
+
+        stream.expect(TokenType.RPAREN)
+        stream.next()
+        stream.expect(TokenType.ARROW)
+        stream.next()
+        expr = parse_boolean_primitive(env, stream)
+        stream.backup()
+
+        return ArrowFunction(
+            token,
+            params,
+            expr,
+        )
 
 
 RE_PROPERTY = re.compile(r"[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*")
@@ -836,10 +917,26 @@ class Filter:
                             # A named or keyword argument
                             stream.next()  # skip = or :
                             stream.next()
-                            filter_arguments.append(
-                                KeywordArgument(
-                                    token.value, parse_primitive(env, stream.current())
+
+                            if stream.peek().type_ == TokenType.ARROW:
+                                filter_arguments.append(
+                                    KeywordArgument(
+                                        token.value,
+                                        ArrowFunction.parse(env, stream),
+                                    )
                                 )
+                            else:
+                                filter_arguments.append(
+                                    KeywordArgument(
+                                        token.value,
+                                        parse_primitive(env, stream.current()),
+                                    )
+                                )
+                        elif stream.peek().type_ == TokenType.ARROW:
+                            # A positional argument that is an arrow function with a
+                            # single parameter.
+                            filter_arguments.append(
+                                PositionalArgument(ArrowFunction.parse(env, stream))
                             )
                         else:
                             # A positional query that is a single word
@@ -864,9 +961,16 @@ class Filter:
                         TokenType.FALSE,
                         TokenType.TRUE,
                         TokenType.NULL,
+                        TokenType.RANGE,
                     ):
                         filter_arguments.append(
                             PositionalArgument(parse_primitive(env, stream.current()))
+                        )
+                    elif token.type_ == TokenType.LPAREN:
+                        # A positional argument that is an arrow function with
+                        # parameters surrounded by parentheses.
+                        filter_arguments.append(
+                            PositionalArgument(ArrowFunction.parse(env, stream))
                         )
                     elif token.type_ == TokenType.COMMA:
                         # Leading, trailing and duplicate commas are OK

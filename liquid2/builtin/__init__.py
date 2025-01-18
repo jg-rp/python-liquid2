@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 from .comment import Comment
 from .content import Content
+from .expressions import ArrowFunction
 from .expressions import Blank
 from .expressions import BooleanExpression
 from .expressions import Continue
@@ -47,7 +48,7 @@ from .filters.array import concat
 from .filters.array import first
 from .filters.array import join
 from .filters.array import last
-from .filters.array import map_
+from .filters.array import map_  # noqa: F401
 from .filters.array import reverse
 from .filters.array import sort
 from .filters.array import sort_natural
@@ -59,6 +60,7 @@ from .filters.babel import Currency
 from .filters.babel import DateTime
 from .filters.babel import Number
 from .filters.babel import Unit
+from .filters.map_arrow import MapFilter
 from .filters.math import abs_
 from .filters.math import at_least
 from .filters.math import at_most
@@ -145,6 +147,7 @@ if TYPE_CHECKING:
 
 __all__ = (
     "abs_",
+    "ArrowFunction",
     "AssignTag",
     "at_least",
     "at_most",
@@ -249,7 +252,8 @@ def register_default_tags_and_filters(env: Environment) -> None:  # noqa: PLR091
     env.filters["first"] = first
     env.filters["last"] = last
     env.filters["concat"] = concat
-    env.filters["map"] = map_
+    # env.filters["map"] = map_
+    env.filters["map"] = MapFilter()
     env.filters["reverse"] = reverse
     env.filters["sort"] = sort
     env.filters["sort_natural"] = sort_natural

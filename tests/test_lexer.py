@@ -204,18 +204,18 @@ TEST_CASES = [
     ),
     Case(
         name="arrow expression",
-        source="{% assign x | map: i => i.foo.bar %}",
-        want="{% assign x | map: i => i.foo.bar %}",
+        source="{% assign x = a | map: i => i.foo.bar %}",
+        want="{% assign x = a | map: i => i.foo.bar %}",
     ),
     Case(
         name="arrow expression, two arguments",
-        source="{% assign x | map: (item, index) => item.foo.bar %}",
-        want="{% assign x | map: (item, index) => item.foo.bar %}",
+        source="{% assign x = a | map: (item, index) => item.foo.bar %}",
+        want="{% assign x = a | map: (item, index) => item.foo.bar %}",
     ),
     Case(
         name="range expression as filter argument",
-        source="{% assign x | foo: (1..4) %}",
-        want="{% assign x | foo: (1..4) %}",
+        source="{% assign x = a | foo: (1..4) %}",
+        want="{% assign x = a | foo: (1..4) %}",
     ),
 ]
 

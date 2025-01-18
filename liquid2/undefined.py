@@ -109,6 +109,7 @@ class StrictUndefined(Undefined):
     allowed_properties = frozenset(
         [
             "__repr__",
+            "__class__",
             "force_liquid_default",
             "name",
             "hint",

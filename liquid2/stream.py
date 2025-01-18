@@ -50,6 +50,11 @@ class TokenStream:
         except IndexError:
             return self.eoi
 
+    def backup(self) -> None:
+        """Go back one token."""
+        if self.pos != 0:
+            self.pos -= 1
+
     def expect(self, typ: TokenType) -> None:
         """Raise a _LiquidSyntaxError_ if the current token type doesn't match _typ_."""
         token = self.current()
