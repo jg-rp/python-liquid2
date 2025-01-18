@@ -245,7 +245,7 @@ class IncludeTag(Tag):
         ):
             tokens.next()  # Move past "for"
             loop = True
-            var = parse_primitive(tokens.next())
+            var = parse_primitive(self.env, tokens.next())
             if tokens.current().type_ == TokenType.AS:
                 tokens.next()  # Move past "as"
                 alias = parse_string_or_identifier(tokens.next())
@@ -254,11 +254,11 @@ class IncludeTag(Tag):
             TokenType.COMMA,
         ):
             tokens.next()  # Move past "with"
-            var = parse_primitive(tokens.next())
+            var = parse_primitive(self.env, tokens.next())
             if tokens.current().type_ == TokenType.AS:
                 tokens.next()  # Move past "as"
                 alias = parse_string_or_identifier(tokens.next())
 
-        args = parse_keyword_arguments(tokens)
+        args = parse_keyword_arguments(self.env, tokens)
         tokens.expect_eos()
         return self.node_class(token, name, loop=loop, var=var, alias=alias, args=args)

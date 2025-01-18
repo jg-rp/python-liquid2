@@ -38,6 +38,7 @@ from liquid2.limits import to_int
 from liquid2.unescape import unescape
 
 if TYPE_CHECKING:
+    from liquid2 import Environment
     from liquid2 import OutputToken
     from liquid2 import PathT
     from liquid2 import RenderContext
@@ -333,12 +334,12 @@ class ArrayLiteral(Expression):
         return self.items
 
     @staticmethod
-    def parse(stream: TokenStream, left: Expression) -> ArrayLiteral:
+    def parse(env: Environment, stream: TokenStream, left: Expression) -> ArrayLiteral:
         items: list[Expression] = [left]
         while stream.current().type_ == TokenType.COMMA:
             stream.next()  # ignore comma
             try:
-                items.append(parse_primitive(stream.current()))
+                items.append(parse_primitive(env, stream.current()))
                 stream.next()
             except LiquidSyntaxError:
                 # Trailing commas are OK.
@@ -349,7 +350,9 @@ class ArrayLiteral(Expression):
 class TemplateString(Expression):
     __slots__ = ("template",)
 
-    def __init__(self, token: TokenT, template: list[Token | OutputToken]):
+    def __init__(
+        self, env: Environment, token: TokenT, template: list[Token | OutputToken]
+    ):
         super().__init__(token)
         self.template: list[Expression] = []
 
@@ -366,7 +369,7 @@ class TemplateString(Expression):
                 )
             elif is_output_token(_token):
                 self.template.append(
-                    FilteredExpression.parse(TokenStream(_token.expression))
+                    FilteredExpression.parse(env, TokenStream(_token.expression))
                 )
             else:
                 raise LiquidSyntaxError(
@@ -532,24 +535,26 @@ class FilteredExpression(Expression):
         return children
 
     @staticmethod
-    def parse(stream: TokenStream) -> FilteredExpression | TernaryFilteredExpression:
+    def parse(
+        env: Environment, stream: TokenStream
+    ) -> FilteredExpression | TernaryFilteredExpression:
         """Return a new FilteredExpression parsed from _stream_."""
-        left = parse_primitive(stream.next())
+        left = parse_primitive(env, stream.next())
         if stream.current().type_ == TokenType.COMMA:
             # Array literal syntax
-            left = ArrayLiteral.parse(stream, left)
-        filters = Filter.parse(stream, delim=(TokenType.PIPE,))
+            left = ArrayLiteral.parse(env, stream, left)
+        filters = Filter.parse(env, stream, delim=(TokenType.PIPE,))
 
         if is_token_type(stream.current(), TokenType.IF):
             return TernaryFilteredExpression.parse(
-                FilteredExpression(left.token, left, filters), stream
+                env, FilteredExpression(left.token, left, filters), stream
             )
 
         stream.expect_eos()
         return FilteredExpression(left.token, left, filters)
 
 
-def parse_primitive(token: TokenT) -> Expression:  # noqa: PLR0911
+def parse_primitive(env: Environment, token: TokenT) -> Expression:  # noqa: PLR0911
     """Parse _token_ as a primitive expression."""
     if is_token_type(token, TokenType.TRUE):
         return TrueLiteral(token=token)
@@ -582,14 +587,16 @@ def parse_primitive(token: TokenT) -> Expression:  # noqa: PLR0911
         )
 
     if is_template_string_token(token):
-        return TemplateString(token, token.template)
+        return TemplateString(env, token, token.template)
 
     if is_path_token(token):
         return Path(token, token.path)
 
     if is_range_token(token):
         return RangeLiteral(
-            token, parse_primitive(token.range_start), parse_primitive(token.range_stop)
+            token,
+            parse_primitive(env, token.range_start),
+            parse_primitive(env, token.range_stop),
         )
 
     raise LiquidSyntaxError(
@@ -684,26 +691,26 @@ class TernaryFilteredExpression(Expression):
 
     @staticmethod
     def parse(
-        expr: FilteredExpression, stream: TokenStream
+        env: Environment, expr: FilteredExpression, stream: TokenStream
     ) -> TernaryFilteredExpression:
         """Return a new TernaryFilteredExpression parsed from tokens in _stream_."""
         stream.expect(TokenType.IF)
         stream.next()  # move past `if`
-        condition = BooleanExpression.parse(stream, inline=True)
+        condition = BooleanExpression.parse(env, stream, inline=True)
         alternative: Expression | None = None
         filters: list[Filter] | None = None
         tail_filters: list[Filter] | None = None
 
         if is_token_type(stream.current(), TokenType.ELSE):
             stream.next()  # move past `else`
-            alternative = parse_primitive(stream.next())
+            alternative = parse_primitive(env, stream.next())
 
             if stream.current().type_ == TokenType.PIPE:
-                filters = Filter.parse(stream, delim=(TokenType.PIPE,))
+                filters = Filter.parse(env, stream, delim=(TokenType.PIPE,))
 
         if stream.current().type_ == TokenType.DOUBLE_PIPE:
             tail_filters = Filter.parse(
-                stream, delim=(TokenType.PIPE, TokenType.DOUBLE_PIPE)
+                env, stream, delim=(TokenType.PIPE, TokenType.DOUBLE_PIPE)
             )
 
         stream.expect_eos()
@@ -786,6 +793,7 @@ class Filter:
 
     @staticmethod
     def parse(  # noqa: PLR0912
+        env: Environment,
         stream: TokenStream,
         *,
         delim: tuple[TokenType, ...],
@@ -814,7 +822,7 @@ class Filter:
                             stream.next()
                             filter_arguments.append(
                                 KeywordArgument(
-                                    token.value, parse_primitive(stream.current())
+                                    token.value, parse_primitive(env, stream.current())
                                 )
                             )
                         else:
@@ -824,7 +832,9 @@ class Filter:
                             )
                     elif is_template_string_token(token):
                         filter_arguments.append(
-                            PositionalArgument(TemplateString(token, token.template))
+                            PositionalArgument(
+                                TemplateString(env, token, token.template)
+                            )
                         )
                     elif is_path_token(token):
                         filter_arguments.append(
@@ -840,7 +850,7 @@ class Filter:
                         TokenType.NULL,
                     ):
                         filter_arguments.append(
-                            PositionalArgument(parse_primitive(stream.current()))
+                            PositionalArgument(parse_primitive(env, stream.current()))
                         )
                     elif token.type_ == TokenType.COMMA:
                         # Leading, trailing and duplicate commas are OK
@@ -949,13 +959,15 @@ class BooleanExpression(Expression):
         return is_truthy(await self.expression.evaluate_async(context))
 
     @staticmethod
-    def parse(stream: TokenStream, *, inline: bool = False) -> BooleanExpression:
+    def parse(
+        env: Environment, stream: TokenStream, *, inline: bool = False
+    ) -> BooleanExpression:
         """Return a new BooleanExpression parsed from tokens in _stream_.
 
         If _inline_ is `False`, we expect the stream to be empty after parsing
         a Boolean expression and will raise a syntax error if it's not.
         """
-        expr = parse_boolean_primitive(stream)
+        expr = parse_boolean_primitive(env, stream)
         if not inline:
             stream.expect_eos()
         return BooleanExpression(expr.token, expr)
@@ -1004,7 +1016,7 @@ BINARY_OPERATORS = frozenset(
 
 
 def parse_boolean_primitive(  # noqa: PLR0912
-    stream: TokenStream, precedence: int = PRECEDENCE_LOWEST
+    env: Environment, stream: TokenStream, precedence: int = PRECEDENCE_LOWEST
 ) -> Expression:
     """Parse a Boolean expression from tokens in _stream_."""
     left: Expression
@@ -1034,17 +1046,19 @@ def parse_boolean_primitive(  # noqa: PLR0912
             token, unescape(token.value.replace("\\'", "'"), token=token)
         )
     elif is_template_string_token(token):
-        left = TemplateString(token, token.template)
+        left = TemplateString(env, token, token.template)
     elif is_path_token(token):
         left = Path(token, token.path)
     elif is_range_token(token):
         left = RangeLiteral(
-            token, parse_primitive(token.range_start), parse_primitive(token.range_stop)
+            token,
+            parse_primitive(env, token.range_start),
+            parse_primitive(env, token.range_stop),
         )
     elif is_token_type(token, TokenType.NOT_WORD):
-        left = LogicalNotExpression.parse(stream)
+        left = LogicalNotExpression.parse(env, stream)
     elif is_token_type(token, TokenType.LPAREN):
-        left = parse_grouped_expression(stream)
+        left = parse_grouped_expression(env, stream)
     else:
         raise LiquidSyntaxError(
             f"expected a primitive expression, found {token.type_.name}",
@@ -1062,12 +1076,14 @@ def parse_boolean_primitive(  # noqa: PLR0912
         if token.type_ not in BINARY_OPERATORS:
             return left
 
-        left = parse_infix_expression(stream, left)
+        left = parse_infix_expression(env, stream, left)
 
     return left
 
 
-def parse_infix_expression(stream: TokenStream, left: Expression) -> Expression:  # noqa: PLR0911
+def parse_infix_expression(
+    env: Environment, stream: TokenStream, left: Expression
+) -> Expression:  # noqa: PLR0911
     """Return a logical, comparison, or membership expression parsed from _stream_."""
     token = stream.next()
     assert token is not None
@@ -1076,43 +1092,43 @@ def parse_infix_expression(stream: TokenStream, left: Expression) -> Expression:
     match token.type_:
         case TokenType.EQ:
             return EqExpression(
-                token, left, parse_boolean_primitive(stream, precedence)
+                token, left, parse_boolean_primitive(env, stream, precedence)
             )
         case TokenType.LT:
             return LtExpression(
-                token, left, parse_boolean_primitive(stream, precedence)
+                token, left, parse_boolean_primitive(env, stream, precedence)
             )
         case TokenType.GT:
             return GtExpression(
-                token, left, parse_boolean_primitive(stream, precedence)
+                token, left, parse_boolean_primitive(env, stream, precedence)
             )
         case TokenType.NE:
             return NeExpression(
-                token, left, parse_boolean_primitive(stream, precedence)
+                token, left, parse_boolean_primitive(env, stream, precedence)
             )
         case TokenType.LE:
             return LeExpression(
-                token, left, parse_boolean_primitive(stream, precedence)
+                token, left, parse_boolean_primitive(env, stream, precedence)
             )
         case TokenType.GE:
             return GeExpression(
-                token, left, parse_boolean_primitive(stream, precedence)
+                token, left, parse_boolean_primitive(env, stream, precedence)
             )
         case TokenType.CONTAINS:
             return ContainsExpression(
-                token, left, parse_boolean_primitive(stream, precedence)
+                token, left, parse_boolean_primitive(env, stream, precedence)
             )
         case TokenType.IN:
             return InExpression(
-                token, left, parse_boolean_primitive(stream, precedence)
+                token, left, parse_boolean_primitive(env, stream, precedence)
             )
         case TokenType.AND_WORD:
             return LogicalAndExpression(
-                token, left, parse_boolean_primitive(stream, precedence)
+                token, left, parse_boolean_primitive(env, stream, precedence)
             )
         case TokenType.OR_WORD:
             return LogicalOrExpression(
-                token, left, parse_boolean_primitive(stream, precedence)
+                token, left, parse_boolean_primitive(env, stream, precedence)
             )
         case _:
             raise LiquidSyntaxError(
@@ -1121,9 +1137,9 @@ def parse_infix_expression(stream: TokenStream, left: Expression) -> Expression:
             )
 
 
-def parse_grouped_expression(stream: TokenStream) -> Expression:
+def parse_grouped_expression(env: Environment, stream: TokenStream) -> Expression:
     """Parse an expression from tokens in _stream_ until the next right parenthesis."""
-    expr = parse_boolean_primitive(stream)
+    expr = parse_boolean_primitive(env, stream)
     token = stream.next()
 
     while token.type_ != TokenType.RPAREN:
@@ -1137,7 +1153,7 @@ def parse_grouped_expression(stream: TokenStream) -> Expression:
                 token=token,
             )
 
-        expr = parse_infix_expression(stream, expr)
+        expr = parse_infix_expression(env, stream, expr)
 
     if token.type_ != TokenType.RPAREN:
         raise LiquidSyntaxError("unbalanced parentheses", token=token)
@@ -1162,8 +1178,8 @@ class LogicalNotExpression(Expression):
         return not is_truthy(await self.expression.evaluate_async(context))
 
     @staticmethod
-    def parse(stream: TokenStream) -> Expression:
-        expr = parse_boolean_primitive(stream)
+    def parse(env: Environment, stream: TokenStream) -> Expression:
+        expr = parse_boolean_primitive(env, stream)
         return LogicalNotExpression(expr.token, expr)
 
     def children(self) -> list[Expression]:
@@ -1593,14 +1609,14 @@ class LoopExpression(Expression):
         return children
 
     @staticmethod
-    def parse(stream: TokenStream) -> LoopExpression:
+    def parse(env: Environment, stream: TokenStream) -> LoopExpression:
         """Parse tokens from _stream_ as a for loop expression."""
         token = stream.current()
         identifier = parse_identifier(token)
         stream.next()
         stream.expect(TokenType.IN)
         stream.next()  # Move past 'in'
-        iterable = parse_primitive(stream.next())
+        iterable = parse_primitive(env, stream.next())
 
         # We're looking for a comma that isn't followed by a known keyword.
         # This means we have an array literal.
@@ -1617,7 +1633,7 @@ class LoopExpression(Expression):
                 )
             ):
                 # Array literal syntax
-                iterable = ArrayLiteral.parse(stream, iterable)
+                iterable = ArrayLiteral.parse(env, stream, iterable)
                 # Arguments are not allowed to follow an array literal.
                 stream.expect_eos()
                 return LoopExpression(
@@ -1645,11 +1661,11 @@ class LoopExpression(Expression):
                     case "limit":
                         stream.expect_one_of(TokenType.COLON, TokenType.ASSIGN)
                         stream.next()
-                        limit = parse_primitive(stream.next())
+                        limit = parse_primitive(env, stream.next())
                     case "cols":
                         stream.expect_one_of(TokenType.COLON, TokenType.ASSIGN)
                         stream.next()
-                        cols = parse_primitive(stream.next())
+                        cols = parse_primitive(env, stream.next())
                     case "offset":
                         stream.expect_one_of(TokenType.COLON, TokenType.ASSIGN)
                         stream.next()
@@ -1660,7 +1676,7 @@ class LoopExpression(Expression):
                         ):
                             offset = StringLiteral(token=offset_token, value="continue")
                         else:
-                            offset = parse_primitive(offset_token)
+                            offset = parse_primitive(env, offset_token)
                     case _:
                         raise LiquidSyntaxError(
                             "expected 'reversed', 'offset' or 'limit', ",
@@ -1773,7 +1789,9 @@ def parse_string_or_path(token: TokenT) -> StringLiteral | Path:
     )
 
 
-def parse_keyword_arguments(tokens: TokenStream) -> list[KeywordArgument]:
+def parse_keyword_arguments(
+    env: Environment, tokens: TokenStream
+) -> list[KeywordArgument]:
     """Parse _tokens_ into a list or keyword arguments.
 
     Argument keys and values can be separated by a colon (`:`) or an equals sign
@@ -1794,7 +1812,7 @@ def parse_keyword_arguments(tokens: TokenStream) -> list[KeywordArgument]:
         if is_token_type(token, TokenType.WORD):
             tokens.expect_one_of(TokenType.COLON, TokenType.ASSIGN)
             tokens.next()  # Move past ":" or "="
-            value = parse_primitive(tokens.next())
+            value = parse_primitive(env, tokens.next())
             args.append(KeywordArgument(token.value, value))
         else:
             raise LiquidSyntaxError(
@@ -1806,6 +1824,7 @@ def parse_keyword_arguments(tokens: TokenStream) -> list[KeywordArgument]:
 
 
 def parse_positional_and_keyword_arguments(
+    env: Environment,
     tokens: TokenStream,
 ) -> tuple[list[PositionalArgument], list[KeywordArgument]]:
     """Parse _tokens_ into a lists of keyword and positional arguments.
@@ -1832,16 +1851,16 @@ def parse_positional_and_keyword_arguments(
         ):
             # A keyword argument
             tokens.next()  # Move past ":" or "="
-            value = parse_primitive(tokens.next())
+            value = parse_primitive(env, tokens.next())
             kwargs.append(KeywordArgument(token.value, value))
         else:
             # A primitive as a positional argument
-            args.append(PositionalArgument(parse_primitive(token)))
+            args.append(PositionalArgument(parse_primitive(env, token)))
 
     return args, kwargs
 
 
-def parse_parameters(tokens: TokenStream) -> dict[str, Parameter]:
+def parse_parameters(env: Environment, tokens: TokenStream) -> dict[str, Parameter]:
     """Parse _tokens_ as a list of arguments suitable for a macro definition."""
     params: dict[str, Parameter] = {}
 
@@ -1862,7 +1881,7 @@ def parse_parameters(tokens: TokenStream) -> dict[str, Parameter]:
             ):
                 # A parameter with a default value
                 tokens.next()  # Move past ":" or "="
-                value = parse_primitive(tokens.next())
+                value = parse_primitive(env, tokens.next())
                 params[token.value] = Parameter(token, token.value, value)
             else:
                 params[token.value] = Parameter(token, token.value, None)

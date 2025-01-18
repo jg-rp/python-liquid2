@@ -126,7 +126,7 @@ class CaseTag(Tag):
         token = stream.current()
         assert isinstance(token, TagToken)
         expr_stream = stream.into_inner()
-        left = parse_primitive(expr_stream.next())
+        left = parse_primitive(self.env, expr_stream.next())
         expr_stream.expect_eos()
 
         # Check for content or markup between the _case_ tag and the first _when_ or
@@ -194,10 +194,10 @@ class CaseTag(Tag):
         )
 
     def _parse_when_expression(self, stream: TokenStream) -> list[Expression]:
-        expressions: list[Expression] = [parse_primitive(stream.next())]
+        expressions: list[Expression] = [parse_primitive(self.env, stream.next())]
         while stream.current().type_ in (TokenType.COMMA, TokenType.OR_WORD):
             stream.next()
-            expressions.append(parse_primitive(stream.next()))
+            expressions.append(parse_primitive(self.env, stream.next()))
         stream.expect_eos()
         return expressions
 

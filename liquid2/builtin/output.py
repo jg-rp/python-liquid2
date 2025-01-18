@@ -74,5 +74,5 @@ class Output(Tag):
             raise LiquidSyntaxError("missing expression", token=token)
 
         return self.node_class(
-            token, FilteredExpression.parse(TokenStream(token.expression))
+            token, FilteredExpression.parse(self.env, TokenStream(token.expression))
         )

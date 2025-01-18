@@ -96,7 +96,7 @@ class CycleTag(Tag):
         items: list[Expression] = []
 
         # We must have at least one item
-        items.append(parse_primitive(expr_stream.next()))
+        items.append(parse_primitive(self.env, expr_stream.next()))
 
         while True:
             item_token = expr_stream.next()
@@ -117,6 +117,6 @@ class CycleTag(Tag):
             if item_token.type_ == TokenType.EOI:
                 break
 
-            items.append(parse_primitive(item_token))
+            items.append(parse_primitive(self.env, item_token))
 
         return self.node_class(token, name, items)

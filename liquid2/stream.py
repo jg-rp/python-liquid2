@@ -20,11 +20,12 @@ if TYPE_CHECKING:
 class TokenStream:
     """Step through a stream of tokens."""
 
+    eoi = Token(type_=TokenType.EOI, value="", index=-1, source="")
+
     def __init__(self, tokens: Sequence[TokenT]) -> None:
         self.tokens = tokens
         self.pos = 0
         self.trim_carry = WhitespaceControl.DEFAULT
-        self.eoi = Token(type_=TokenType.EOI, value="", index=-1, source="")
 
     def current(self) -> TokenT:
         """Return the item at self[0] without advancing the iterator."""

@@ -86,5 +86,5 @@ class AssignTag(Tag):
         return self.node_class(
             token,
             name=name,
-            expression=FilteredExpression.parse(expr_stream),
+            expression=FilteredExpression.parse(self.env, expr_stream),
         )

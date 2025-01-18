@@ -91,7 +91,7 @@ class WithTag(Tag):
         assert isinstance(token, TagToken)
 
         tokens = TokenStream(token.expression)
-        args = parse_keyword_arguments(tokens)
+        args = parse_keyword_arguments(self.env, tokens)
         block = BlockNode(
             stream.current(), self.env.parser.parse_block(stream, ("endwith",))
         )

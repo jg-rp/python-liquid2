@@ -201,7 +201,7 @@ class TablerowTag(Tag):
         if not token.expression:
             raise LiquidSyntaxError("missing expression", token=token)
 
-        expression = LoopExpression.parse(TokenStream(token.expression))
+        expression = LoopExpression.parse(self.env, TokenStream(token.expression))
         block_token = stream.current()
         assert block_token is not None
         block = BlockNode(
