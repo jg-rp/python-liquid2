@@ -1,4 +1,4 @@
-"""An implementation of the `map` filter that accepts lambda expressions."""
+"""An implementation of the `where` filter that accepts lambda expressions."""
 
 from __future__ import annotations
 
@@ -8,11 +8,9 @@ from typing import Any
 from typing import Iterable
 
 from liquid2.builtin import LambdaExpression
-from liquid2.builtin import Null
-from liquid2.builtin import Path
 from liquid2.builtin import PositionalArgument
+from liquid2.builtin.expressions import is_truthy
 from liquid2.exceptions import LiquidSyntaxError
-from liquid2.exceptions import LiquidTypeError
 from liquid2.filter import sequence_arg
 from liquid2.undefined import is_undefined
 
@@ -23,21 +21,8 @@ if TYPE_CHECKING:
     from liquid2.builtin import KeywordArgument
 
 
-class _Null:
-    """A null without a token for use by the map filter."""
-
-    def __eq__(self, other: object) -> bool:
-        return other is None or isinstance(other, (_Null, Null))
-
-    def __str__(self) -> str:  # pragma: no cover
-        return ""
-
-
-_NULL = _Null()
-
-
 def _getitem(sequence: Any, key: object, default: object = None) -> Any:
-    """Helper for the map filter.
+    """Helper for the where filter.
 
     Same as sequence[key], but returns a default value if key does not exist
     in sequence.
@@ -52,8 +37,8 @@ def _getitem(sequence: Any, key: object, default: object = None) -> Any:
         return default
 
 
-class MapFilter:
-    """An implementation of the `map` filter that accepts lambda expressions."""
+class WhereFilter:
+    """An implementation of the `where` filter that accepts lambda expressions."""
 
     with_context = True
 
@@ -65,31 +50,25 @@ class MapFilter:
         args: list[KeywordArgument | PositionalArgument],
     ) -> None:
         """Raise a `LiquidSyntaxError` if _args_ are not valid."""
-        if len(args) != 1:
+        if len(args) not in (1, 2):
             raise LiquidSyntaxError(
-                f"{name!r} expects exactly one argument, got {len(args)}",
-                token=token,
-            )
-
-        if not isinstance(args[0], PositionalArgument):
-            raise LiquidSyntaxError(
-                f"{name!r} takes no keyword arguments",
+                f"{name!r} expects one or two arguments, got {len(args)}",
                 token=token,
             )
 
         arg = args[0].value
 
-        if isinstance(arg, LambdaExpression) and not isinstance(arg.expression, Path):
+        if isinstance(arg, LambdaExpression) and len(args) != 1:
             raise LiquidSyntaxError(
-                f"{name!r} expects a path to a variable, "
-                f"got {arg.expression.__class__.__name__}",
-                token=arg.expression.token,
+                f"{name!r} expects one argument when given a lambda expressions",
+                token=args[1].token,
             )
 
     def __call__(
         self,
         left: Iterable[object],
         first: str | LambdaExpression,
+        value: object = None,
         *,
         context: RenderContext,
     ) -> list[object]:
@@ -105,18 +84,21 @@ class MapFilter:
                 with context.extend(scope):
                     for item in left:
                         scope[param] = item
-                        items.append(first.expression.evaluate(context))
+                        rv = first.expression.evaluate(context)
+                        if not is_undefined(rv) and is_truthy(rv):
+                            items.append(item)
             else:
                 name_param, index_param = first.params[:2]
                 with context.extend(scope):
                     for index, item in enumerate(left):
                         scope[index_param] = index
                         scope[name_param] = item
-                        items.append(first.expression.evaluate(context))
+                        rv = first.expression.evaluate(context)
+                        if not is_undefined(rv) and is_truthy(rv):
+                            items.append(item)
 
-            return [_NULL if is_undefined(item) else item for item in items]
+            return items
 
-        try:
-            return [_getitem(itm, str(first), default=_NULL) for itm in left]
-        except TypeError as err:
-            raise LiquidTypeError("can't map sequence", token=None) from err
+        if value is not None and not is_undefined(value):
+            return [itm for itm in left if _getitem(itm, first) == value]
+        return [itm for itm in left if _getitem(itm, first) not in (False, None)]

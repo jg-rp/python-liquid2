@@ -411,7 +411,7 @@ class TemplateString(Expression):
         return self.template
 
 
-class ArrowFunction(Expression):
+class LambdaExpression(Expression):
     __slots__ = ("params", "expression")
 
     def __init__(self, token: TokenT, params: list[Identifier], expression: Expression):
@@ -439,7 +439,7 @@ class ArrowFunction(Expression):
         return [self.expression]
 
     @staticmethod
-    def parse(env: Environment, stream: TokenStream) -> ArrowFunction:
+    def parse(env: Environment, stream: TokenStream) -> LambdaExpression:
         """Parse an arrow function from tokens in _stream_."""
         token = stream.next()
 
@@ -449,7 +449,7 @@ class ArrowFunction(Expression):
             stream.next()
             expr = parse_boolean_primitive(env, stream)
             stream.backup()
-            return ArrowFunction(
+            return LambdaExpression(
                 token,
                 [parse_identifier(token)],
                 expr,
@@ -470,7 +470,7 @@ class ArrowFunction(Expression):
         expr = parse_boolean_primitive(env, stream)
         stream.backup()
 
-        return ArrowFunction(
+        return LambdaExpression(
             token,
             params,
             expr,
@@ -907,7 +907,7 @@ class Filter:
                                 filter_arguments.append(
                                     KeywordArgument(
                                         token.value,
-                                        ArrowFunction.parse(env, stream),
+                                        LambdaExpression.parse(env, stream),
                                     )
                                 )
                             else:
@@ -921,7 +921,7 @@ class Filter:
                             # A positional argument that is an arrow function with a
                             # single parameter.
                             filter_arguments.append(
-                                PositionalArgument(ArrowFunction.parse(env, stream))
+                                PositionalArgument(LambdaExpression.parse(env, stream))
                             )
                         else:
                             # A positional query that is a single word
@@ -955,7 +955,7 @@ class Filter:
                         # A positional argument that is an arrow function with
                         # parameters surrounded by parentheses.
                         filter_arguments.append(
-                            PositionalArgument(ArrowFunction.parse(env, stream))
+                            PositionalArgument(LambdaExpression.parse(env, stream))
                         )
                     elif token.type_ == TokenType.COMMA:
                         # Leading, trailing and duplicate commas are OK

@@ -235,6 +235,12 @@ def test_strict_undefined_with_default() -> None:
     assert template.render() == "hello"
 
 
+def test_where_filter_lambda_with_strict_undefined() -> None:
+    env = Environment(undefined=StrictUndefined)
+    template = env.from_string("{{ (1..3) | where: i => i.nosuchthing | join: '#' }}")
+    assert template.render() == ""
+
+
 def test_strict_undefined_magic() -> None:
     undefined = StrictUndefined("test", token=None)
 

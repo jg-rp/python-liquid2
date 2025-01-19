@@ -3341,6 +3341,54 @@
       "invalid": true
     },
     {
+      "name": "filters, sort, array of objects, lambda expression",
+      "template": "{% assign x = a | sort: i => i.user.title %}{% for obj in x %}{% for i in obj %}({{ i[0] }}.title,{{ i[1].title }}){% endfor %}{% endfor %}",
+      "data": {
+        "a": [
+          {
+            "user": {
+              "title": "foo"
+            }
+          },
+          {
+            "user": {
+              "title": "bar"
+            }
+          },
+          {
+            "user": {
+              "title": "Baz"
+            }
+          }
+        ]
+      },
+      "result": "(user.title,Baz)(user.title,bar)(user.title,foo)"
+    },
+    {
+      "name": "filters, sort, array of objects, lambda expression, all missing",
+      "template": "{% assign x = a | sort: i => i.user.foo %}{% for obj in x %}{% for i in obj %}({{ i[0] }}.title,{{ i[1].title }}){% endfor %}{% endfor %}",
+      "data": {
+        "a": [
+          {
+            "user": {
+              "title": "foo"
+            }
+          },
+          {
+            "user": {
+              "title": "bar"
+            }
+          },
+          {
+            "user": {
+              "title": "Baz"
+            }
+          }
+        ]
+      },
+      "result": "(user.title,foo)(user.title,bar)(user.title,Baz)"
+    },
+    {
       "name": "filters, sort natural, array of strings",
       "template": "{{ a | sort_natural | join: '#' }}",
       "data": {
@@ -3474,6 +3522,54 @@
         ]
       },
       "result": "14{}"
+    },
+    {
+      "name": "filters, sort natural, array of objects, lambda expression",
+      "template": "{% assign x = a | sort_natural: i => i.user.title %}{% for obj in x %}{% for i in obj %}({{ i[0] }}.title,{{ i[1].title }}){% endfor %}{% endfor %}",
+      "data": {
+        "a": [
+          {
+            "user": {
+              "title": "foo"
+            }
+          },
+          {
+            "user": {
+              "title": "bar"
+            }
+          },
+          {
+            "user": {
+              "title": "Baz"
+            }
+          }
+        ]
+      },
+      "result": "(user.title,bar)(user.title,Baz)(user.title,foo)"
+    },
+    {
+      "name": "filters, sort natural, array of objects, lambda expression, all missing",
+      "template": "{% assign x = a | sort_natural: i => i.user.foo %}{% for obj in x %}{% for i in obj %}({{ i[0] }}.title,{{ i[1].title }}){% endfor %}{% endfor %}",
+      "data": {
+        "a": [
+          {
+            "user": {
+              "title": "foo"
+            }
+          },
+          {
+            "user": {
+              "title": "bar"
+            }
+          },
+          {
+            "user": {
+              "title": "Baz"
+            }
+          }
+        ]
+      },
+      "result": "(user.title,foo)(user.title,bar)(user.title,Baz)"
     },
     {
       "name": "filters, split, split string",
@@ -4374,6 +4470,24 @@
       "invalid": true
     },
     {
+      "name": "filters, where, arrow function, two arguments",
+      "template": "{{ a | i => i.foo.bar, x }}",
+      "data": {
+        "a": [
+          {
+            "title": "foo"
+          },
+          {
+            "title": "bar"
+          },
+          {
+            "title": null
+          }
+        ]
+      },
+      "invalid": true
+    },
+    {
       "name": "filters, where, left value is undefined",
       "template": "{{ nosuchthing | where: 'title' }}",
       "data": {},
@@ -4468,6 +4582,54 @@
         ]
       },
       "result": "(b,bar)"
+    },
+    {
+      "name": "filters, where, array of hashes, lambda expression",
+      "template": "{% assign x = a | where: i => i.user.title %}{% for obj in x %}{% for i in obj %}({{ i[0] }}.title,{{ i[1].title }}){% endfor %}{% endfor %}",
+      "data": {
+        "a": [
+          {
+            "user": {
+              "title": "foo"
+            }
+          },
+          {
+            "user": {
+              "title": "bar"
+            }
+          },
+          {
+            "user": {
+              "title": null
+            }
+          }
+        ]
+      },
+      "result": "(user.title,foo)(user.title,bar)"
+    },
+    {
+      "name": "filters, where, array of hashes, lambda expression, two arguments",
+      "template": "{% assign x = a | where: (item, index) => index > 0 %}{% for obj in x %}{% for i in obj %}({{ i[0] }}.title,{{ i[1].title }}){% endfor %}{% endfor %}",
+      "data": {
+        "a": [
+          {
+            "user": {
+              "title": "foo"
+            }
+          },
+          {
+            "user": {
+              "title": "bar"
+            }
+          },
+          {
+            "user": {
+              "title": null
+            }
+          }
+        ]
+      },
+      "result": "(user.title,bar)(user.title,)"
     },
     {
       "name": "tags, assign, string literal",

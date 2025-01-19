@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING
 
 from .comment import Comment
 from .content import Content
-from .expressions import ArrowFunction
 from .expressions import Blank
 from .expressions import BooleanExpression
 from .expressions import Continue
@@ -20,6 +19,7 @@ from .expressions import FloatLiteral
 from .expressions import Identifier
 from .expressions import IntegerLiteral
 from .expressions import KeywordArgument
+from .expressions import LambdaExpression
 from .expressions import Literal
 from .expressions import LogicalAndExpression
 from .expressions import LogicalNotExpression
@@ -50,12 +50,12 @@ from .filters.array import join
 from .filters.array import last
 from .filters.array import map_  # noqa: F401
 from .filters.array import reverse
-from .filters.array import sort
-from .filters.array import sort_natural
+from .filters.array import sort  # noqa: F401
+from .filters.array import sort_natural  # noqa: F401
 from .filters.array import sort_numeric
 from .filters.array import sum_
 from .filters.array import uniq
-from .filters.array import where
+from .filters.array import where  # noqa: F401
 from .filters.babel import Currency
 from .filters.babel import DateTime
 from .filters.babel import Number
@@ -76,6 +76,8 @@ from .filters.misc import JSON
 from .filters.misc import date
 from .filters.misc import default
 from .filters.misc import size
+from .filters.sort_arrow import SortFilter
+from .filters.sort_arrow import SortNaturalFilter
 from .filters.string import append
 from .filters.string import capitalize
 from .filters.string import downcase
@@ -108,6 +110,7 @@ from .filters.translate import NGetText
 from .filters.translate import NPGetText
 from .filters.translate import PGetText
 from .filters.translate import Translate
+from .filters.where_arrow import WhereFilter
 from .loaders.caching_file_system_loader import CachingFileSystemLoader
 from .loaders.choice_loader import CachingChoiceLoader
 from .loaders.choice_loader import ChoiceLoader
@@ -147,7 +150,7 @@ if TYPE_CHECKING:
 
 __all__ = (
     "abs_",
-    "ArrowFunction",
+    "LambdaExpression",
     "AssignTag",
     "at_least",
     "at_most",
@@ -255,11 +258,14 @@ def register_default_tags_and_filters(env: Environment) -> None:  # noqa: PLR091
     # env.filters["map"] = map_
     env.filters["map"] = MapFilter()
     env.filters["reverse"] = reverse
-    env.filters["sort"] = sort
-    env.filters["sort_natural"] = sort_natural
+    # env.filters["sort"] = sort
+    env.filters["sort"] = SortFilter()
+    # env.filters["sort_natural"] = sort_natural
+    env.filters["sort_natural"] = SortNaturalFilter()
     env.filters["sort_numeric"] = sort_numeric
     env.filters["sum"] = sum_
-    env.filters["where"] = where
+    # env.filters["where"] = where
+    env.filters["where"] = WhereFilter()
     env.filters["uniq"] = uniq
     env.filters["compact"] = compact
 
