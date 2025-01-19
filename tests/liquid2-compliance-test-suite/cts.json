@@ -2251,6 +2251,30 @@
       "result": "foo#bar#baz"
     },
     {
+      "name": "filters, map, array of objects, lambda expression, map to index",
+      "template": "{{ a | map: (i, j) => j | join: '#' }}",
+      "data": {
+        "a": [
+          {
+            "user": {
+              "title": "foo"
+            }
+          },
+          {
+            "user": {
+              "title": "bar"
+            }
+          },
+          {
+            "user": {
+              "title": "baz"
+            }
+          }
+        ]
+      },
+      "result": "0#1#2"
+    },
+    {
       "name": "filters, minus, integer value and integer arg",
       "template": "{{ 10 | minus: 2 }}",
       "data": {},

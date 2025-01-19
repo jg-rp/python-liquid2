@@ -160,6 +160,24 @@
         ]
       },
       "result": "foo#bar#baz"
+    },
+    {
+      "name": "array of objects, lambda expression, map to index",
+      "template": "{{ a | map: (i, j) => j | join: '#' }}",
+      "data": {
+        "a": [
+          {
+            "user": { "title": "foo" }
+          },
+          {
+            "user": { "title": "bar" }
+          },
+          {
+            "user": { "title": "baz" }
+          }
+        ]
+      },
+      "result": "0#1#2"
     }
   ]
 }

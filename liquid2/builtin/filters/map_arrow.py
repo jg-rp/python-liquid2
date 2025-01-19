@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from itertools import zip_longest
 from operator import getitem
 from typing import TYPE_CHECKING
 from typing import Any
@@ -89,24 +90,34 @@ class MapFilter:
     def __call__(
         self,
         left: Iterable[object],
-        expr: str | ArrowFunction,
+        arrow: str | ArrowFunction,
         *,
         context: RenderContext,
     ) -> list[object]:
         """Apply the filter and return the result."""
         left = sequence_arg(left)
-        if isinstance(expr, ArrowFunction):
-            if len(expr.params) == 1:
-                items = (expr.getitem(context, (item,)) for item in left)
+
+        if isinstance(arrow, ArrowFunction):
+            items: list[object] = []
+            scope: dict[str, object] = {}
+
+            if len(arrow.params) == 1:
+                param = arrow.params[0]
+                with context.extend(scope):
+                    for item in left:
+                        scope[param] = item
+                        items.append(arrow.expression.evaluate(context))
             else:
-                items = (
-                    expr.getitem(context, (item, index))
-                    for index, item in enumerate(left)
-                )
+                name_param, index_param = arrow.params[:2]
+                with context.extend(scope):
+                    for index, item in enumerate(left):
+                        scope[index_param] = index
+                        scope[name_param] = item
+                        items.append(arrow.expression.evaluate(context))
 
             return [_NULL if is_undefined(item) else item for item in items]
 
         try:
-            return [_getitem(itm, str(expr), default=_NULL) for itm in left]
+            return [_getitem(itm, str(arrow), default=_NULL) for itm in left]
         except TypeError as err:
             raise LiquidTypeError("can't map sequence", token=None) from err

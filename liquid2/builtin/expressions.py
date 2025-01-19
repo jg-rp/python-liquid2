@@ -6,12 +6,10 @@ import re
 import sys
 from decimal import Decimal
 from itertools import islice
-from itertools import zip_longest
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Collection
 from typing import Generic
-from typing import Iterable
 from typing import Iterator
 from typing import Mapping
 from typing import Sequence
@@ -439,19 +437,6 @@ class ArrowFunction(Expression):
         # XXX: This expression has its own scope, a scope that is not controlled by a
         # tag.
         return [self.expression]
-
-    def getitem(self, context: RenderContext, args: Iterable[object]) -> object:
-        with context.extend(dict(zip_longest(self.params, args))):
-            # XXX: Ignoring potential `None` keys.
-            return self.expression.evaluate(context)
-
-    async def getitem_async(
-        self, context: RenderContext, args: Iterable[object]
-    ) -> object:
-        # TODO: now we need async filters
-        with context.extend(dict(zip_longest(self.params, args))):
-            # XXX: Ignoring potential `None` keys.
-            return await self.expression.evaluate_async(context)
 
     @staticmethod
     def parse(env: Environment, stream: TokenStream) -> ArrowFunction:
