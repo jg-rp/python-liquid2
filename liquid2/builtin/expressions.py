@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 from typing import Any
 from typing import Collection
 from typing import Generic
+from typing import Iterable
 from typing import Iterator
 from typing import Mapping
 from typing import Sequence
@@ -437,6 +438,25 @@ class LambdaExpression(Expression):
         # XXX: This expression has its own scope, a scope that is not controlled by a
         # tag.
         return [self.expression]
+
+    def map(self, context: RenderContext, it: Iterable[object]) -> Iterator[object]:
+        """Return an iterator mapping this expression to items in _it_."""
+        scope: dict[str, object] = {}
+
+        if len(self.params) == 1:
+            param = self.params[0]
+            with context.extend(scope):
+                for item in it:
+                    scope[param] = item
+                    yield self.expression.evaluate(context)
+
+        else:
+            name_param, index_param = self.params[:2]
+            with context.extend(scope):
+                for index, item in enumerate(it):
+                    scope[index_param] = index
+                    scope[name_param] = item
+                    yield self.expression.evaluate(context)
 
     @staticmethod
     def parse(env: Environment, stream: TokenStream) -> LambdaExpression:

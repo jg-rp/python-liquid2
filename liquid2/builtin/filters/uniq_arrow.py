@@ -65,36 +65,17 @@ class UniqFilter:
 
         # Note that we're not using a dict or set for deduplication because we need
         # to handle sequences containing unhashable objects, like dictionaries and
-        # lists.
-
-        # This is probably quite slow.
+        # lists. This is probably quite slow.
 
         if isinstance(key, LambdaExpression):
             keys: list[object] = []
             items: list[object] = []
-            scope: dict[str, object] = {}
 
-            if len(key.params) == 1:
-                param = key.params[0]
-                with context.extend(scope):
-                    for item in left:
-                        scope[param] = item
-                        rv = key.expression.evaluate(context)
-                        current_key = MISSING if is_undefined(rv) else rv
-                        if current_key not in keys:
-                            keys.append(current_key)
-                            items.append(item)
-            else:
-                name_param, index_param = key.params[:2]
-                with context.extend(scope):
-                    for index, item in enumerate(left):
-                        scope[index_param] = index
-                        scope[name_param] = item
-                        rv = key.expression.evaluate(context)
-                        current_key = MISSING if is_undefined(rv) else rv
-                        if current_key not in keys:
-                            keys.append(current_key)
-                            items.append(item)
+            for item, rv in zip(left, key.map(context, left), strict=True):
+                current_key = MISSING if is_undefined(rv) else rv
+                if current_key not in keys:
+                    keys.append(current_key)
+                    items.append(item)
 
             return items
 

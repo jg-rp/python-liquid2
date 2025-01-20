@@ -52,7 +52,7 @@ from .filters.array import map_  # noqa: F401
 from .filters.array import reverse
 from .filters.array import sort  # noqa: F401
 from .filters.array import sort_natural  # noqa: F401
-from .filters.array import sort_numeric
+from .filters.array import sort_numeric  # noqa: F401
 from .filters.array import sum_  # noqa: F401
 from .filters.array import uniq  # noqa: F401
 from .filters.array import where  # noqa: F401
@@ -79,6 +79,7 @@ from .filters.misc import default
 from .filters.misc import size
 from .filters.sort_arrow import SortFilter
 from .filters.sort_arrow import SortNaturalFilter
+from .filters.sort_arrow import SortNumericFilter
 from .filters.string import append
 from .filters.string import capitalize
 from .filters.string import downcase
@@ -265,7 +266,8 @@ def register_default_tags_and_filters(env: Environment) -> None:  # noqa: PLR091
     env.filters["sort"] = SortFilter()
     # env.filters["sort_natural"] = sort_natural
     env.filters["sort_natural"] = SortNaturalFilter()
-    env.filters["sort_numeric"] = sort_numeric
+    # env.filters["sort_numeric"] = sort_numeric
+    env.filters["sort_numeric"] = SortNumericFilter()
     # env.filters["sum"] = sum_
     env.filters["sum"] = SumFilter()
     # env.filters["where"] = where

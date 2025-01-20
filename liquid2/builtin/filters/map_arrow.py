@@ -97,24 +97,10 @@ class MapFilter:
         left = sequence_arg(left)
 
         if isinstance(first, LambdaExpression):
-            items: list[object] = []
-            scope: dict[str, object] = {}
-
-            if len(first.params) == 1:
-                param = first.params[0]
-                with context.extend(scope):
-                    for item in left:
-                        scope[param] = item
-                        items.append(first.expression.evaluate(context))
-            else:
-                name_param, index_param = first.params[:2]
-                with context.extend(scope):
-                    for index, item in enumerate(left):
-                        scope[index_param] = index
-                        scope[name_param] = item
-                        items.append(first.expression.evaluate(context))
-
-            return [_NULL if is_undefined(item) else item for item in items]
+            return [
+                _NULL if is_undefined(item) else item
+                for item in first.map(context, left)
+            ]
 
         try:
             return [_getitem(itm, str(first), default=_NULL) for itm in left]

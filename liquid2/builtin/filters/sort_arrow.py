@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import math
+import re
+from decimal import Decimal
 from functools import partial
 from operator import getitem
 from operator import itemgetter
@@ -14,6 +17,7 @@ from liquid2.builtin import PositionalArgument
 from liquid2.exceptions import LiquidSyntaxError
 from liquid2.exceptions import LiquidTypeError
 from liquid2.filter import sequence_arg
+from liquid2.limits import to_int
 from liquid2.undefined import is_undefined
 
 if TYPE_CHECKING:
@@ -92,24 +96,8 @@ class SortFilter:
 
         if isinstance(key, LambdaExpression):
             items: list[tuple[object, object]] = []
-            scope: dict[str, object] = {}
-
-            if len(key.params) == 1:
-                param = key.params[0]
-                with context.extend(scope):
-                    for item in left:
-                        scope[param] = item
-                        rv = key.expression.evaluate(context)
-                        items.append((item, _MAX_CH if is_undefined(rv) else rv))
-            else:
-                name_param, index_param = key.params[:2]
-                with context.extend(scope):
-                    for index, item in enumerate(left):
-                        scope[index_param] = index
-                        scope[name_param] = item
-                        rv = key.expression.evaluate(context)
-                        items.append((item, _MAX_CH if is_undefined(rv) else rv))
-
+            for item, rv in zip(left, key.map(context, left), strict=True):
+                items.append((item, _MAX_CH if is_undefined(rv) else rv))
             return [item[0] for item in sorted(items, key=itemgetter(1))]
 
         if key:
@@ -137,28 +125,8 @@ class SortNaturalFilter(SortFilter):
 
         if isinstance(key, LambdaExpression):
             items: list[tuple[object, object]] = []
-            scope: dict[str, object] = {}
-
-            if len(key.params) == 1:
-                param = key.params[0]
-                with context.extend(scope):
-                    for item in left:
-                        scope[param] = item
-                        rv = key.expression.evaluate(context)
-                        items.append(
-                            (item, _MAX_CH if is_undefined(rv) else str(rv).lower())
-                        )
-            else:
-                name_param, index_param = key.params[:2]
-                with context.extend(scope):
-                    for index, item in enumerate(left):
-                        scope[index_param] = index
-                        scope[name_param] = item
-                        rv = key.expression.evaluate(context)
-                        items.append(
-                            (item, _MAX_CH if is_undefined(rv) else str(rv).lower())
-                        )
-
+            for item, rv in zip(left, key.map(context, left), strict=True):
+                items.append((item, _MAX_CH if is_undefined(rv) else str(rv).lower()))
             return [item[0] for item in sorted(items, key=itemgetter(1))]
 
         if key:
@@ -168,4 +136,52 @@ class SortNaturalFilter(SortFilter):
         return sorted(left, key=_lower)
 
 
-# TODO: class SortNumericFilter(SortFilter):
+RE_NUMERIC = re.compile(r"-?\d+")
+
+
+class SortNumericFilter(SortFilter):
+    """An implementation `sort_numeric` that accepts a lambda expression."""
+
+    def __call__(
+        self,
+        left: object,
+        key: str | LambdaExpression | None = None,
+        *,
+        context: RenderContext,
+    ) -> list[object]:
+        """Apply the filter and return the result."""
+        left = sequence_arg(left)
+
+        if isinstance(key, LambdaExpression):
+            items: list[tuple[object, object]] = []
+            for item, rv in zip(left, key.map(context, left), strict=True):
+                items.append((item, _MAX_CH if is_undefined(rv) else rv))
+            return [item[0] for item in sorted(items, key=lambda i: _ints(i[1]))]
+
+        if key:
+            _key = str(key)
+            return sorted(left, key=lambda item: _ints(_get_numeric_item(item, _key)))
+        return sorted(left, key=_ints)
+
+
+def _get_numeric_item(sequence: Any, key: object, default: object = None) -> Any:
+    """Item getter for the `sort_numeric` filter."""
+    try:
+        return getitem(sequence, key)
+    except (KeyError, IndexError, TypeError):
+        return default
+
+
+def _ints(obj: object) -> tuple[int | float | Decimal, ...]:
+    """Key function for the `sort_numeric` filter."""
+    if isinstance(obj, bool):
+        # isinstance(False, int) == True
+        return (math.inf,)
+    if isinstance(obj, (int, float, Decimal)):
+        return (obj,)
+
+    ints = tuple(to_int(n) for n in RE_NUMERIC.findall(str(obj)))
+
+    if not ints:
+        return (math.inf,)
+    return ints

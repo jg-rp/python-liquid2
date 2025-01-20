@@ -81,24 +81,11 @@ class SumFilter:
         left = sequence_arg(left)
 
         if isinstance(key, LambdaExpression):
-            items: list[object] = []
-            scope: dict[str, object] = {}
-
-            if len(key.params) == 1:
-                param = key.params[0]
-                with context.extend(scope):
-                    for item in left:
-                        scope[param] = item
-                        items.append(key.expression.evaluate(context))
-            else:
-                name_param, index_param = key.params[:2]
-                with context.extend(scope):
-                    for index, item in enumerate(left):
-                        scope[index_param] = index
-                        scope[name_param] = item
-                        items.append(key.expression.evaluate(context))
-
-            rv = sum(decimal_arg(item, 0) for item in items if not is_undefined(item))
+            rv = sum(
+                decimal_arg(item, 0)
+                for item in key.map(context, left)
+                if not is_undefined(item)
+            )
         elif key is not None and not is_undefined(key):
             rv = sum(decimal_arg(_getitem(elem, key, 0), 0) for elem in left)
         else:

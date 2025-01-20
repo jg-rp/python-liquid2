@@ -63,26 +63,9 @@ class CompactFilter:
 
         if isinstance(key, LambdaExpression):
             items: list[object] = []
-            scope: dict[str, object] = {}
-
-            if len(key.params) == 1:
-                param = key.params[0]
-                with context.extend(scope):
-                    for item in left:
-                        scope[param] = item
-                        rv = key.expression.evaluate(context)
-                        if not is_undefined(rv) and rv is not None:
-                            items.append(item)
-            else:
-                name_param, index_param = key.params[:2]
-                with context.extend(scope):
-                    for index, item in enumerate(left):
-                        scope[index_param] = index
-                        scope[name_param] = item
-                        rv = key.expression.evaluate(context)
-                        if not is_undefined(rv) and rv is not None:
-                            items.append(item)
-
+            for item, rv in zip(left, key.map(context, left), strict=True):
+                if not is_undefined(rv) and rv is not None:
+                    items.append(item)
             return items
 
         if key is not None:

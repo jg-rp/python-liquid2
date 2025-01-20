@@ -16,6 +16,8 @@ class Case(NamedTuple):
     expect: Any
 
 
+# TODO: move these to the compliance test suite
+
 TEST_CASES = [
     Case(
         description="list of string ints",

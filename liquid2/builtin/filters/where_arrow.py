@@ -67,7 +67,7 @@ class WhereFilter:
     def __call__(
         self,
         left: Iterable[object],
-        first: str | LambdaExpression,
+        key: str | LambdaExpression,
         value: object = None,
         *,
         context: RenderContext,
@@ -75,30 +75,13 @@ class WhereFilter:
         """Apply the filter and return the result."""
         left = sequence_arg(left)
 
-        if isinstance(first, LambdaExpression):
+        if isinstance(key, LambdaExpression):
             items: list[object] = []
-            scope: dict[str, object] = {}
-
-            if len(first.params) == 1:
-                param = first.params[0]
-                with context.extend(scope):
-                    for item in left:
-                        scope[param] = item
-                        rv = first.expression.evaluate(context)
-                        if not is_undefined(rv) and is_truthy(rv):
-                            items.append(item)
-            else:
-                name_param, index_param = first.params[:2]
-                with context.extend(scope):
-                    for index, item in enumerate(left):
-                        scope[index_param] = index
-                        scope[name_param] = item
-                        rv = first.expression.evaluate(context)
-                        if not is_undefined(rv) and is_truthy(rv):
-                            items.append(item)
-
+            for item, rv in zip(left, key.map(context, left), strict=True):
+                if not is_undefined(rv) and is_truthy(rv):
+                    items.append(item)
             return items
 
         if value is not None and not is_undefined(value):
-            return [itm for itm in left if _getitem(itm, first) == value]
-        return [itm for itm in left if _getitem(itm, first) not in (False, None)]
+            return [itm for itm in left if _getitem(itm, key) == value]
+        return [itm for itm in left if _getitem(itm, key) not in (False, None)]
