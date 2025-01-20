@@ -11,7 +11,6 @@ from liquid2.builtin import LambdaExpression
 from liquid2.builtin import Null
 from liquid2.builtin import Path
 from liquid2.builtin import PositionalArgument
-from liquid2.exceptions import LiquidSyntaxError
 from liquid2.exceptions import LiquidTypeError
 from liquid2.filter import sequence_arg
 from liquid2.undefined import is_undefined
@@ -36,18 +35,18 @@ class _Null:
 _NULL = _Null()
 
 
-def _getitem(sequence: Any, key: object, default: object = None) -> Any:
+def _getitem(obj: Any, key: object, default: object = None) -> Any:
     """Helper for the map filter.
 
     Same as obj[key], but returns a default value if key does not exist
     in obj.
     """
     try:
-        return getitem(sequence, key)
+        return getitem(obj, key)
     except (KeyError, IndexError):
         return default
     except TypeError:
-        if not hasattr(sequence, "__getitem__"):
+        if not hasattr(obj, "__getitem__"):
             raise
         return default
 
@@ -64,15 +63,15 @@ class MapFilter:
         name: str,
         args: list[KeywordArgument | PositionalArgument],
     ) -> None:
-        """Raise a `LiquidSyntaxError` if _args_ are not valid."""
+        """Raise a `LiquidTypeError` if _args_ are not valid."""
         if len(args) != 1:
-            raise LiquidSyntaxError(
+            raise LiquidTypeError(
                 f"{name!r} expects exactly one argument, got {len(args)}",
                 token=token,
             )
 
         if not isinstance(args[0], PositionalArgument):
-            raise LiquidSyntaxError(
+            raise LiquidTypeError(
                 f"{name!r} takes no keyword arguments",
                 token=token,
             )
@@ -80,7 +79,7 @@ class MapFilter:
         arg = args[0].value
 
         if isinstance(arg, LambdaExpression) and not isinstance(arg.expression, Path):
-            raise LiquidSyntaxError(
+            raise LiquidTypeError(
                 f"{name!r} expects a path to a variable, "
                 f"got {arg.expression.__class__.__name__}",
                 token=arg.expression.token,

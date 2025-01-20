@@ -1,15 +1,18 @@
-"""An implementation of the `compact` filter that accepts lambda expressions."""
+"""An implementation of the `sum` filter that accepts lambda expressions."""
 
 from __future__ import annotations
 
+from decimal import Decimal
+from operator import getitem
 from typing import TYPE_CHECKING
+from typing import Any
 from typing import Iterable
 
 from liquid2.builtin import LambdaExpression
 from liquid2.builtin import Path
 from liquid2.builtin import PositionalArgument
-from liquid2.exceptions import LiquidSyntaxError
 from liquid2.exceptions import LiquidTypeError
+from liquid2.filter import decimal_arg
 from liquid2.filter import sequence_arg
 from liquid2.undefined import is_undefined
 
@@ -20,8 +23,24 @@ if TYPE_CHECKING:
     from liquid2.builtin import KeywordArgument
 
 
-class CompactFilter:
-    """An implementation of the `compact` filter that accepts lambda expressions."""
+def _getitem(obj: Any, key: object, default: object = None) -> Any:
+    """Helper for the sum filter.
+
+    Same as obj[key], but returns a default value if key does not exist
+    in obj.
+    """
+    try:
+        return getitem(obj, key)
+    except (KeyError, IndexError):
+        return default
+    except TypeError:
+        if not hasattr(obj, "__getitem__"):
+            raise
+        return default
+
+
+class SumFilter:
+    """An implementation of the `sum` filter that accepts lambda expressions."""
 
     with_context = True
 
@@ -32,9 +51,9 @@ class CompactFilter:
         name: str,
         args: list[KeywordArgument | PositionalArgument],
     ) -> None:
-        """Raise a `LiquidSyntaxError` if _args_ are not valid."""
+        """Raise a `LiquidTypeError` if _args_ are not valid."""
         if len(args) > 1:
-            raise LiquidSyntaxError(
+            raise LiquidTypeError(
                 f"{name!r} expects at most one argument, got {len(args)}",
                 token=token,
             )
@@ -45,7 +64,7 @@ class CompactFilter:
             if isinstance(arg, LambdaExpression) and not isinstance(
                 arg.expression, Path
             ):
-                raise LiquidSyntaxError(
+                raise LiquidTypeError(
                     f"{name!r} expects a path to a variable, "
                     f"got {arg.expression.__class__.__name__}",
                     token=arg.expression.token,
@@ -57,22 +76,21 @@ class CompactFilter:
         key: str | LambdaExpression | None = None,
         *,
         context: RenderContext,
-    ) -> list[object]:
+    ) -> float | int:
         """Apply the filter and return the result."""
         left = sequence_arg(left)
 
         if isinstance(key, LambdaExpression):
-            items: list[object] = []
-            for item, rv in zip(left, key.map(context, left), strict=True):
-                if not is_undefined(rv) and rv is not None:
-                    items.append(item)
-            return items
+            rv = sum(
+                decimal_arg(item, 0)
+                for item in key.map(context, left)
+                if not is_undefined(item)
+            )
+        elif key is not None and not is_undefined(key):
+            rv = sum(decimal_arg(_getitem(elem, key, 0), 0) for elem in left)
+        else:
+            rv = sum(decimal_arg(elem, 0) for elem in left)
 
-        if key is not None:
-            try:
-                return [itm for itm in left if itm[key] is not None]
-            except TypeError as err:
-                raise LiquidTypeError(
-                    f"can't read property '{key}'", token=None
-                ) from err
-        return [itm for itm in left if itm is not None]
+        if isinstance(rv, Decimal):
+            return float(rv)
+        return rv

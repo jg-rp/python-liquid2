@@ -14,7 +14,6 @@ from typing import Any
 from liquid2.builtin import LambdaExpression
 from liquid2.builtin import Path
 from liquid2.builtin import PositionalArgument
-from liquid2.exceptions import LiquidSyntaxError
 from liquid2.exceptions import LiquidTypeError
 from liquid2.filter import sequence_arg
 from liquid2.limits import to_int
@@ -66,9 +65,9 @@ class SortFilter:
         name: str,
         args: list[KeywordArgument | PositionalArgument],
     ) -> None:
-        """Raise a `LiquidSyntaxError` if _args_ are not valid."""
+        """Raise a `LiquidTypeError` if _args_ are not valid."""
         if len(args) > 1:
-            raise LiquidSyntaxError(
+            raise LiquidTypeError(
                 f"{name!r} expects at most one argument, got {len(args)}",
                 token=token,
             )
@@ -78,7 +77,7 @@ class SortFilter:
             if isinstance(arg, LambdaExpression) and not isinstance(
                 arg.expression, Path
             ):
-                raise LiquidSyntaxError(
+                raise LiquidTypeError(
                     f"{name!r} expects a path to a variable, "
                     f"got {arg.expression.__class__.__name__}",
                     token=arg.expression.token,
