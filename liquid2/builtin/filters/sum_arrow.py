@@ -1,18 +1,18 @@
-"""An implementation of the `map` filter that accepts lambda expressions."""
+"""An implementation of the `sum` filter that accepts lambda expressions."""
 
 from __future__ import annotations
 
+from decimal import Decimal
 from operator import getitem
 from typing import TYPE_CHECKING
 from typing import Any
 from typing import Iterable
 
 from liquid2.builtin import LambdaExpression
-from liquid2.builtin import Null
 from liquid2.builtin import Path
 from liquid2.builtin import PositionalArgument
 from liquid2.exceptions import LiquidSyntaxError
-from liquid2.exceptions import LiquidTypeError
+from liquid2.filter import decimal_arg
 from liquid2.filter import sequence_arg
 from liquid2.undefined import is_undefined
 
@@ -23,21 +23,8 @@ if TYPE_CHECKING:
     from liquid2.builtin import KeywordArgument
 
 
-class _Null:
-    """A null without a token for use by the map filter."""
-
-    def __eq__(self, other: object) -> bool:
-        return other is None or isinstance(other, (_Null, Null))
-
-    def __str__(self) -> str:  # pragma: no cover
-        return ""
-
-
-_NULL = _Null()
-
-
 def _getitem(sequence: Any, key: object, default: object = None) -> Any:
-    """Helper for the map filter.
+    """Helper for the sum filter.
 
     Same as obj[key], but returns a default value if key does not exist
     in obj.
@@ -52,8 +39,8 @@ def _getitem(sequence: Any, key: object, default: object = None) -> Any:
         return default
 
 
-class MapFilter:
-    """An implementation of the `map` filter that accepts lambda expressions."""
+class SumFilter:
+    """An implementation of the `sum` filter that accepts lambda expressions."""
 
     with_context = True
 
@@ -65,58 +52,58 @@ class MapFilter:
         args: list[KeywordArgument | PositionalArgument],
     ) -> None:
         """Raise a `LiquidSyntaxError` if _args_ are not valid."""
-        if len(args) != 1:
+        if len(args) > 1:
             raise LiquidSyntaxError(
-                f"{name!r} expects exactly one argument, got {len(args)}",
+                f"{name!r} expects at most one argument, got {len(args)}",
                 token=token,
             )
 
-        if not isinstance(args[0], PositionalArgument):
-            raise LiquidSyntaxError(
-                f"{name!r} takes no keyword arguments",
-                token=token,
-            )
+        if len(args) == 1:
+            arg = args[0].value
 
-        arg = args[0].value
-
-        if isinstance(arg, LambdaExpression) and not isinstance(arg.expression, Path):
-            raise LiquidSyntaxError(
-                f"{name!r} expects a path to a variable, "
-                f"got {arg.expression.__class__.__name__}",
-                token=arg.expression.token,
-            )
+            if isinstance(arg, LambdaExpression) and not isinstance(
+                arg.expression, Path
+            ):
+                raise LiquidSyntaxError(
+                    f"{name!r} expects a path to a variable, "
+                    f"got {arg.expression.__class__.__name__}",
+                    token=arg.expression.token,
+                )
 
     def __call__(
         self,
         left: Iterable[object],
-        first: str | LambdaExpression,
+        key: str | LambdaExpression | None = None,
         *,
         context: RenderContext,
-    ) -> list[object]:
+    ) -> float | int:
         """Apply the filter and return the result."""
         left = sequence_arg(left)
 
-        if isinstance(first, LambdaExpression):
+        if isinstance(key, LambdaExpression):
             items: list[object] = []
             scope: dict[str, object] = {}
 
-            if len(first.params) == 1:
-                param = first.params[0]
+            if len(key.params) == 1:
+                param = key.params[0]
                 with context.extend(scope):
                     for item in left:
                         scope[param] = item
-                        items.append(first.expression.evaluate(context))
+                        items.append(key.expression.evaluate(context))
             else:
-                name_param, index_param = first.params[:2]
+                name_param, index_param = key.params[:2]
                 with context.extend(scope):
                     for index, item in enumerate(left):
                         scope[index_param] = index
                         scope[name_param] = item
-                        items.append(first.expression.evaluate(context))
+                        items.append(key.expression.evaluate(context))
 
-            return [_NULL if is_undefined(item) else item for item in items]
+            rv = sum(decimal_arg(item, 0) for item in items if not is_undefined(item))
+        elif key is not None and not is_undefined(key):
+            rv = sum(decimal_arg(_getitem(elem, key, 0), 0) for elem in left)
+        else:
+            rv = sum(decimal_arg(elem, 0) for elem in left)
 
-        try:
-            return [_getitem(itm, str(first), default=_NULL) for itm in left]
-        except TypeError as err:
-            raise LiquidTypeError("can't map sequence", token=None) from err
+        if isinstance(rv, Decimal):
+            return float(rv)
+        return rv

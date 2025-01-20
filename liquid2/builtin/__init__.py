@@ -43,7 +43,7 @@ from .expressions import parse_positional_and_keyword_arguments
 from .expressions import parse_primitive
 from .expressions import parse_string_or_identifier
 from .expressions import parse_string_or_path
-from .filters.array import compact
+from .filters.array import compact  # noqa: F401
 from .filters.array import concat
 from .filters.array import first
 from .filters.array import join
@@ -53,13 +53,14 @@ from .filters.array import reverse
 from .filters.array import sort  # noqa: F401
 from .filters.array import sort_natural  # noqa: F401
 from .filters.array import sort_numeric
-from .filters.array import sum_
-from .filters.array import uniq
+from .filters.array import sum_  # noqa: F401
+from .filters.array import uniq  # noqa: F401
 from .filters.array import where  # noqa: F401
 from .filters.babel import Currency
 from .filters.babel import DateTime
 from .filters.babel import Number
 from .filters.babel import Unit
+from .filters.compact_arrow import CompactFilter
 from .filters.map_arrow import MapFilter
 from .filters.math import abs_
 from .filters.math import at_least
@@ -104,12 +105,14 @@ from .filters.string import truncatewords
 from .filters.string import upcase
 from .filters.string import url_decode
 from .filters.string import url_encode
+from .filters.sum_arrow import SumFilter
 from .filters.translate import BaseTranslateFilter
 from .filters.translate import GetText
 from .filters.translate import NGetText
 from .filters.translate import NPGetText
 from .filters.translate import PGetText
 from .filters.translate import Translate
+from .filters.uniq_arrow import UniqFilter
 from .filters.where_arrow import WhereFilter
 from .loaders.caching_file_system_loader import CachingFileSystemLoader
 from .loaders.choice_loader import CachingChoiceLoader
@@ -263,11 +266,14 @@ def register_default_tags_and_filters(env: Environment) -> None:  # noqa: PLR091
     # env.filters["sort_natural"] = sort_natural
     env.filters["sort_natural"] = SortNaturalFilter()
     env.filters["sort_numeric"] = sort_numeric
-    env.filters["sum"] = sum_
+    # env.filters["sum"] = sum_
+    env.filters["sum"] = SumFilter()
     # env.filters["where"] = where
     env.filters["where"] = WhereFilter()
-    env.filters["uniq"] = uniq
-    env.filters["compact"] = compact
+    # env.filters["uniq"] = uniq
+    env.filters["uniq"] = UniqFilter()
+    # env.filters["compact"] = compact
+    env.filters["compact"] = CompactFilter()
 
     env.filters["abs"] = abs_
     env.filters["at_least"] = at_least

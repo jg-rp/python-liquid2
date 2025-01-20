@@ -1208,6 +1208,48 @@
       "result": "(title,foo)(name,a)(title,bar)(name,c)"
     },
     {
+      "name": "filters, compact, array of objects, lambda expression",
+      "template": "{% assign x = a | compact: i => i.title %}{% for obj in x %}{% for i in obj %}({{ i[0] }},{{ i[1] }}){% endfor %}{% endfor %}",
+      "data": {
+        "a": [
+          {
+            "title": "foo",
+            "name": "a"
+          },
+          {
+            "title": null,
+            "name": "b"
+          },
+          {
+            "title": "bar",
+            "name": "c"
+          }
+        ]
+      },
+      "result": "(title,foo)(name,a)(title,bar)(name,c)"
+    },
+    {
+      "name": "filters, compact, array of objects, lambda expression is not a path",
+      "template": "{% assign x = a | compact: i => i.title == 'foo' %}{% for obj in x %}{% for i in obj %}({{ i[0] }},{{ i[1] }}){% endfor %}{% endfor %}",
+      "data": {
+        "a": [
+          {
+            "title": "foo",
+            "name": "a"
+          },
+          {
+            "title": null,
+            "name": "b"
+          },
+          {
+            "title": "bar",
+            "name": "c"
+          }
+        ]
+      },
+      "invalid": true
+    },
+    {
       "name": "filters, concat, range literal concat filter left value",
       "template": "{{ (1..3) | concat: foo | join: '#' }}",
       "data": {
@@ -2273,6 +2315,30 @@
         ]
       },
       "result": "0#1#2"
+    },
+    {
+      "name": "filters, map, array of objects, lambda expression is not a path",
+      "template": "{{ a | map: (i) => i.user.title == 'foo' | join: '#' }}",
+      "data": {
+        "a": [
+          {
+            "user": {
+              "title": "foo"
+            }
+          },
+          {
+            "user": {
+              "title": "bar"
+            }
+          },
+          {
+            "user": {
+              "title": "baz"
+            }
+          }
+        ]
+      },
+      "invalid": true
     },
     {
       "name": "filters, minus, integer value and integer arg",
@@ -3972,6 +4038,42 @@
       "invalid": true
     },
     {
+      "name": "filters, sum, hashes with lambda argument",
+      "template": "{{ a | sum: i => i.k }}",
+      "data": {
+        "a": [
+          {
+            "k": 1
+          },
+          {
+            "k": 2
+          },
+          {
+            "k": 3
+          }
+        ]
+      },
+      "result": "6"
+    },
+    {
+      "name": "filters, sum, hashes with lambda invalid argument",
+      "template": "{{ a | sum: i => i.k == 'foo' }}",
+      "data": {
+        "a": [
+          {
+            "k": 1
+          },
+          {
+            "k": 2
+          },
+          {
+            "k": 3
+          }
+        ]
+      },
+      "invalid": true
+    },
+    {
       "name": "filters, times, int times int",
       "template": "{{ 5 | times: 2 }}",
       "data": {},
@@ -4298,6 +4400,48 @@
         ]
       },
       "result": "(title,foo)(name,a)(title,bar)(name,c)(heading,bar)(name,c)"
+    },
+    {
+      "name": "filters, uniq, array of objects, lambda expression",
+      "template": "{% assign x = a | uniq: i => i.title %}{% for obj in x %}{% for i in obj %}({{ i[0] }},{{ i[1] }}){% endfor %}{% endfor %}",
+      "data": {
+        "a": [
+          {
+            "title": "foo",
+            "name": "a"
+          },
+          {
+            "title": "foo",
+            "name": "b"
+          },
+          {
+            "title": "bar",
+            "name": "c"
+          }
+        ]
+      },
+      "result": "(title,foo)(name,a)(title,bar)(name,c)"
+    },
+    {
+      "name": "filters, uniq, array of objects, lambda expression is not a path",
+      "template": "{% assign x = a | uniq: i => i.title == 'foo' %}{% for obj in x %}{% for i in obj %}({{ i[0] }},{{ i[1] }}){% endfor %}{% endfor %}",
+      "data": {
+        "a": [
+          {
+            "title": "foo",
+            "name": "a"
+          },
+          {
+            "title": "foo",
+            "name": "b"
+          },
+          {
+            "title": "bar",
+            "name": "c"
+          }
+        ]
+      },
+      "invalid": true
     },
     {
       "name": "filters, upcase, make lower case",

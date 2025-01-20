@@ -178,6 +178,24 @@
         ]
       },
       "result": "0#1#2"
+    },
+    {
+      "name": "array of objects, lambda expression is not a path",
+      "template": "{{ a | map: (i) => i.user.title == 'foo' | join: '#' }}",
+      "data": {
+        "a": [
+          {
+            "user": { "title": "foo" }
+          },
+          {
+            "user": { "title": "bar" }
+          },
+          {
+            "user": { "title": "baz" }
+          }
+        ]
+      },
+      "invalid": true
     }
   ]
 }

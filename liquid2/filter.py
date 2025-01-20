@@ -137,8 +137,8 @@ def string_filter(_filter: Callable[..., Any]) -> Callable[..., Any]:
     return wrapper
 
 
-def sequence_arg(val: object) -> Iterable[Any]:
-    """Return _val_ as an iterable."""
+def sequence_arg(val: object) -> Sequence[Any]:
+    """Return _val_ as an Sequence."""
     if is_undefined(val):
         val.poke()
         return []
@@ -149,7 +149,7 @@ def sequence_arg(val: object) -> Iterable[Any]:
     if isinstance(val, Mapping):
         return [val]
     if isinstance(val, Iterable):
-        return val
+        return list(val)
     return [val]
 
 

@@ -24,8 +24,8 @@ if TYPE_CHECKING:
 def _getitem(sequence: Any, key: object, default: object = None) -> Any:
     """Helper for the where filter.
 
-    Same as sequence[key], but returns a default value if key does not exist
-    in sequence.
+    Same as obj[key], but returns a default value if key does not exist
+    in obj.
     """
     try:
         return getitem(sequence, key)
