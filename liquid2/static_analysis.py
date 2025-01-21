@@ -172,11 +172,7 @@ def _analyze(template: Template, *, include_partials: bool) -> TemplateAnalysis:
 
         # Update variables from node.expressions()
         for expr in node.expressions():
-            for var in _extract_variables(expr, template_name):
-                variables.add(var)
-                root = str(var.segments[0])
-                if root not in scope:
-                    globals.add(var)
+            _analyze_variables(expr, template_name, scope, globals, variables)
 
             # Update filters from expr
             for name, span in _extract_filters(expr, template_name):
@@ -262,11 +258,7 @@ async def _analyze_async(
 
         # Update variables from node.expressions()
         for expr in node.expressions():
-            for var in _extract_variables(expr, template_name):
-                variables.add(var)
-                root = str(var.segments[0])
-                if root not in scope:
-                    globals.add(var)
+            _analyze_variables(expr, template_name, scope, globals, variables)
 
             # Update filters from expr
             for name, span in _extract_filters(expr, template_name):
@@ -343,17 +335,36 @@ def _extract_filters(
         yield from _extract_filters(expr, template_name)
 
 
-def _extract_variables(
-    expression: Expression, template_name: str
-) -> Iterable[Variable]:
+def _analyze_variables(
+    expression: Expression,
+    template_name: str,
+    scope: _StaticScope,
+    globals: _VariableMap,
+    variables: _VariableMap,
+) -> None:
     if isinstance(expression, Path):
-        yield Variable(
+        var = Variable(
             segments=_segments(expression, template_name),
             span=Span(template_name, expression.token.start, expression.token.stop),
         )
 
-    for expr in expression.children():
-        yield from _extract_variables(expr, template_name=template_name)
+        # NOTE: We're updating globals and variables here so we can manage scope while
+        # traversing the expression. This is for the benefit of lambda expressions that
+        # add names to the scope of their children.
+        variables.add(var)
+
+        root = str(var.segments[0])
+        if root not in scope:
+            globals.add(var)
+
+    if child_scope := expression.scope():
+        scope.push(set(child_scope))
+        for expr in expression.children():
+            _analyze_variables(expr, template_name, scope, globals, variables)
+        scope.pop()
+    else:
+        for expr in expression.children():
+            _analyze_variables(expr, template_name, scope, globals, variables)
 
 
 def _segments(path: Path, template_name: str) -> Segments:

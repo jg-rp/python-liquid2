@@ -435,9 +435,10 @@ class LambdaExpression(Expression):
         return self
 
     def children(self) -> list[Expression]:
-        # XXX: This expression has its own scope, a scope that is not controlled by a
-        # tag.
         return [self.expression]
+
+    def scope(self) -> Iterable[Identifier]:
+        return self.params
 
     def map(self, context: RenderContext, it: Iterable[object]) -> Iterator[object]:
         """Return an iterator mapping this expression to items in _it_."""

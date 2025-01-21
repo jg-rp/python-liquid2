@@ -744,8 +744,7 @@ def test_analyze_inheritance_chain() -> None:
                 "{% block foo %}{% assign z = 7 %}{% endblock %}"
             ),
             "some": (
-                "{% extends 'other' %}{{ y | append: x }}"
-                "{% block foo %}{% endblock %}"
+                "{% extends 'other' %}{{ y | append: x }}{% block foo %}{% endblock %}"
             ),
         }
     )
@@ -932,4 +931,48 @@ def test_analyze_array_literals(env: Environment) -> None:
             "c": [Variable(["c"], Span("", 17, 18))],
         },
         tags={"assign": [Span("", 0, 26)]},
+    )
+
+
+def test_analyze_lambda_expression(env: Environment) -> None:
+    source = "{% assign y = 42 %}{% assign x = a | where: i => i.foo.bar == y %}"
+
+    _assert(
+        env.from_string(source),
+        locals={
+            "y": [Variable(["y"], Span("", 10, 11))],
+            "x": [Variable(["x"], Span("", 29, 30))],
+        },
+        globals={
+            "a": [Variable(["a"], Span("", 33, 34))],
+        },
+        variables={
+            "a": [Variable(["a"], Span("", 33, 34))],
+            "i": [Variable(["i", "foo", "bar"], Span("", 49, 58))],
+            "y": [Variable(["y"], Span("", 62, 63))],
+        },
+        tags={"assign": [Span("", 0, 19), Span("", 19, 66)]},
+        filters={"where": [Span("", 37, 42)]},
+    )
+
+
+def test_analyze_two_argument_lambda_expression(env: Environment) -> None:
+    source = "{% assign y = 42 %}{% assign x = a | where: (i, j) => i.foo.bar == j %}"
+
+    _assert(
+        env.from_string(source),
+        locals={
+            "y": [Variable(["y"], Span("", 10, 11))],
+            "x": [Variable(["x"], Span("", 29, 30))],
+        },
+        globals={
+            "a": [Variable(["a"], Span("", 33, 34))],
+        },
+        variables={
+            "a": [Variable(["a"], Span("", 33, 34))],
+            "i": [Variable(["i", "foo", "bar"], Span("", 54, 63))],
+            "j": [Variable(["j"], Span("", 67, 68))],
+        },
+        tags={"assign": [Span("", 0, 19), Span("", 19, 71)]},
+        filters={"where": [Span("", 37, 42)]},
     )
