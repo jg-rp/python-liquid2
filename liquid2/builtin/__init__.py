@@ -55,6 +55,9 @@ from .filters.babel import Unit
 from .filters.filtering_filters import CompactFilter
 from .filters.filtering_filters import RejectFilter
 from .filters.filtering_filters import WhereFilter
+from .filters.find_filters import FindFilter
+from .filters.find_filters import FindIndexFilter
+from .filters.find_filters import HasFilter
 from .filters.map_filter import MapFilter
 from .filters.math import abs_
 from .filters.math import at_least
@@ -262,6 +265,9 @@ def register_default_tags_and_filters(env: Environment) -> None:  # noqa: PLR091
     env.filters["reject"] = RejectFilter()
     env.filters["uniq"] = UniqFilter()
     env.filters["compact"] = CompactFilter()
+    env.filters["find"] = FindFilter()
+    env.filters["find_index"] = FindIndexFilter()
+    env.filters["has"] = HasFilter()
 
     env.filters["abs"] = abs_
     env.filters["at_least"] = at_least

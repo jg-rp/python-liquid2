@@ -80,14 +80,15 @@ class FindFilter:
                 if not is_undefined(rv) and is_truthy(rv):
                     return item
 
-        if value is not None and not is_undefined(value):
+        elif value is not None and not is_undefined(value):
             for item in left:
                 if _getitem(item, key) == value:
                     return item
 
-        for item in left:
-            if item not in (False, None):
-                return item
+        else:
+            for item in left:
+                if item not in (False, None):
+                    return item
 
         return None
 
@@ -112,14 +113,15 @@ class FindIndexFilter(FindFilter):
                 if not is_undefined(rv) and is_truthy(rv):
                     return i
 
-        if value is not None and not is_undefined(value):
+        elif value is not None and not is_undefined(value):
             for i, item in enumerate(left):
                 if _getitem(item, key) == value:
                     return i
 
-        for i, item in enumerate(left):
-            if item not in (False, None):
-                return i
+        else:
+            for i, item in enumerate(left):
+                if item not in (False, None):
+                    return i
 
         return None
 
@@ -143,9 +145,12 @@ class HasFilter(FindFilter):
                 if not is_undefined(rv) and is_truthy(rv):
                     return True
 
-        if value is not None and not is_undefined(value):
+        elif value is not None and not is_undefined(value):
             for item in left:
                 if _getitem(item, key) == value:
                     return True
 
-        return any(item not in (False, None) for item in left)
+        else:
+            return any(item not in (False, None) for item in left)
+
+        return False

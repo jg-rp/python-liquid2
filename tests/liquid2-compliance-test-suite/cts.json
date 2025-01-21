@@ -1768,6 +1768,147 @@
       "result": ""
     },
     {
+      "name": "filters, find, array of objects",
+      "template": "{% assign x = a | find: 'title', 'bar' %}{{ x.title }}",
+      "data": {
+        "a": [
+          {
+            "title": "foo"
+          },
+          {
+            "title": "bar"
+          },
+          {
+            "title": "baz"
+          }
+        ]
+      },
+      "result": "bar"
+    },
+    {
+      "name": "filters, find, array of objects, lambda expression",
+      "template": "{% assign x = a | find: i => i.title == 'bar' %}{{ x.title }}",
+      "data": {
+        "a": [
+          {
+            "title": "foo"
+          },
+          {
+            "title": "bar"
+          },
+          {
+            "title": "baz"
+          }
+        ]
+      },
+      "result": "bar"
+    },
+    {
+      "name": "filters, find, array of objects, lambda expression, not found",
+      "template": "{% assign x = a | find: i => i.title == '42' %}{{ x.title if x else 'not found' }}",
+      "data": {
+        "a": [
+          {
+            "title": "foo"
+          },
+          {
+            "title": "bar"
+          },
+          {
+            "title": "baz"
+          }
+        ]
+      },
+      "result": "not found"
+    },
+    {
+      "name": "filters, find, array of objects, not found",
+      "template": "{% assign x = a | find: 'title', 'bar' %}{{ x.title if x else 'not found' }}",
+      "data": {
+        "a": [
+          {
+            "title": "foo"
+          },
+          {
+            "title": "baz"
+          }
+        ]
+      },
+      "result": "not found"
+    },
+    {
+      "name": "filters, find index, array of objects",
+      "template": "{% assign x = a | find_index: 'title', 'bar' %}{{ x }}",
+      "data": {
+        "a": [
+          {
+            "title": "foo"
+          },
+          {
+            "title": "bar"
+          },
+          {
+            "title": "baz"
+          }
+        ]
+      },
+      "result": "1"
+    },
+    {
+      "name": "filters, find index, array of objects, lambda expression",
+      "template": "{% assign x = a | find_index: i => i.title == 'bar' %}{{ x }}",
+      "data": {
+        "a": [
+          {
+            "title": "foo"
+          },
+          {
+            "title": "bar"
+          },
+          {
+            "title": "baz"
+          }
+        ]
+      },
+      "result": "1"
+    },
+    {
+      "name": "filters, find index, array of objects, lambda expression, not found",
+      "template": "{% assign x = a | find_index: i => i.title == 42 %}{{ x.title if x else 'not found' }}",
+      "data": {
+        "a": [
+          {
+            "title": "foo"
+          },
+          {
+            "title": "bar"
+          },
+          {
+            "title": "baz"
+          }
+        ]
+      },
+      "result": "not found"
+    },
+    {
+      "name": "filters, find index, array of objects, not found",
+      "template": "{% assign x = a | find_index: 'title', 42 %}{{ x.title if x else 'not found' }}",
+      "data": {
+        "a": [
+          {
+            "title": "foo"
+          },
+          {
+            "title": "bar"
+          },
+          {
+            "title": "baz"
+          }
+        ]
+      },
+      "result": "not found"
+    },
+    {
       "name": "filters, first, range literal first filter left value",
       "template": "{{ (1..3) | first }}",
       "data": {},
@@ -1904,6 +2045,78 @@
       "template": "{{ nosuchthing | floor }}",
       "data": {},
       "result": "0"
+    },
+    {
+      "name": "filters, has, array of objects",
+      "template": "{% assign x = a | has: 'title', 'bar' %}{{ x }}",
+      "data": {
+        "a": [
+          {
+            "title": "foo"
+          },
+          {
+            "title": "bar"
+          },
+          {
+            "title": "baz"
+          }
+        ]
+      },
+      "result": "true"
+    },
+    {
+      "name": "filters, has, array of objects, lambda expression",
+      "template": "{% assign x = a | has: i => i.title == 'bar' %}{{ x }}",
+      "data": {
+        "a": [
+          {
+            "title": "foo"
+          },
+          {
+            "title": "bar"
+          },
+          {
+            "title": "baz"
+          }
+        ]
+      },
+      "result": "true"
+    },
+    {
+      "name": "filters, has, array of objects, lambda expression, not found",
+      "template": "{% assign x = a | has: i => i.title == '42' %}{{ x }}",
+      "data": {
+        "a": [
+          {
+            "title": "foo"
+          },
+          {
+            "title": "bar"
+          },
+          {
+            "title": "baz"
+          }
+        ]
+      },
+      "result": "false"
+    },
+    {
+      "name": "filters, has, array of objects, not found",
+      "template": "{% assign x = a | has: i => i.title == 42 %}{{ x }}",
+      "data": {
+        "a": [
+          {
+            "title": "foo"
+          },
+          {
+            "title": "bar"
+          },
+          {
+            "title": "baz"
+          }
+        ]
+      },
+      "result": "false"
     },
     {
       "name": "filters, join, range literal join filter left value",

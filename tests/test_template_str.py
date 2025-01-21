@@ -356,10 +356,7 @@ def test_translate_str() -> None:
     source = "\n".join(
         [
             "{% translate x:'foo', y:'bar' %}",
-            "  Hello, {{ you }}"
-            "{% plural %}"
-            "  Hello, {{ you }}s"
-            "{% endtranslate %}",
+            "  Hello, {{ you }}{% plural %}  Hello, {{ you }}s{% endtranslate %}",
         ]
     )
     template = parse(source)
@@ -370,10 +367,7 @@ def test_translate_str_wc() -> None:
     source = "\n".join(
         [
             "{%- translate x:'foo', y:'bar' ~%}",
-            "  Hello, {{ you ~}}"
-            "{%~ plural -%}"
-            "  Hello, {{ you }}s"
-            "{%~ endtranslate +%}",
+            "  Hello, {{ you ~}}{%~ plural -%}  Hello, {{ you }}s{%~ endtranslate +%}",
         ]
     )
     template = parse(source)
@@ -440,5 +434,17 @@ def test_template_string_str() -> None:
 
 def test_array_literal_str() -> None:
     source = "{% assign my_array = 1, 2, 3 %}"
+    template = parse(source)
+    assert str(template) == source
+
+
+def test_lambda_expression_str() -> None:
+    source = "{% assign x = a | map: i => i.foo.bar %}"
+    template = parse(source)
+    assert str(template) == source
+
+
+def test_two_argument_lambda_expression_str() -> None:
+    source = "{% assign x = a | where: (i, j) => i.foo.bar == j %}"
     template = parse(source)
     assert str(template) == source
