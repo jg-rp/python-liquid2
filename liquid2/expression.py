@@ -35,5 +35,8 @@ class Expression(ABC):
         """Return this expression's child expressions."""
 
     def scope(self) -> Iterable[Identifier]:
-        """Return variables this expression adds the scope of any child expressions."""
+        """Return variables this expression adds the scope of any child expressions.
+
+        Used by lambda expressions only.
+        """
         return []

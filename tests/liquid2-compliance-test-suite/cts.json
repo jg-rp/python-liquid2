@@ -2839,7 +2839,7 @@
           }
         ]
       },
-      "result": "(title,foo)(title,bar)"
+      "result": "(title,)"
     },
     {
       "name": "filters, reject, array of objects, implicit null",
@@ -2857,7 +2857,7 @@
           }
         ]
       },
-      "result": "(title,foo)(title,bar)"
+      "result": "(title,)"
     },
     {
       "name": "filters, reject, array of objects, string match",

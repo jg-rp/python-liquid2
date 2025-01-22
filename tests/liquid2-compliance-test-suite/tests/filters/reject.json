@@ -16,7 +16,7 @@
           }
         ]
       },
-      "result": "(title,foo)(title,bar)"
+      "result": "(title,)"
     },
     {
       "name": "array of objects, implicit null",
@@ -34,7 +34,7 @@
           }
         ]
       },
-      "result": "(title,foo)(title,bar)"
+      "result": "(title,)"
     },
     {
       "name": "array of objects, string match",

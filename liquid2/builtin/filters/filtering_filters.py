@@ -117,7 +117,7 @@ class RejectFilter(_FilterFilter):
         if value is not None and not is_undefined(value):
             return [itm for itm in left if _getitem(itm, key) != value]
 
-        return [itm for itm in left if _getitem(itm, key) not in (False, None)]
+        return [itm for itm in left if _getitem(itm, key) in (False, None)]
 
 
 class CompactFilter:

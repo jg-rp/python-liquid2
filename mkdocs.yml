@@ -62,6 +62,7 @@ nav:
       - Exceptions: "api/exceptions.md"
       - Builtin: "api/builtin.md"
       - AST: "api/ast.md"
+      - Expression: "api/expression.md"
       - Render context: "api/render_context.md"
       - Filter helpers: "api/filter.md"
       - Tag: "api/tag.md"
