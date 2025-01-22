@@ -570,6 +570,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#lambda-expression-as-filter-arguments" class="md-nav__link">
+    <span class="md-ellipsis">
+      Lambda expression as filter arguments
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#logical-not" class="md-nav__link">
     <span class="md-ellipsis">
       Logical not
@@ -1004,6 +1013,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#lambda-expression-as-filter-arguments" class="md-nav__link">
+    <span class="md-ellipsis">
+      Lambda expression as filter arguments
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#logical-not" class="md-nav__link">
     <span class="md-ellipsis">
       Logical not
@@ -1231,40 +1249,45 @@
 </span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
 </span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="p">{%</span><span class="w"> </span><span class="nt">assign</span><span class="w"> </span><span class="na">greeting</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;Hello, </span><span class="si">${</span><span class="nv">you</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="nf">capitalize</span><span class="si">}</span><span class="s1">!&#39;</span><span class="w"> </span><span class="p">%}</span>
 </span></code></pre></div>
+<h3 id="lambda-expression-as-filter-arguments">Lambda expression as filter arguments</h3>
+<p><span class="mdx-badge"><span class="mdx-badge__icon"><a href="../conventions/#version" title="Minimum version"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m21.41 11.58-9-9A2 2 0 0 0 11 2H4a2 2 0 0 0-2 2v7a2 2 0 0 0 .59 1.42l9 9A2 2 0 0 0 13 22a2 2 0 0 0 1.41-.59l7-7A2 2 0 0 0 22 13a2 2 0 0 0-.59-1.42M13 20l-9-9V4h7l9 9M6.5 5A1.5 1.5 0 1 1 5 6.5 1.5 1.5 0 0 1 6.5 5"/></svg></span></a></span><span class="mdx-badge__text">0.3.0</span></span></p>
+<p>Many built-in filters that operate on arrays now support lambda expressions. For example, we can use the <a href="../filter_reference/#where"><code>where</code></a> filter to select values according to an arbitrary Boolean expression.</p>
+<div class="language-liquid2 highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="p">{%</span><span class="w"> </span><span class="nt">assign</span><span class="w"> </span><span class="na">coding_pages</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">pages</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="nf">where</span><span class="p">:</span><span class="w"> </span><span class="na">page</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nv">page</span><span class="p">.</span><span class="nv">tags</span><span class="w"> </span><span class="ow">contains</span><span class="w"> </span><span class="s1">&#39;coding&#39;</span><span class="w"> </span><span class="p">%}</span>
+</span></code></pre></div>
 <h3 id="logical-not">Logical <code>not</code></h3>
 <p>Logical expressions now support negation with the <code>not</code> operator and grouping terms with parentheses by default. Previously this was an opt-in feature.</p>
 <p>In this example, <code>{% if not user %}</code> is equivalent to <code>{% unless user %}</code>, however, <code>not</code> can also be used after <code>and</code> and <code>or</code>, like <code>{% if user.active and not user.title %}</code>, potentially saving nested <code>if</code> and <code>unless</code> tags.</p>
-<div class="language-liquid2 highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="p">{%</span><span class="w"> </span><span class="kr">if</span><span class="w"> </span><span class="kc">not</span><span class="w"> </span><span class="nv">user</span><span class="w"> </span><span class="p">%}</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>  please log in
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="p">{%</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">%}</span>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>  hello user
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="p">{%</span><span class="w"> </span><span class="kr">endif</span><span class="w"> </span><span class="p">%}</span>
+<div class="language-liquid2 highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="p">{%</span><span class="w"> </span><span class="kr">if</span><span class="w"> </span><span class="kc">not</span><span class="w"> </span><span class="nv">user</span><span class="w"> </span><span class="p">%}</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>  please log in
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="p">{%</span><span class="w"> </span><span class="kr">else</span><span class="w"> </span><span class="p">%}</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>  hello user
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="p">{%</span><span class="w"> </span><span class="kr">endif</span><span class="w"> </span><span class="p">%}</span>
 </span></code></pre></div>
 <h3 id="ternary-expressions">Ternary expressions</h3>
 <p>Inline conditional expression are now supported by default. Previously this was an opt-in feature. If omitted, the <code>else</code> branch defaults to an instance of <code>Undefined</code>.</p>
-<div class="language-liquid2 highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="p">{{</span><span class="w"> </span><span class="nv">a</span><span class="w"> </span><span class="kc">if</span><span class="w"> </span><span class="nv">b</span><span class="w"> </span><span class="kc">else</span><span class="w"> </span><span class="nv">c</span><span class="w"> </span><span class="p">}}</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="p">{{</span><span class="w"> </span><span class="nv">a</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="nf">upcase</span><span class="w"> </span><span class="kc">if</span><span class="w"> </span><span class="na">b</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">&#39;foo&#39;</span><span class="w"> </span><span class="kc">else</span><span class="w"> </span><span class="nv">c</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nf">split</span><span class="w"> </span><span class="p">}}</span>
+<div class="language-liquid2 highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="p">{{</span><span class="w"> </span><span class="nv">a</span><span class="w"> </span><span class="kc">if</span><span class="w"> </span><span class="nv">b</span><span class="w"> </span><span class="kc">else</span><span class="w"> </span><span class="nv">c</span><span class="w"> </span><span class="p">}}</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="p">{{</span><span class="w"> </span><span class="nv">a</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="nf">upcase</span><span class="w"> </span><span class="kc">if</span><span class="w"> </span><span class="na">b</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">&#39;foo&#39;</span><span class="w"> </span><span class="kc">else</span><span class="w"> </span><span class="nv">c</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nf">split</span><span class="w"> </span><span class="p">}}</span>
 </span></code></pre></div>
 <h3 id="dedicated-comment-syntax">Dedicated comment syntax</h3>
 <p>Comments surrounded by <code>{#</code> and <code>#}</code> are enabled by default. Additional <code>#</code>'s can be added to comment out blocks of markup that already contain comments, as long as hashes are balanced.</p>
-<div class="language-liquid2 highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="p">{##</span><span class="c"> comment this out for now</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="c">{% for x in y %}</span>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="c">    {# x could be empty #}</span>
-</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c">    {{ x | default: TODO}}</span>
-</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="c">{% endfor %}</span>
-</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="p">##}</span>
+<div class="language-liquid2 highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="p">{##</span><span class="c"> comment this out for now</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="c">{% for x in y %}</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="c">    {# x could be empty #}</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c">    {{ x | default: TODO}}</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="c">{% endfor %}</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="p">##}</span>
 </span></code></pre></div>
 <h3 id="better-string-literal-parsing">Better string literal parsing</h3>
 <p>String literals are now allowed to contain markup delimiters (<code>{{</code>, <code>}}</code>, <code>{%</code>, <code>%}</code>, <code>{#</code> and <code>#}</code>) and support c-like escape sequence to allow for including quote characters, literal newline characters and <code>\uXXXX</code> Unicode code points.</p>
-<div class="language-liquid2 highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="p">{%</span><span class="w"> </span><span class="nt">assign</span><span class="w"> </span><span class="na">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Hi </span><span class="se">\u</span><span class="s2">D83D</span><span class="se">\u</span><span class="s2">DE00!&quot;</span><span class="w"> </span><span class="p">%}</span>
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="p">{{</span><span class="w"> </span><span class="nv">x</span><span class="w"> </span><span class="p">}}</span>
+<div class="language-liquid2 highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="p">{%</span><span class="w"> </span><span class="nt">assign</span><span class="w"> </span><span class="na">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;Hi </span><span class="se">\u</span><span class="s2">D83D</span><span class="se">\u</span><span class="s2">DE00!&quot;</span><span class="w"> </span><span class="p">%}</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="p">{{</span><span class="w"> </span><span class="nv">x</span><span class="w"> </span><span class="p">}}</span>
 </span></code></pre></div>
-<div class="language-text highlight"><span class="filename">output</span><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>Hi 😀!
+<div class="language-text highlight"><span class="filename">output</span><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>Hi 😀!
 </span></code></pre></div>
 <h3 id="unicode-identifiers">Unicode identifiers</h3>
 <p>Identifiers and paths resolving to variables can contain Unicode characters (templates are assumed to be UTF-8 encoded). For example:</p>
-<div class="language-liquid2 highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="p">{%</span><span class="w"> </span><span class="nt">assign</span><span class="w"> </span><span class="err">😀</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;smiley&#39;</span><span class="w"> </span><span class="p">%}</span>
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="p">{{</span><span class="w"> </span><span class="err">😀</span><span class="w"> </span><span class="p">}}</span>
+<div class="language-liquid2 highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="p">{%</span><span class="w"> </span><span class="nt">assign</span><span class="w"> </span><span class="err">😀</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;smiley&#39;</span><span class="w"> </span><span class="p">%}</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="p">{{</span><span class="w"> </span><span class="err">😀</span><span class="w"> </span><span class="p">}}</span>
 </span></code></pre></div>
 <h3 id="scientific-notation">Scientific notation</h3>
 <p>Integer and float literals can use scientific notation, like <code>1.2e3</code> or <code>1e-2</code>.</p>
@@ -1284,16 +1307,16 @@
 <h3 id="better-exceptions">Better exceptions</h3>
 <p>(<a href="../api/exceptions/">docs</a>)</p>
 <p>Error messages have been improved and exceptions inheriting from <code>LiquidError</code> expose line and column numbers, and have <code>detailed_message()</code> and error <code>context()</code> methods.</p>
-<div class="language-liquid2 highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="p">{%</span><span class="w"> </span><span class="nt">assign</span><span class="w"> </span><span class="na">foo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="mi">0</span><span class="p">..</span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="p">%}</span>
-</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="p">{%</span><span class="w"> </span><span class="kr">for</span><span class="w"> </span><span class="nv">x</span><span class="w"> </span><span class="nv">foo</span><span class="w"> </span><span class="p">%}</span>
-</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>    <span class="p">{{</span><span class="w"> </span><span class="nv">x</span><span class="w"> </span><span class="p">}}</span>
-</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="p">{%</span><span class="w"> </span><span class="kr">endfor</span><span class="w"> </span><span class="p">%}</span>
+<div class="language-liquid2 highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="p">{%</span><span class="w"> </span><span class="nt">assign</span><span class="w"> </span><span class="na">foo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="mi">0</span><span class="p">..</span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="p">%}</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="p">{%</span><span class="w"> </span><span class="kr">for</span><span class="w"> </span><span class="nv">x</span><span class="w"> </span><span class="nv">foo</span><span class="w"> </span><span class="p">%}</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>    <span class="p">{{</span><span class="w"> </span><span class="nv">x</span><span class="w"> </span><span class="p">}}</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="p">{%</span><span class="w"> </span><span class="kr">endfor</span><span class="w"> </span><span class="p">%}</span>
 </span></code></pre></div>
-<div class="language-text highlight"><span class="filename">error message</span><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>liquid2.exceptions.LiquidSyntaxError: expected IN, found WORD
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>  -&gt; &#39;{% for x foo %}&#39; 2:9
-</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>  |
-</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>2 | {% for x foo %}
-</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>  |          ^^^ expected IN, found WORD
+<div class="language-text highlight"><span class="filename">error message</span><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>liquid2.exceptions.LiquidSyntaxError: expected IN, found WORD
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>  -&gt; &#39;{% for x foo %}&#39; 2:9
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>  |
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>2 | {% for x foo %}
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>  |          ^^^ expected IN, found WORD
 </span></code></pre></div>
 <h2 id="features-that-have-been-removed">Features that have been removed</h2>
 <ul>
