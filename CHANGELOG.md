@@ -17,6 +17,10 @@
 - Updated filters `map`, `where`, `sort`, `sort_natural`, `uniq`, `compact` and `sum` to accept lambda expression or string arguments.
 - Added filters `reject`, `has`, `find` and `find_index`.
 
+**Documentation**
+
+- Added documentation for the `json` filter's optional `indent` argument.
+
 ## Version 0.2.0
 
 **Features**

@@ -1028,7 +1028,7 @@ John Paul George Ringo
 <!-- md:liquid2 -->
 
 ```
-<object> | json
+<object> | json[: <indent>]
 ```
 
 Return the input object serialized to a JSON (JavaScript Object Notation) string.
@@ -1048,6 +1048,21 @@ Return the input object serialized to a JSON (JavaScript Object Notation) string
 
 ```plain title="output"
 { "id": 1234, "name": "Football" }
+```
+
+### Pretty JSON
+
+If an argument is given, it should be an integer defining the amount of indentation that should be applied to a formatted JSON representation of the input object.
+
+```liquid2
+{{ product | json: indent=2 }}
+```
+
+```plain title="output"
+{
+  "id": 1234,
+  "name": "Football"
+}
 ```
 
 ## last
@@ -2437,9 +2452,20 @@ In this example we select pages that have a "coding" tag.
 
 ```liquid2
 {% assign coding_pages = pages | where: page => page.tags contains 'coding' %}
-{{ coding_pages | map: page => page.title | json }}
+{{ coding_pages | json: indent=2}}
 ```
 
 ```plain title="output"
-["Mastering JavaScript"]
+[
+  {
+    "id": 3,
+    "title": "Mastering JavaScript",
+    "category": "Programming",
+    "tags": [
+      "JavaScript",
+      "web development",
+      "coding"
+    ]
+  }
+]
 ```
