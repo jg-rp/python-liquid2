@@ -712,6 +712,133 @@ Return the input string with characters `&`, `<` and `>` converted to HTML-safe 
 Have you read &#39;James &amp; the Giant Peach&#39;?
 ```
 
+## find
+
+<!-- md:version 0.3.0 -->
+<!-- md:shopify -->
+
+```
+<array> | find: <string>[, <object>]
+```
+
+Return the first item in the input array that contains a property, given as the first argument, equal to the value given as the second argument. If no such item exists, `null` is returned.
+
+In this example we select the first page in the "Programming" category.
+
+```json title="data"
+{
+  "pages": [
+    {
+      "id": 1,
+      "title": "Introduction to Cooking",
+      "category": "Cooking",
+      "tags": ["recipes", "beginner", "cooking techniques"]
+    },
+    {
+      "id": 2,
+      "title": "Top 10 Travel Destinations in Europe",
+      "category": "Travel",
+      "tags": ["Europe", "destinations", "travel tips"]
+    },
+    {
+      "id": 3,
+      "title": "Mastering JavaScript",
+      "category": "Programming",
+      "tags": ["JavaScript", "web development", "coding"]
+    }
+  ]
+}
+```
+
+```liquid2
+{% assign page = pages | find: 'category', 'Programming' %}
+{{ page.title }}
+```
+
+```plain title="output"
+Mastering JavaScript
+```
+
+### Lambda expressions
+
+<!-- md:version 0.3.0 -->
+<!-- md:liquid2 -->
+
+```
+<array> | find: <lambda expression>
+```
+
+We can pass a lambda expression as an argument to `find` to select the first item matching an arbitrary Boolean expression (one that evaluates to true or false). Using the same data as above, this example finds the first page with a "web development" tag.
+
+```liquid2
+{% assign page = pages | find: item => 'web development' in item.tags %}
+{{ page.title }}
+```
+
+```plain title="output"
+Mastering JavaScript
+```
+
+## find_index
+
+Return the index of the first item in the input array that contains a property, given as the first argument, equal to the value given as the second argument. If no such item exists, `null` is returned.
+
+In this example we find the index for the first page in the "Programming" category.
+
+```json title="data"
+{
+  "pages": [
+    {
+      "id": 1,
+      "title": "Introduction to Cooking",
+      "category": "Cooking",
+      "tags": ["recipes", "beginner", "cooking techniques"]
+    },
+    {
+      "id": 2,
+      "title": "Top 10 Travel Destinations in Europe",
+      "category": "Travel",
+      "tags": ["Europe", "destinations", "travel tips"]
+    },
+    {
+      "id": 3,
+      "title": "Mastering JavaScript",
+      "category": "Programming",
+      "tags": ["JavaScript", "web development", "coding"]
+    }
+  ]
+}
+```
+
+```liquid2
+{% assign index = pages | find_index: 'category', 'Programming' %}
+{{ pages[index].title }}
+```
+
+```plain title="output"
+Mastering JavaScript
+```
+
+### Lambda expressions
+
+<!-- md:version 0.3.0 -->
+<!-- md:liquid2 -->
+
+```
+<array> | find_index: <lambda expression>
+```
+
+We can pass a lambda expression as an argument to `find_index` to get the index for the first item matching an arbitrary Boolean expression (one that evaluates to true or false). Using the same data as above, this example finds the first page with a "web development" tag.
+
+```liquid2
+{% assign index = pages | find_index: item => 'web development' in item.tags %}
+{{ page[index].title }}
+```
+
+```plain title="output"
+Mastering JavaScript
+```
+
 ## first
 
 <!-- md:version 0.1.0 -->
@@ -761,6 +888,75 @@ Return the input down to the nearest whole number. Liquid tries to convert the i
 ```
 
 If the input can't be converted to a number, `0` is returned.
+
+## has
+
+<!-- md:version 0.3.0 -->
+<!-- md:shopify -->
+
+```
+<array> | has: <string>[, <object>]
+```
+
+Return `true` if the input array contains an object with a property identified by the first argument that is equal to the object given as the second argument. `false` is returned if none of the items in the input array contain such a property/value.
+
+In this example we test to see if any pages are in the "Programming" category.
+
+```json title="data"
+{
+  "pages": [
+    {
+      "id": 1,
+      "title": "Introduction to Cooking",
+      "category": "Cooking",
+      "tags": ["recipes", "beginner", "cooking techniques"]
+    },
+    {
+      "id": 2,
+      "title": "Top 10 Travel Destinations in Europe",
+      "category": "Travel",
+      "tags": ["Europe", "destinations", "travel tips"]
+    },
+    {
+      "id": 3,
+      "title": "Mastering JavaScript",
+      "category": "Programming",
+      "tags": ["JavaScript", "web development", "coding"]
+    }
+  ]
+}
+```
+
+```liquid2
+{% assign has_programming_page = pages | has: 'category', 'Programming' %}
+{{ has_programming_page }}
+```
+
+```plain title="output"
+true
+```
+
+### Lambda expressions
+
+<!-- md:version 0.3.0 -->
+<!-- md:liquid2 -->
+
+```
+<array> | has: <lambda expression>
+```
+
+Use the same data as above, we can pass a lambda expression to `has` to test against an arbitrary Boolean expression (one that evaluates to true or false).
+
+This example test for a page with a category equal to "programming" or "Programming".
+
+```liquid2
+{% assign has_programming_page = pages | has: p => p.category == 'programming' or p.category == 'Programming' %}
+{{ has_programming_page }}
+```
+
+```plain title="output"
+true
+```
 
 ## gettext
 

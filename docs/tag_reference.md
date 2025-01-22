@@ -115,7 +115,7 @@ Hello, {{ you }}!
 
 Values can be modified prior to output using filters. Filters are applied to an expression using the pipe symbol (`|`), followed by the filter's name and, possibly, some filter arguments. Filter arguments appear after a colon (`:`) and are separated by commas (`,`).
 
-Multiple filters can be chained together, effectively piping the output of one filter into the input of another.
+Multiple filters can be chained together, effectively piping the output of one filter into the input of another. See the [filter reference](filter_reference.md) for details of all built in filters.
 
 ```liquid2
 {{ user_name | upcase }}
