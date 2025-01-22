@@ -92,6 +92,16 @@ Hello, {{ you | capitalize }}!
 {% assign greeting = 'Hello, ${you | capitalize}!' %}
 ```
 
+### Lambda expression as filter arguments
+
+<!-- md:version 0.3.0 -->
+
+Many built-in filters that operate on arrays now support lambda expressions. For example, we can use the [`where`](filter_reference.md#where) filter to select values according to an arbitrary Boolean expression.
+
+```liquid2
+{% assign coding_pages = pages | where: page => page.tags contains 'coding' %}
+```
+
 ### Logical `not`
 
 Logical expressions now support negation with the `not` operator and grouping terms with parentheses by default. Previously this was an opt-in feature.

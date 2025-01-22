@@ -180,17 +180,22 @@ class LinesToken(TokenT):
 
 def _expression_as_string(expression: list[TokenT]) -> str:
     buf: list[str] = []
+    skip_next_space = False
 
     for token in expression:
+        if skip_next_space:
+            buf.append(str(token))
+            skip_next_space = False
+            continue
+
         if isinstance(token, Token):
-            if token.type_ == TokenType.SINGLE_QUOTE_STRING:
-                buf.append(f" '{token.value}'")
-            elif token.type_ == TokenType.DOUBLE_QUOTE_STRING:
-                buf.append(f' "{token.value}"')
-            elif token.type_ == TokenType.COMMA:
-                buf.append(",")  # no leading space
+            if token.type_ in (TokenType.COMMA, TokenType.COLON, TokenType.RPAREN):
+                buf.append(str(token))  # no leading space
             else:
-                buf.append(f" {token.value}")
+                buf.append(f" {token}")
+
+            if token.type_ == TokenType.LPAREN:
+                skip_next_space = True
         else:
             buf.append(f" {token}")
 
@@ -214,6 +219,13 @@ class Token(TokenT):
     value: str
     index: int
     source: str = field(repr=False)
+
+    def __str__(self) -> str:
+        if self.type_ == TokenType.SINGLE_QUOTE_STRING:
+            return f"'{self.value}'"
+        if self.type_ == TokenType.DOUBLE_QUOTE_STRING:
+            return f'"{self.value}"'
+        return self.value
 
     @property
     def start(self) -> int:
@@ -293,6 +305,9 @@ class RangeToken(TokenT):
     start: int
     stop: int
     source: str = field(repr=False)
+
+    def __str__(self) -> str:
+        return f"({self.range_start}..{self.range_stop})"
 
 
 @dataclass(kw_only=True, slots=True)
@@ -411,6 +426,7 @@ class TokenType(Enum):
     RANGE = auto()
 
     AND_WORD = auto()  # and
+    ARROW = auto()  # =>
     AS = auto()
     ASSIGN = auto()  # =
     COLON = auto()

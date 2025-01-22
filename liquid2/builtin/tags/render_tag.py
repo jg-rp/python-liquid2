@@ -74,8 +74,7 @@ class RenderNode(Node):
             var += ","
         args = " " + ", ".join(str(arg) for arg in self.args) if self.args else ""
         return (
-            f"{{%{self.token.wc[0]} render "
-            f"{self.name}{var}{args} {self.token.wc[1]}%}}"
+            f"{{%{self.token.wc[0]} render {self.name}{var}{args} {self.token.wc[1]}%}}"
         )
 
     def render_to_output(self, context: RenderContext, buffer: TextIO) -> int:
@@ -299,7 +298,7 @@ class RenderTag(Tag):
         ):
             tokens.next()  # Move past "for"
             loop = True
-            var = parse_primitive(tokens.next())
+            var = parse_primitive(self.env, tokens.next())
             if tokens.current().type_ == TokenType.AS:
                 tokens.next()  # Move past "as"
                 alias = parse_string_or_identifier(tokens.next())
@@ -308,11 +307,11 @@ class RenderTag(Tag):
             TokenType.COMMA,
         ):
             tokens.next()  # Move past "with"
-            var = parse_primitive(tokens.next())
+            var = parse_primitive(self.env, tokens.next())
             if tokens.current().type_ == TokenType.AS:
                 tokens.next()  # Move past "as"
                 alias = parse_string_or_identifier(tokens.next())
 
-        args = parse_keyword_arguments(tokens)
+        args = parse_keyword_arguments(self.env, tokens)
         tokens.expect_eos()
         return self.node_class(token, name, loop=loop, var=var, alias=alias, args=args)

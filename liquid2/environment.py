@@ -48,6 +48,9 @@ class Environment:
         default_trim: The automatic whitespace stripping mode to use. This mode can then
             be overridden by template authors per Liquid tag using whitespace control
             symbols (`-`, `+`, `~`).
+        validate_filter_arguments: If `True`, class-based filters that define a
+            `validate()` method will have their arguments validated as each template is
+            parsed.
     """
 
     context_depth_limit: ClassVar[int] = 30
@@ -85,11 +88,13 @@ class Environment:
         auto_escape: bool = False,
         undefined: Type[Undefined] = Undefined,
         default_trim: WhitespaceControl = WhitespaceControl.PLUS,
+        validate_filter_arguments: bool = True,
     ) -> None:
         self.loader = loader or DictLoader({})
         self.globals = globals or {}
         self.auto_escape = auto_escape
         self.undefined = undefined
+        self.validate_filter_arguments = validate_filter_arguments
 
         self.default_trim: WhitespaceControl = (
             WhitespaceControl.PLUS

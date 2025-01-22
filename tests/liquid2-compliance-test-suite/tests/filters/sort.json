@@ -103,6 +103,42 @@
         "a": [[], {}, 1, "4"]
       },
       "invalid": true
+    },
+    {
+      "name": "array of objects, lambda expression",
+      "template": "{% assign x = a | sort: i => i.user.title %}{% for obj in x %}{% for i in obj %}({{ i[0] }}.title,{{ i[1].title }}){% endfor %}{% endfor %}",
+      "data": {
+        "a": [
+          {
+            "user": { "title": "foo" }
+          },
+          {
+            "user": { "title": "bar" }
+          },
+          {
+            "user": { "title": "Baz" }
+          }
+        ]
+      },
+      "result": "(user.title,Baz)(user.title,bar)(user.title,foo)"
+    },
+    {
+      "name": "array of objects, lambda expression, all missing",
+      "template": "{% assign x = a | sort: i => i.user.foo %}{% for obj in x %}{% for i in obj %}({{ i[0] }}.title,{{ i[1].title }}){% endfor %}{% endfor %}",
+      "data": {
+        "a": [
+          {
+            "user": { "title": "foo" }
+          },
+          {
+            "user": { "title": "bar" }
+          },
+          {
+            "user": { "title": "Baz" }
+          }
+        ]
+      },
+      "result": "(user.title,foo)(user.title,bar)(user.title,Baz)"
     }
   ]
 }

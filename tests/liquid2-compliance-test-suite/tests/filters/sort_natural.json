@@ -4,13 +4,7 @@
       "name": "array of strings",
       "template": "{{ a | sort_natural | join: '#' }}",
       "data": {
-        "a": [
-          "b",
-          "a",
-          "C",
-          "B",
-          "A"
-        ]
+        "a": ["b", "a", "C", "B", "A"]
       },
       "result": "a#A#b#B#C"
     },
@@ -18,14 +12,7 @@
       "name": "array of strings with a nul",
       "template": "{% assign x = a | sort_natural %}{% for i in x %}{{ i }}{% unless forloop.last %}#{% endunless %}{% endfor %}",
       "data": {
-        "a": [
-          "b",
-          "a",
-          null,
-          "C",
-          "B",
-          "A"
-        ]
+        "a": ["b", "a", null, "C", "B", "A"]
       },
       "result": "a#A#b#B#C#"
     },
@@ -127,13 +114,45 @@
       "name": "incompatible types",
       "template": "{{ a | sort_natural }}",
       "data": {
-        "a": [
-          {},
-          1,
-          "4"
-        ]
+        "a": [{}, 1, "4"]
       },
       "result": "14{}"
+    },
+    {
+      "name": "array of objects, lambda expression",
+      "template": "{% assign x = a | sort_natural: i => i.user.title %}{% for obj in x %}{% for i in obj %}({{ i[0] }}.title,{{ i[1].title }}){% endfor %}{% endfor %}",
+      "data": {
+        "a": [
+          {
+            "user": { "title": "foo" }
+          },
+          {
+            "user": { "title": "bar" }
+          },
+          {
+            "user": { "title": "Baz" }
+          }
+        ]
+      },
+      "result": "(user.title,bar)(user.title,Baz)(user.title,foo)"
+    },
+    {
+      "name": "array of objects, lambda expression, all missing",
+      "template": "{% assign x = a | sort_natural: i => i.user.foo %}{% for obj in x %}{% for i in obj %}({{ i[0] }}.title,{{ i[1].title }}){% endfor %}{% endfor %}",
+      "data": {
+        "a": [
+          {
+            "user": { "title": "foo" }
+          },
+          {
+            "user": { "title": "bar" }
+          },
+          {
+            "user": { "title": "Baz" }
+          }
+        ]
+      },
+      "result": "(user.title,foo)(user.title,bar)(user.title,Baz)"
     }
   ]
 }

@@ -20,11 +20,12 @@ if TYPE_CHECKING:
 class TokenStream:
     """Step through a stream of tokens."""
 
+    eoi = Token(type_=TokenType.EOI, value="", index=-1, source="")
+
     def __init__(self, tokens: Sequence[TokenT]) -> None:
         self.tokens = tokens
         self.pos = 0
         self.trim_carry = WhitespaceControl.DEFAULT
-        self.eoi = Token(type_=TokenType.EOI, value="", index=-1, source="")
 
     def current(self) -> TokenT:
         """Return the item at self[0] without advancing the iterator."""
@@ -48,6 +49,11 @@ class TokenStream:
             return self.tokens[self.pos + 1]
         except IndexError:
             return self.eoi
+
+    def backup(self) -> None:
+        """Go back one token."""
+        if self.pos != 0:
+            self.pos -= 1
 
     def expect(self, typ: TokenType) -> None:
         """Raise a _LiquidSyntaxError_ if the current token type doesn't match _typ_."""

@@ -114,7 +114,7 @@ class MacroTag(Tag):
 
         tokens = TokenStream(token.expression)
         name = parse_string_or_identifier(tokens.next())
-        args = parse_parameters(tokens)
+        args = parse_parameters(self.env, tokens)
         block = BlockNode(
             stream.current(), self.env.parser.parse_block(stream, ("endmacro",))
         )
@@ -279,5 +279,5 @@ class CallTag(Tag):
 
         tokens = TokenStream(token.expression)
         name = parse_string_or_identifier(tokens.next())
-        args, kwargs = parse_positional_and_keyword_arguments(tokens)
+        args, kwargs = parse_positional_and_keyword_arguments(self.env, tokens)
         return self.node_class(token, name, args, kwargs)

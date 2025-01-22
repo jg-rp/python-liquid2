@@ -10,6 +10,7 @@ from typing import Iterable
 if TYPE_CHECKING:
     from liquid2 import TokenT
 
+    from .builtin import Identifier
     from .context import RenderContext
 
 
@@ -32,3 +33,10 @@ class Expression(ABC):
     @abstractmethod
     def children(self) -> Iterable[Expression]:
         """Return this expression's child expressions."""
+
+    def scope(self) -> Iterable[Identifier]:
+        """Return variables this expression adds the scope of any child expressions.
+
+        Used by lambda expressions only.
+        """
+        return []

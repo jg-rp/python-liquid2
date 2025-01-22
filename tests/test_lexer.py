@@ -90,12 +90,12 @@ TEST_CASES = [
     Case(
         name="assign tag, filter",
         source="{% assign x = true | default: foo %}",
-        want="{% assign x = true | default : foo %}",
+        want="{% assign x = true | default: foo %}",
     ),
     Case(
         name="assign tag, filters",
         source="{% assign x = true | default: foo | upcase %}",
-        want="{% assign x = true | default : foo | upcase %}",
+        want="{% assign x = true | default: foo | upcase %}",
     ),
     Case(
         name="assign tag, condition",
@@ -110,7 +110,7 @@ TEST_CASES = [
     Case(
         name="assign tag, condition, tail filters",
         source="{% assign x = true if y || upcase | join : 'foo' %}",
-        want="{% assign x = true if y || upcase | join : 'foo' %}",
+        want="{% assign x = true if y || upcase | join: 'foo' %}",
     ),
     Case(
         name="assign tag, condition and alternative",
@@ -201,6 +201,21 @@ TEST_CASES = [
         name="template string, just a placeholder",
         source='{{ "${you}" }}',
         want='{{ "${you}" }}',
+    ),
+    Case(
+        name="arrow expression",
+        source="{% assign x = a | map: i => i.foo.bar %}",
+        want="{% assign x = a | map: i => i.foo.bar %}",
+    ),
+    Case(
+        name="arrow expression, two arguments",
+        source="{% assign x = a | map: (item, index) => item.foo.bar %}",
+        want="{% assign x = a | map: (item, index) => item.foo.bar %}",
+    ),
+    Case(
+        name="range expression as filter argument",
+        source="{% assign x = a | foo: (1..4) %}",
+        want="{% assign x = a | foo: (1..4) %}",
     ),
 ]
 

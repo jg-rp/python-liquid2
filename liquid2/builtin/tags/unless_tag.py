@@ -133,7 +133,7 @@ class UnlessTag(Tag):
         parse_block = self.env.parser.parse_block
         parse_expression = BooleanExpression.parse
 
-        condition = parse_expression(TokenStream(token.expression))
+        condition = parse_expression(self.env, TokenStream(token.expression))
 
         block_token = stream.current()
         assert block_token is not None
@@ -153,7 +153,7 @@ class UnlessTag(Tag):
                 raise LiquidSyntaxError("missing expression", token=alternative_token)
 
             alternative_expression = parse_expression(
-                TokenStream(alternative_token.expression)
+                self.env, TokenStream(alternative_token.expression)
             )
 
             alternative_block = BlockNode(

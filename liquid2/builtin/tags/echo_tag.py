@@ -74,7 +74,7 @@ class EchoTag(Tag):
             raise LiquidSyntaxError("missing expression", token=token)
 
         expr_stream = TokenStream(token.expression)
-        expr = FilteredExpression.parse(expr_stream)
+        expr = FilteredExpression.parse(self.env, expr_stream)
         expr_stream.expect_eos()
 
         return self.node_class(token, expr)

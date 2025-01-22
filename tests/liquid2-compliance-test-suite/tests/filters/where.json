@@ -99,6 +99,24 @@
       "invalid": true
     },
     {
+      "name": "arrow function, two arguments",
+      "template": "{{ a | i => i.foo.bar, x }}",
+      "data": {
+        "a": [
+          {
+            "title": "foo"
+          },
+          {
+            "title": "bar"
+          },
+          {
+            "title": null
+          }
+        ]
+      },
+      "invalid": true
+    },
+    {
       "name": "left value is undefined",
       "template": "{{ nosuchthing | where: 'title' }}",
       "data": {},
@@ -193,6 +211,42 @@
         ]
       },
       "result": "(b,bar)"
+    },
+    {
+      "name": "array of hashes, lambda expression",
+      "template": "{% assign x = a | where: i => i.user.title %}{% for obj in x %}{% for i in obj %}({{ i[0] }}.title,{{ i[1].title }}){% endfor %}{% endfor %}",
+      "data": {
+        "a": [
+          {
+            "user": { "title": "foo" }
+          },
+          {
+            "user": { "title": "bar" }
+          },
+          {
+            "user": { "title": null }
+          }
+        ]
+      },
+      "result": "(user.title,foo)(user.title,bar)"
+    },
+    {
+      "name": "array of hashes, lambda expression, two arguments",
+      "template": "{% assign x = a | where: (item, index) => index > 0 %}{% for obj in x %}{% for i in obj %}({{ i[0] }}.title,{{ i[1].title }}){% endfor %}{% endfor %}",
+      "data": {
+        "a": [
+          {
+            "user": { "title": "foo" }
+          },
+          {
+            "user": { "title": "bar" }
+          },
+          {
+            "user": { "title": null }
+          }
+        ]
+      },
+      "result": "(user.title,bar)(user.title,)"
     }
   ]
 }

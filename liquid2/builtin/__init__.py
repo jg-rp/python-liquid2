@@ -19,6 +19,7 @@ from .expressions import FloatLiteral
 from .expressions import Identifier
 from .expressions import IntegerLiteral
 from .expressions import KeywordArgument
+from .expressions import LambdaExpression
 from .expressions import Literal
 from .expressions import LogicalAndExpression
 from .expressions import LogicalNotExpression
@@ -42,23 +43,22 @@ from .expressions import parse_positional_and_keyword_arguments
 from .expressions import parse_primitive
 from .expressions import parse_string_or_identifier
 from .expressions import parse_string_or_path
-from .filters.array import compact
 from .filters.array import concat
 from .filters.array import first
 from .filters.array import join
 from .filters.array import last
-from .filters.array import map_
 from .filters.array import reverse
-from .filters.array import sort
-from .filters.array import sort_natural
-from .filters.array import sort_numeric
-from .filters.array import sum_
-from .filters.array import uniq
-from .filters.array import where
 from .filters.babel import Currency
 from .filters.babel import DateTime
 from .filters.babel import Number
 from .filters.babel import Unit
+from .filters.filtering_filters import CompactFilter
+from .filters.filtering_filters import RejectFilter
+from .filters.filtering_filters import WhereFilter
+from .filters.find_filters import FindFilter
+from .filters.find_filters import FindIndexFilter
+from .filters.find_filters import HasFilter
+from .filters.map_filter import MapFilter
 from .filters.math import abs_
 from .filters.math import at_least
 from .filters.math import at_most
@@ -74,6 +74,9 @@ from .filters.misc import JSON
 from .filters.misc import date
 from .filters.misc import default
 from .filters.misc import size
+from .filters.sorting_filters import SortFilter
+from .filters.sorting_filters import SortNaturalFilter
+from .filters.sorting_filters import SortNumericFilter
 from .filters.string import append
 from .filters.string import capitalize
 from .filters.string import downcase
@@ -100,12 +103,14 @@ from .filters.string import truncatewords
 from .filters.string import upcase
 from .filters.string import url_decode
 from .filters.string import url_encode
+from .filters.sum_filter import SumFilter
 from .filters.translate import BaseTranslateFilter
 from .filters.translate import GetText
 from .filters.translate import NGetText
 from .filters.translate import NPGetText
 from .filters.translate import PGetText
 from .filters.translate import Translate
+from .filters.uniq_filter import UniqFilter
 from .loaders.caching_file_system_loader import CachingFileSystemLoader
 from .loaders.choice_loader import CachingChoiceLoader
 from .loaders.choice_loader import ChoiceLoader
@@ -145,6 +150,7 @@ if TYPE_CHECKING:
 
 __all__ = (
     "abs_",
+    "LambdaExpression",
     "AssignTag",
     "at_least",
     "at_most",
@@ -249,15 +255,19 @@ def register_default_tags_and_filters(env: Environment) -> None:  # noqa: PLR091
     env.filters["first"] = first
     env.filters["last"] = last
     env.filters["concat"] = concat
-    env.filters["map"] = map_
+    env.filters["map"] = MapFilter()
     env.filters["reverse"] = reverse
-    env.filters["sort"] = sort
-    env.filters["sort_natural"] = sort_natural
-    env.filters["sort_numeric"] = sort_numeric
-    env.filters["sum"] = sum_
-    env.filters["where"] = where
-    env.filters["uniq"] = uniq
-    env.filters["compact"] = compact
+    env.filters["sort"] = SortFilter()
+    env.filters["sort_natural"] = SortNaturalFilter()
+    env.filters["sort_numeric"] = SortNumericFilter()
+    env.filters["sum"] = SumFilter()
+    env.filters["where"] = WhereFilter()
+    env.filters["reject"] = RejectFilter()
+    env.filters["uniq"] = UniqFilter()
+    env.filters["compact"] = CompactFilter()
+    env.filters["find"] = FindFilter()
+    env.filters["find_index"] = FindIndexFilter()
+    env.filters["has"] = HasFilter()
 
     env.filters["abs"] = abs_
     env.filters["at_least"] = at_least

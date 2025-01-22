@@ -133,7 +133,7 @@ class IfTag(Tag):
         if not token.expression:
             raise LiquidSyntaxError("missing expression", token=token)
 
-        condition = parse_expression(TokenStream(token.expression))
+        condition = parse_expression(self.env, TokenStream(token.expression))
 
         block_token = stream.current()
         assert block_token is not None
@@ -150,7 +150,7 @@ class IfTag(Tag):
                 raise LiquidSyntaxError("missing expression", token=alternative_token)
 
             alternative_expression = parse_expression(
-                TokenStream(alternative_token.expression)
+                self.env, TokenStream(alternative_token.expression)
             )
 
             alternative_block = BlockNode(

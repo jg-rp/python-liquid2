@@ -295,7 +295,9 @@ class TranslateTag(Tag):
         if token.expression:
             args = {
                 arg.name: arg
-                for arg in parse_keyword_arguments(TokenStream(token.expression))
+                for arg in parse_keyword_arguments(
+                    self.env, TokenStream(token.expression)
+                )
             }
         else:
             args = {}

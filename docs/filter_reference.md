@@ -712,6 +712,133 @@ Return the input string with characters `&`, `<` and `>` converted to HTML-safe 
 Have you read &#39;James &amp; the Giant Peach&#39;?
 ```
 
+## find
+
+<!-- md:version 0.3.0 -->
+<!-- md:shopify -->
+
+```
+<array> | find: <string>[, <object>]
+```
+
+Return the first item in the input array that contains a property, given as the first argument, equal to the value given as the second argument. If no such item exists, `null` is returned.
+
+In this example we select the first page in the "Programming" category.
+
+```json title="data"
+{
+  "pages": [
+    {
+      "id": 1,
+      "title": "Introduction to Cooking",
+      "category": "Cooking",
+      "tags": ["recipes", "beginner", "cooking techniques"]
+    },
+    {
+      "id": 2,
+      "title": "Top 10 Travel Destinations in Europe",
+      "category": "Travel",
+      "tags": ["Europe", "destinations", "travel tips"]
+    },
+    {
+      "id": 3,
+      "title": "Mastering JavaScript",
+      "category": "Programming",
+      "tags": ["JavaScript", "web development", "coding"]
+    }
+  ]
+}
+```
+
+```liquid2
+{% assign page = pages | find: 'category', 'Programming' %}
+{{ page.title }}
+```
+
+```plain title="output"
+Mastering JavaScript
+```
+
+### Lambda expressions
+
+<!-- md:version 0.3.0 -->
+<!-- md:liquid2 -->
+
+```
+<array> | find: <lambda expression>
+```
+
+We can pass a lambda expression as an argument to `find` to select the first item matching an arbitrary Boolean expression (one that evaluates to true or false). Using the same data as above, this example finds the first page with a "web development" tag.
+
+```liquid2
+{% assign page = pages | find: item => 'web development' in item.tags %}
+{{ page.title }}
+```
+
+```plain title="output"
+Mastering JavaScript
+```
+
+## find_index
+
+Return the index of the first item in the input array that contains a property, given as the first argument, equal to the value given as the second argument. If no such item exists, `null` is returned.
+
+In this example we find the index for the first page in the "Programming" category.
+
+```json title="data"
+{
+  "pages": [
+    {
+      "id": 1,
+      "title": "Introduction to Cooking",
+      "category": "Cooking",
+      "tags": ["recipes", "beginner", "cooking techniques"]
+    },
+    {
+      "id": 2,
+      "title": "Top 10 Travel Destinations in Europe",
+      "category": "Travel",
+      "tags": ["Europe", "destinations", "travel tips"]
+    },
+    {
+      "id": 3,
+      "title": "Mastering JavaScript",
+      "category": "Programming",
+      "tags": ["JavaScript", "web development", "coding"]
+    }
+  ]
+}
+```
+
+```liquid2
+{% assign index = pages | find_index: 'category', 'Programming' %}
+{{ pages[index].title }}
+```
+
+```plain title="output"
+Mastering JavaScript
+```
+
+### Lambda expressions
+
+<!-- md:version 0.3.0 -->
+<!-- md:liquid2 -->
+
+```
+<array> | find_index: <lambda expression>
+```
+
+We can pass a lambda expression as an argument to `find_index` to get the index for the first item matching an arbitrary Boolean expression (one that evaluates to true or false). Using the same data as above, this example finds the first page with a "web development" tag.
+
+```liquid2
+{% assign index = pages | find_index: item => 'web development' in item.tags %}
+{{ page[index].title }}
+```
+
+```plain title="output"
+Mastering JavaScript
+```
+
 ## first
 
 <!-- md:version 0.1.0 -->
@@ -761,6 +888,75 @@ Return the input down to the nearest whole number. Liquid tries to convert the i
 ```
 
 If the input can't be converted to a number, `0` is returned.
+
+## has
+
+<!-- md:version 0.3.0 -->
+<!-- md:shopify -->
+
+```
+<array> | has: <string>[, <object>]
+```
+
+Return `true` if the input array contains an object with a property identified by the first argument that is equal to the object given as the second argument. `false` is returned if none of the items in the input array contain such a property/value.
+
+In this example we test to see if any pages are in the "Programming" category.
+
+```json title="data"
+{
+  "pages": [
+    {
+      "id": 1,
+      "title": "Introduction to Cooking",
+      "category": "Cooking",
+      "tags": ["recipes", "beginner", "cooking techniques"]
+    },
+    {
+      "id": 2,
+      "title": "Top 10 Travel Destinations in Europe",
+      "category": "Travel",
+      "tags": ["Europe", "destinations", "travel tips"]
+    },
+    {
+      "id": 3,
+      "title": "Mastering JavaScript",
+      "category": "Programming",
+      "tags": ["JavaScript", "web development", "coding"]
+    }
+  ]
+}
+```
+
+```liquid2
+{% assign has_programming_page = pages | has: 'category', 'Programming' %}
+{{ has_programming_page }}
+```
+
+```plain title="output"
+true
+```
+
+### Lambda expressions
+
+<!-- md:version 0.3.0 -->
+<!-- md:liquid2 -->
+
+```
+<array> | has: <lambda expression>
+```
+
+Use the same data as above, we can pass a lambda expression to `has` to test against an arbitrary Boolean expression (one that evaluates to true or false).
+
+This example test for a page with a category equal to "programming" or "Programming".
+
+```liquid2
+{% assign has_programming_page = pages | has: p => p.category == 'programming' or p.category == 'Programming' %}
+{{ has_programming_page }}
+```
+
+```plain title="output"
+true
+```
 
 ## gettext
 
@@ -898,10 +1094,10 @@ So much room for activities          !
 ## map
 
 <!-- md:version 0.1.0 -->
-<!-- md:shopify -->
+<!-- md:liquid2 -->
 
 ```
-<array> | map: <string>
+<array> | map: <string | lambda expression>
 ```
 
 Extract properties from an array of objects into a new array.
@@ -936,12 +1132,55 @@ For example, if `pages` is an array of objects with a `category` property:
 - technology
 ```
 
+### Lambda expressions
+
+<!-- md:version 0.3.0 -->
+<!-- md:liquid2 -->
+
+You can use a lambda expression to select arbitrary nested properties and array items from a sequence of objects.
+
+For example, if `pages` is an array of objects with a `tags` property, which is an array of strings:
+
+```json title="data"
+{
+  "pages": [
+    {
+      "id": 1,
+      "title": "Introduction to Cooking",
+      "category": "Cooking",
+      "tags": ["recipes", "beginner", "cooking techniques"]
+    },
+    {
+      "id": 2,
+      "title": "Top 10 Travel Destinations in Europe",
+      "category": "Travel",
+      "tags": ["Europe", "destinations", "travel tips"]
+    },
+    {
+      "id": 3,
+      "title": "Mastering JavaScript",
+      "category": "Programming",
+      "tags": ["JavaScript", "web development", "coding"]
+    }
+  ]
+}
+```
+
+```liquid2
+{% assign first_tags = pages | map: page => page.tags[0] -%}
+{{ first_tags | json }}
+```
+
+```plain title="output"
+["recipes", "Europe", "JavaScript"]
+```
+
 ## minus
 
 <!-- md:version 0.1.0 -->
 <!-- md:shopify -->
 
-````
+```
 <number> | minus: <number>
 ```
 
@@ -952,7 +1191,7 @@ Return the result of subtracting one number from another. If either the input or
 {{ "16" | minus: 4 }}
 {{ 183.357 | minus: 12.2 }}
 {{ "hello" | minus: 10 }}
-````
+```
 
 ```plain title="output"
 2
@@ -1188,6 +1427,62 @@ concatenation.
 ```plain title="output"
 7.542
 World!
+```
+
+## reject
+
+<!-- md:version 0.3.0 -->
+<!-- md:liquid2 -->
+
+```
+<array> | reject: <string>[, <object>]
+```
+
+Return a copy of the input array including only those objects that have a property, named with the first argument, **that is not equal to** a value, given as the second argument. If a second argument is not given, only elements with the named property that are falsy will be included.
+
+```json title="data"
+{
+  "products": [
+    { "title": "Vacuum", "type": "house", "available": true },
+    { "title": "Spatula", "type": "kitchen", "available": false },
+    { "title": "Television", "type": "lounge", "available": true },
+    { "title": "Garlic press", "type": "kitchen", "available": true }
+  ]
+}
+```
+
+```liquid2
+All products:
+{% for product in products -%}
+- {{ product.title }}
+{% endfor %}
+
+{%- assign kitchen_products = products | reject: "type", "kitchen" -%}
+
+Non kitchen products:
+{% for product in kitchen_products -%}
+- {{ product.title }}
+{% endfor %}
+
+{%- assign unavailable_products = products | reject: "available" -%}
+
+Unavailable products:
+{% for product in unavailable_products -%}
+- {{ product.title }}
+{% endfor %}
+```
+
+```plain title="output"
+All products:
+- Vacuum
+- Spatula
+- Television
+- Garlic press
+Non kitchen products:
+- Vacuum
+- Television
+Unavailable products:
+- Spatula
 ```
 
 ## remove
@@ -2100,4 +2395,51 @@ Available product:
 - Vacuum
 - Television
 - Garlic press
+```
+
+### Lambda expressions
+
+<!-- md:version 0.3.0 -->
+<!-- md:liquid2 -->
+
+```
+<array> | where: <lambda expression>
+```
+
+Use a lambda expression to select array items according to an arbitrary Boolean expression (one that evaluates to true or false).
+
+In this example we select pages that have a "coding" tag.
+
+```json title="data"
+{
+  "pages": [
+    {
+      "id": 1,
+      "title": "Introduction to Cooking",
+      "category": "Cooking",
+      "tags": ["recipes", "beginner", "cooking techniques"]
+    },
+    {
+      "id": 2,
+      "title": "Top 10 Travel Destinations in Europe",
+      "category": "Travel",
+      "tags": ["Europe", "destinations", "travel tips"]
+    },
+    {
+      "id": 3,
+      "title": "Mastering JavaScript",
+      "category": "Programming",
+      "tags": ["JavaScript", "web development", "coding"]
+    }
+  ]
+}
+```
+
+```liquid2
+{% assign coding_pages = pages | where: page => page.tags contains 'coding' %}
+{{ coding_pages | map: page => page.title | json }}
+```
+
+```plain title="output"
+["Mastering JavaScript"]
 ```

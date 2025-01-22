@@ -137,3 +137,51 @@ del env.filters["safe"]
 !!! tip
 
     You can add, remove and replace filters on `liquid2.DEFAULT_ENVIRONMENT` too. Convenience functions [`parse()`](api/convenience.md#liquid2.parse) and [`render()`](api/convenience.md#liquid2.render) use `DEFAULT_ENVIRONMENT`
+
+## Filter argument validation
+
+When implementing a filter as a class, you have the option of implementing a `validate()` method. If present, `validate` will be called when parsing the template, giving you the opportunity to raise an exception if the filter's arguments are not acceptable.
+
+Here's an example of the built-in [`map`](filter_reference.md#map) filter. It uses `validate` to check that if a lambda expression is passed as an argument, that expression is a path to a variable, not a logical expression.
+
+!!! tip
+
+    See [map_filter.py](https://github.com/jg-rp/python-liquid2/tree/main/liquid2/builtin/filters/map_filter.py) for the full example.
+
+```python
+class MapFilter:
+    """An implementation of the `map` filter that accepts lambda expressions."""
+
+    with_context = True
+
+    def validate(
+        self,
+        _env: Environment,
+        token: TokenT,
+        name: str,
+        args: list[KeywordArgument | PositionalArgument],
+    ) -> None:
+        """Raise a `LiquidTypeError` if _args_ are not valid."""
+        if len(args) != 1:
+            raise LiquidTypeError(
+                f"{name!r} expects exactly one argument, got {len(args)}",
+                token=token,
+            )
+
+        if not isinstance(args[0], PositionalArgument):
+            raise LiquidTypeError(
+                f"{name!r} takes no keyword arguments",
+                token=token,
+            )
+
+        arg = args[0].value
+
+        if isinstance(arg, LambdaExpression) and not isinstance(arg.expression, Path):
+            raise LiquidTypeError(
+                f"{name!r} expects a path to a variable, "
+                f"got {arg.expression.__class__.__name__}",
+                token=arg.expression.token,
+            )
+
+# ...
+```

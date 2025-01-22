@@ -137,6 +137,22 @@ def string_filter(_filter: Callable[..., Any]) -> Callable[..., Any]:
     return wrapper
 
 
+def sequence_arg(val: object) -> Sequence[Any]:
+    """Return _val_ as an Sequence."""
+    if is_undefined(val):
+        val.poke()
+        return []
+    if isinstance(val, str):
+        return list(val)
+    if isinstance(val, Sequence):
+        return _flatten(val)
+    if isinstance(val, Mapping):
+        return [val]
+    if isinstance(val, Iterable):
+        return list(val)
+    return [val]
+
+
 def sequence_filter(_filter: Callable[..., Any]) -> Callable[..., Any]:
     """Coerce the left value to sequence.
 
@@ -146,16 +162,7 @@ def sequence_filter(_filter: Callable[..., Any]) -> Callable[..., Any]:
 
     @wraps(_filter)
     def wrapper(val: object, *args: Any, **kwargs: Any) -> Any:
-        if is_undefined(val):
-            val.poke()
-            val = []
-        elif isinstance(val, str):
-            val = list(val)
-        elif isinstance(val, Sequence):
-            val = _flatten(val)
-        elif isinstance(val, Mapping) or not isinstance(val, Iterable):
-            val = [val]
-        return _filter(val, *args, **kwargs)
+        return _filter(sequence_arg(val), *args, **kwargs)
 
     return wrapper
 
@@ -165,6 +172,8 @@ def math_filter(_filter: Callable[..., Any]) -> Callable[..., Any]:
 
     @wraps(_filter)
     def wrapper(val: object, *args: Any, **kwargs: Any) -> Any:
+        if is_undefined(val):
+            val.poke()
         val = num_arg(val, default=0)
         return _filter(val, *args, **kwargs)
 

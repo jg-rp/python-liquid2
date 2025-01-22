@@ -106,6 +106,96 @@
         }
       },
       "result": "foo"
+    },
+    {
+      "name": "array of objects, lambda expression",
+      "template": "{{ a | map: i => i.user.title | join: '#' }}",
+      "data": {
+        "a": [
+          {
+            "user": { "title": "foo" }
+          },
+          {
+            "user": { "title": "bar" }
+          },
+          {
+            "user": { "title": "baz" }
+          }
+        ]
+      },
+      "result": "foo#bar#baz"
+    },
+    {
+      "name": "array of objects, lambda expression, parentheses",
+      "template": "{{ a | map: (i) => i.user.title | join: '#' }}",
+      "data": {
+        "a": [
+          {
+            "user": { "title": "foo" }
+          },
+          {
+            "user": { "title": "bar" }
+          },
+          {
+            "user": { "title": "baz" }
+          }
+        ]
+      },
+      "result": "foo#bar#baz"
+    },
+    {
+      "name": "array of objects, lambda expression, two params",
+      "template": "{{ a | map: (i, j) => i.user.title | join: '#' }}",
+      "data": {
+        "a": [
+          {
+            "user": { "title": "foo" }
+          },
+          {
+            "user": { "title": "bar" }
+          },
+          {
+            "user": { "title": "baz" }
+          }
+        ]
+      },
+      "result": "foo#bar#baz"
+    },
+    {
+      "name": "array of objects, lambda expression, map to index",
+      "template": "{{ a | map: (i, j) => j | join: '#' }}",
+      "data": {
+        "a": [
+          {
+            "user": { "title": "foo" }
+          },
+          {
+            "user": { "title": "bar" }
+          },
+          {
+            "user": { "title": "baz" }
+          }
+        ]
+      },
+      "result": "0#1#2"
+    },
+    {
+      "name": "array of objects, lambda expression is not a path",
+      "template": "{{ a | map: (i) => i.user.title == 'foo' | join: '#' }}",
+      "data": {
+        "a": [
+          {
+            "user": { "title": "foo" }
+          },
+          {
+            "user": { "title": "bar" }
+          },
+          {
+            "user": { "title": "baz" }
+          }
+        ]
+      },
+      "invalid": true
     }
   ]
 }
