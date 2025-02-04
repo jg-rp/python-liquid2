@@ -4,7 +4,7 @@ When compared to [Python Liquid](https://github.com/jg-rp/liquid) and [Shopify/L
 
 ## Approach to compatibility and stability
 
-With [Python Liquid](https://github.com/jg-rp/liquid), our primary objectives are render behavior stability and Shopify/Liquid compatibility, in that order. We also have `liquid.future.Environment`, which sacrificed some stability for greater Shopify/Liquid compatibility as Shopify/Liquid and our understanding of it changed.
+With [Python Liquid](https://github.com/jg-rp/liquid), our primary objectives are render behavior stability and Shopify/Liquid compatibility, in that order. We also have `liquid.future.Environment`, which sacrifices some stability for greater Shopify/Liquid compatibility as Shopify/Liquid and our understanding of it changes.
 
 Now, with Python Liquid2, render behavior stability is still the top priority, but the default environment deliberately deviates from Shopify/Liquid in several ways, "fixing" and adding often requested features that Shopify can't due to their large user base and the technical debt that comes with it.
 
@@ -49,7 +49,7 @@ Here we use `~` to remove the newline after the opening `for` tag, but preserve 
 
 ### Array construction syntax
 
-Filtered expression (those found in output statements, the `assign` tag and the `echo` tag) and `for` tag expressions support array literal syntax. We don't use the traditional `[item1, item2, ...]` syntax with square brackets because square brackets are already used for variables (`["some variable with spaces"]` is a valid variable).
+Filtered expressions (those found in output statements, the `assign` tag and the `echo` tag) and `for` tag expressions support array literal syntax. We don't use the traditional `[item1, item2, ...]` syntax with square brackets because square brackets are already used for variables (`["some variable with spaces"]` is a valid variable).
 
 ```liquid2
 {% assign my_array = a, b, '42', false -%}
@@ -213,7 +213,7 @@ liquid2.exceptions.LiquidSyntaxError: expected IN, found WORD
 
 ## Features that have been removed
 
-- We no longer offer "lax" or "warn" modes, previously controlled by the `tolerance` argument to `Environment`. The assertion is that errors should be loud and we should be made aware as early as possible, whether you're an experienced developer or not.
+- We no longer offer "lax" or "warn" modes, previously controlled by the `tolerance` argument to `Environment`. A dedicated fault tolerant parser suitable for use with code editors is in progress.
 - It's not currently possible to change Liquid markup delimiters (`{{`, `}}`, `{%` and `%}`).
 - Async filters have not been implemented, but can be if there is a demand.
 - Contextual template analysis has not been implemented, but can be if there is a demand.
@@ -224,7 +224,7 @@ liquid2.exceptions.LiquidSyntaxError: expected IN, found WORD
 
 ## API changes
 
-These are the most notable changes. Please raise an [issue](https://github.com/jg-rp/python-liquid2/issues) or start a discussion if I've missed anything or you need help with migration.
+These are the most notable changes. Please open an [issue](https://github.com/jg-rp/python-liquid2/issues) or start a discussion if I've missed anything or you need help with migration.
 
 - Package level `Template` can no longer be used as a convenience function for creating a template from a string. Use [`parse()`](api/convenience.md#liquid2.parse), [`render()`](api/convenience.md#liquid2.render) or [`DEFAULT_ENVIRONMENT.from_string()`](api/environment.md#liquid2.Environment.from_string) instead.
 - `StrictUndefined` now plays nicely with the `default` filter. Previously we had a separate `StrictDefaultUndefined` class.
@@ -241,7 +241,7 @@ These are the most notable changes. Please raise an [issue](https://github.com/j
 
 ### Custom tags
 
-[docs](custom_tags.md)
+([docs](custom_tags.md))
 
 The lexer has been completely rewritten and the tokens it produces bear little resemblance to those produced by any of the several parsing functions from Python Liquid. Now we have a single lexer that scans source text content, tags, statements and expressions in a single pass, and a parser that delegates the parsing of those tokens to classes implementing `Tag`.
 
