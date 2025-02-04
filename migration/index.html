@@ -1194,7 +1194,7 @@
 <h1 id="migration-guide">Migration guide</h1>
 <p>When compared to <a href="https://github.com/jg-rp/liquid">Python Liquid</a> and <a href="https://github.com/Shopify/liquid">Shopify/Liquid</a>, Liquid2 adds features, subtly changes the syntax of Liquid templates and changes the template engine's Python API. This is not "Python Liquid version 2", but a Python implementation of "Liquid2", which is mostly backwards compatible with other implementations.</p>
 <h2 id="approach-to-compatibility-and-stability">Approach to compatibility and stability</h2>
-<p>With <a href="https://github.com/jg-rp/liquid">Python Liquid</a>, our primary objectives are render behavior stability and Shopify/Liquid compatibility, in that order. We also have <code>liquid.future.Environment</code>, which sacrificed some stability for greater Shopify/Liquid compatibility as Shopify/Liquid and our understanding of it changed.</p>
+<p>With <a href="https://github.com/jg-rp/liquid">Python Liquid</a>, our primary objectives are render behavior stability and Shopify/Liquid compatibility, in that order. We also have <code>liquid.future.Environment</code>, which sacrifices some stability for greater Shopify/Liquid compatibility as Shopify/Liquid and our understanding of it changes.</p>
 <p>Now, with Python Liquid2, render behavior stability is still the top priority, but the default environment deliberately deviates from Shopify/Liquid in several ways, "fixing" and adding often requested features that Shopify can't due to their large user base and the technical debt that comes with it.</p>
 <p>In most cases these fixes and features are backwards compatible with Shopify/Liquid, requiring little or no modification to legacy Liquid templates. To ease transition from legacy templates to Liquid2 templates, we include a <code>liquid2.shopify.Environment</code>, which is configured to include some legacy tags that didn't make it in to the default environment.</p>
 <h3 id="why-is-render-stability-so-important">Why is render stability so important?</h3>
@@ -1221,7 +1221,7 @@
 </span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>&lt;/ul&gt;
 </span></code></pre></div>
 <h3 id="array-construction-syntax">Array construction syntax</h3>
-<p>Filtered expression (those found in output statements, the <code>assign</code> tag and the <code>echo</code> tag) and <code>for</code> tag expressions support array literal syntax. We don't use the traditional <code>[item1, item2, ...]</code> syntax with square brackets because square brackets are already used for variables (<code>["some variable with spaces"]</code> is a valid variable).</p>
+<p>Filtered expressions (those found in output statements, the <code>assign</code> tag and the <code>echo</code> tag) and <code>for</code> tag expressions support array literal syntax. We don't use the traditional <code>[item1, item2, ...]</code> syntax with square brackets because square brackets are already used for variables (<code>["some variable with spaces"]</code> is a valid variable).</p>
 <div class="language-liquid2 highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{%</span><span class="w"> </span><span class="nt">assign</span><span class="w"> </span><span class="na">my_array</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">a</span><span class="p">,</span><span class="w"> </span><span class="nv">b</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;42&#39;</span><span class="p">,</span><span class="w"> </span><span class="kc">false</span><span class="w"> </span><span class="p">-%}</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="p">{%</span><span class="w"> </span><span class="kr">for</span><span class="w"> </span><span class="nv">item</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="nv">my_array</span><span class="w"> </span><span class="p">-%}</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    - <span class="p">{{</span><span class="w"> </span><span class="nv">item</span><span class="w"> </span><span class="p">}}</span>
@@ -1320,7 +1320,7 @@
 </span></code></pre></div>
 <h2 id="features-that-have-been-removed">Features that have been removed</h2>
 <ul>
-<li>We no longer offer "lax" or "warn" modes, previously controlled by the <code>tolerance</code> argument to <code>Environment</code>. The assertion is that errors should be loud and we should be made aware as early as possible, whether you're an experienced developer or not.</li>
+<li>We no longer offer "lax" or "warn" modes, previously controlled by the <code>tolerance</code> argument to <code>Environment</code>. A dedicated fault tolerant parser suitable for use with code editors is in progress.</li>
 <li>It's not currently possible to change Liquid markup delimiters (<code>{{</code>, <code>}}</code>, <code>{%</code> and <code>%}</code>).</li>
 <li>Async filters have not been implemented, but can be if there is a demand.</li>
 <li>Contextual template analysis has not been implemented, but can be if there is a demand.</li>
@@ -1330,7 +1330,7 @@
 <li>The <a href="https://github.com/jg-rp/liquid-jsonpath">Liquid JSONPath</a> project has not yet been ported to Python Liquid2. Open an issue if you'd like to see JSONPath syntax added to Liquid2.</li>
 </ul>
 <h2 id="api-changes">API changes</h2>
-<p>These are the most notable changes. Please raise an <a href="https://github.com/jg-rp/python-liquid2/issues">issue</a> or start a discussion if I've missed anything or you need help with migration.</p>
+<p>These are the most notable changes. Please open an <a href="https://github.com/jg-rp/python-liquid2/issues">issue</a> or start a discussion if I've missed anything or you need help with migration.</p>
 <ul>
 <li>Package level <code>Template</code> can no longer be used as a convenience function for creating a template from a string. Use <a href="../api/convenience/#liquid2.parse"><code>parse()</code></a>, <a href="../api/convenience/#liquid2.render"><code>render()</code></a> or <a href="../api/environment/#liquid2.Environment.from_string"><code>DEFAULT_ENVIRONMENT.from_string()</code></a> instead.</li>
 <li><code>StrictUndefined</code> now plays nicely with the <code>default</code> filter. Previously we had a separate <code>StrictDefaultUndefined</code> class.</li>
@@ -1346,7 +1346,7 @@
 <li><a href="../api/environment/#liquid2.Environment.tags"><code>Environment.tags</code></a> is now a mapping of tag names to <code>Tag</code> instances. It used to be a mapping of names to <code>Tag</code> classes.</li>
 </ul>
 <h3 id="custom-tags">Custom tags</h3>
-<p><a href="../custom_tags/">docs</a></p>
+<p>(<a href="../custom_tags/">docs</a>)</p>
 <p>The lexer has been completely rewritten and the tokens it produces bear little resemblance to those produced by any of the several parsing functions from Python Liquid. Now we have a single lexer that scans source text content, tags, statements and expressions in a single pass, and a parser that delegates the parsing of those tokens to classes implementing <code>Tag</code>.</p>
 <p>These changes were necessary to support "proper" string literals with escaping, Unicode support and interpolation.</p>
 <p>As before, <code>Tag</code> instances are responsible for returning <code>Node</code>s from <code>Tag.parse()</code>. And nodes still have the familiar <code>render_to_output()</code> abstract method.</p>
