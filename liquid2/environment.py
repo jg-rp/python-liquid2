@@ -122,7 +122,7 @@ class Environment:
 
     def tokenize(self, source: str) -> list[TokenT]:
         """Scan Liquid template _source_ and return a list of Markup objects."""
-        lexer = self.lexer_class(source)
+        lexer = self.lexer_class(self, source)
         lexer.run()
         return lexer.markup
 

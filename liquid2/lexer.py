@@ -30,6 +30,7 @@ from .token import WhitespaceControl
 from .token import is_token_type
 
 if TYPE_CHECKING:
+    from .environment import Environment
     from .token import TokenT
 
 
@@ -178,6 +179,7 @@ class Lexer:
     TOKEN_RULES = _compile(NUMBERS, SYMBOLS, WORD)
 
     __slots__ = (
+        "env",
         "in_range",
         "line_start",
         "line_statements",
@@ -194,7 +196,9 @@ class Lexer:
         "template_string_stack",
     )
 
-    def __init__(self, source: str) -> None:
+    def __init__(self, env: Environment, source: str) -> None:
+        self.env = env
+
         self.markup: list[TokenT] = []
         """Markup resulting from scanning a Liquid template."""
 
@@ -1168,8 +1172,8 @@ class Lexer:
         return self.lex_inside_liquid_tag
 
 
-def tokenize(source: str) -> list[TokenT]:
+def tokenize(env: Environment, source: str) -> list[TokenT]:
     """Scan Liquid template _source_ and return a list of Markup objects."""
-    lexer = Lexer(source)
+    lexer = Lexer(env, source)
     lexer.run()
     return lexer.markup

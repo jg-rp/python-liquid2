@@ -51,10 +51,11 @@ def benchmark(search_path: str, number: int = 1000, repeat: int = 5) -> None:
     print_result(
         "scan template",
         timeit.repeat(
-            "tokenize(template)",
+            "tokenize(env, template)",
             globals={
                 "template": source,
                 "tokenize": tokenize,
+                "env": Environment(),
             },
             number=number,
             repeat=repeat,

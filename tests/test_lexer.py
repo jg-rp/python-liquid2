@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 import pytest
 
-from liquid2 import tokenize
+from liquid2 import DEFAULT_ENVIRONMENT
 
 
 @dataclass
@@ -222,4 +222,6 @@ TEST_CASES = [
 
 @pytest.mark.parametrize("case", TEST_CASES, ids=operator.attrgetter("name"))
 def test_lexer(case: Case) -> None:
-    assert "".join(str(t) for t in tokenize(case.source)) == case.want
+    assert (
+        "".join(str(t) for t in DEFAULT_ENVIRONMENT.tokenize(case.source)) == case.want
+    )
