@@ -318,8 +318,15 @@ class Lexer:
                     self.pos += match.end() - match.start()
                     self.start = self.pos
                     self.path_stack[-1].stop = self.pos
+                elif self.env.shorthand_indexes:
+                    if match := self.RE_INDEX.match(self.source, self.pos):
+                        self.path_stack[-1].path.append(int(match.group()))
+                        self.pos += match.end() - match.start()
+                        self.start = self.pos
+                    else:
+                        self.error("array indexes must use bracket notation")
                 else:
-                    self.error("expected a property name")
+                    self.error("expected a property name or array index")
 
             elif c == "]":
                 if len(self.path_stack) == 1:

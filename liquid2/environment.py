@@ -74,6 +74,10 @@ class Environment:
     """If True (the default), indicates that blocks rendering to whitespace only will
     not be output."""
 
+    shorthand_indexes: bool = True
+    """If True (the default), array indexes can be separated by dots without enclosing
+    square brackets."""
+
     lexer_class = Lexer
     """The lexer class to use when scanning template source text."""
 
