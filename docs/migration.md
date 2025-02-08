@@ -168,6 +168,10 @@ Integer and float literals can use scientific notation, like `1.2e3` or `1e-2`.
 
 Filter and tag named arguments can be separated by a `:` or `=`. Previously only `:` was allowed.
 
+### Shorthand array indexes
+
+By default, array indexes in paths to variables are allowed to use shorthand dotted notation. `{{ foo.0.bar }}` is equivalent to `{{ foo[0].bar }}`. This can be disabled with the `shorthand_indexes` class variable on an `Environment` subclass.
+
 ### Template inheritance
 
 ([docs](tag_reference.md#extends))
