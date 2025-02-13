@@ -17,9 +17,9 @@ def fixture(path_to_templates: Path) -> dict[str, str]:
     return loader_dict
 
 
-def lex(templates: dict[str, str]) -> None:
+def lex(env: Environment, templates: dict[str, str]) -> None:
     for source in templates.values():
-        tokenize(source)
+        tokenize(env, source)
 
 
 def parse(env: Environment, templates: dict[str, str]) -> None:
@@ -69,9 +69,10 @@ def benchmark(search_path: str, number: int = 1000, repeat: int = 5) -> None:
     print_result(
         "lex template (not expressions)",
         timeit.repeat(
-            "lex(templates)",
+            "lex(env, templates)",
             globals={
                 "lex": lex,
+                "env": Environment(),
                 "search_path": search_path,
                 "templates": templates,
                 "tokenize": tokenize,

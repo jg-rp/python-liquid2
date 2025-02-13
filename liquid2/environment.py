@@ -74,6 +74,10 @@ class Environment:
     """If True (the default), indicates that blocks rendering to whitespace only will
     not be output."""
 
+    shorthand_indexes: bool = False
+    """If True, array indexes can be separated by dots without enclosing square
+    brackets. The default is `False`."""
+
     lexer_class = Lexer
     """The lexer class to use when scanning template source text."""
 
@@ -122,7 +126,7 @@ class Environment:
 
     def tokenize(self, source: str) -> list[TokenT]:
         """Scan Liquid template _source_ and return a list of Markup objects."""
-        lexer = self.lexer_class(source)
+        lexer = self.lexer_class(self, source)
         lexer.run()
         return lexer.markup
 
