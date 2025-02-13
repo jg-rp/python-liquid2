@@ -4,17 +4,17 @@ from liquid2 import Environment
 from liquid2.exceptions import LiquidSyntaxError
 
 
-class MockEnv(Environment):
-    shorthand_indexes = False
-
-
-def test_disable_shorthand_indexes() -> None:
-    env = MockEnv()
+def test_shorthand_indexes_are_disabled_by_default() -> None:
+    env = Environment()
     with pytest.raises(LiquidSyntaxError):
         env.from_string("{{ foo.0.bar }}")
 
 
-ENV = Environment()
+class MockEnv(Environment):
+    shorthand_indexes = True
+
+
+ENV = MockEnv()
 
 
 def test_shorthand_index() -> None:

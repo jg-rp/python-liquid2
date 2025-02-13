@@ -1,10 +1,10 @@
 # Python Liquid2 Change Log
 
-## Version 0.4.0
+## Version 0.4.0 (unreleased)
 
 **Features**
 
-- Added the `shorthand_indexes` class variable to `liquid2.Environment`. When `shorthand_indexes` is set to `True` (the default), array indexes in variable paths need not be surrounded by square brackets.
+- Added the `shorthand_indexes` class variable to `liquid2.Environment`. When `shorthand_indexes` is set to `True` (the default is `False`), array indexes in variable paths need not be surrounded by square brackets.
 
 **Changes**
 

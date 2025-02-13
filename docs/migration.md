@@ -170,7 +170,7 @@ Filter and tag named arguments can be separated by a `:` or `=`. Previously only
 
 ### Shorthand array indexes
 
-By default, array indexes in paths to variables are allowed to use shorthand dotted notation. `{{ foo.0.bar }}` is equivalent to `{{ foo[0].bar }}`. This can be disabled with the `shorthand_indexes` class variable on an `Environment` subclass.
+Optionally allow shorthand dotted notation for array indexes in paths to variables. When the `Environment` class variable `shorthand_indexes` is set to `True` (default is `False`), `{{ foo.0.bar }}` is equivalent to `{{ foo[0].bar }}`.
 
 ### Template inheritance
 
