@@ -593,7 +593,7 @@ Any primitive expression can be tested for truthiness, like `{% if some_variable
 | `>=`                      | Greater than or equal to | `user.age >= 18`                    |
 | `<=`                      | Less than or equal to    | `basket.size <= 0`                  |
 | `and`                     | Logical and              | `x and y`                           |
-| `and`                     | Logical or               | `x or y`                            |
+| `or`                      | Logical or               | `x or y`                            |
 | `not` <!-- md:liquid2 --> | Logical not              | `not x`                             |
 
 ### Operator precedence

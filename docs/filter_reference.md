@@ -1312,7 +1312,7 @@ Return the localized translation of the input message with pluralization. The fi
 
 ```liquid2
 {% assign count = "Earth,Tatooine" | split: "," | size %}
-{{ "Hello, World!" | ngetetxt: "Hello, Worlds!", count }}
+{{ "Hello, World!" | ngettext: "Hello, Worlds!", count }}
 ```
 
 ```plain title="output"
@@ -1322,7 +1322,7 @@ Hallo Welten!
 Any keyword arguments are used to populate message variables. If `user.name` is `"Sue"` and `count` is `1`:
 
 ```liquid2
-{{ "Hello, %(you)s" | ngetetxt: "Hello, everyone!", count, you: user.name }}
+{{ "Hello, %(you)s" | ngettext: "Hello, everyone!", count, you: user.name }}
 ```
 
 ```plain title="output"
@@ -1334,16 +1334,16 @@ Hallo Sue!
 <!-- md:version 0.1.0 -->
 <!-- md:liquid2 -->
 
-````
+```
 <string> | npgettext: <string>, <string>, <number> [, <identifier>: <object> ... ]
-``
+```
 
 Return the localized translation of the input message with pluralization and a message context. The first positional argument is the message context string, the second is the plural form of the message, and the third is a number used to determine if the singular or plural message should be used.
 
 ```liquid2
 {% assign count = "Earth,Tatooine" | split: "," | size %}
-{{ "Hello, World!" | ngetetxt: "extra special greeting", "Hello, Worlds!", count }}
-````
+{{ "Hello, World!" | npgettext: "extra special greeting", "Hello, Worlds!", count }}
+```
 
 ```plain title="output"
 Hallo Welten!
@@ -1352,7 +1352,7 @@ Hallo Welten!
 Any keyword arguments are used to populate message variables. If `user.name` is `"Sue"` and `count` is `1`:
 
 ```liquid2
-{{ "Hello, %(you)s" | ngetetxt: "extra special greeting", "Hello, everyone!", count, you: user.name }}
+{{ "Hello, %(you)s" | npgettext: "extra special greeting", "Hello, everyone!", count, you: user.name }}
 ```
 
 ```plain title="output"
