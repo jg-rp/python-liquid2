@@ -178,6 +178,8 @@ ignore = [
   "PLR0915",
   "SIM108",
   "PT001",
+  "S704",
+  "TC006",
 ]
 
 fixable = ["I"]
