@@ -76,7 +76,7 @@ class Undefined(Mapping[Any, object]):
         return None
 
     def poke(self) -> bool:
-        """Prod the type, giving it the opertunity to raise an exception."""
+        """Prod the type, giving it the opportunity to raise an exception."""
         return True
 
 
