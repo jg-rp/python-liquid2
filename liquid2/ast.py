@@ -33,7 +33,6 @@ class Node(ABC):
     __slots__ = ("token", "blank")
 
     def __init__(self, token: TokenT) -> None:
-        super().__init__()
         self.token = token
 
         self.blank = True
