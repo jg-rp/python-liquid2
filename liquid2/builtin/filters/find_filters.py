@@ -21,19 +21,22 @@ if TYPE_CHECKING:
     from liquid2.builtin import KeywordArgument
 
 
-def _getitem(obj: Any, key: object, default: object = None) -> Any:
+def _getitem(sequence: Any, key: object, default: object = None) -> Any:
     """Helper for the `find` filter.
 
-    Same as obj[key], but returns a default value if key does not exist
-    in obj.
+    Same as sequence[key], but returns a default value if key does not exist
+    in sequence, and handles some corner cases so as to mimic Shopify/Liquid
+    behavior.
     """
     try:
-        return getitem(obj, key)
+        return getitem(sequence, key)
     except (KeyError, IndexError):
         return default
     except TypeError:
-        if not hasattr(obj, "__getitem__"):
-            raise
+        if isinstance(sequence, str) and isinstance(key, str) and key in sequence:
+            return key
+        if isinstance(sequence, int) and isinstance(key, int):
+            return sequence == key
         return default
 
 
@@ -81,14 +84,13 @@ class FindFilter:
                     return item
 
         elif value is not None and not is_undefined(value):
-            for item in left:
-                if _getitem(item, key) == value:
-                    return item
+            return next((itm for itm in left if _getitem(itm, key) == value), None)
 
         else:
-            for item in left:
-                if item not in (False, None):
-                    return item
+            return next(
+                (itm for itm in left if _getitem(itm, key) not in (False, None)),
+                None,
+            )
 
         return None
 
@@ -108,20 +110,25 @@ class FindIndexFilter(FindFilter):
         left = sequence_arg(left)
 
         if isinstance(key, LambdaExpression):
-            for i, pair in enumerate(zip(left, key.map(context, left), strict=True)):
-                item, rv = pair
+            for i, rv in enumerate(key.map(context, left)):
                 if not is_undefined(rv) and is_truthy(rv):
                     return i
 
         elif value is not None and not is_undefined(value):
-            for i, item in enumerate(left):
-                if _getitem(item, key) == value:
-                    return i
+            return next(
+                (i for i, itm in enumerate(left) if _getitem(itm, key) == value),
+                None,
+            )
 
         else:
-            for i, item in enumerate(left):
-                if item not in (False, None):
-                    return i
+            return next(
+                (
+                    i
+                    for i, itm in enumerate(left)
+                    if _getitem(itm, key) not in (False, None)
+                ),
+                None,
+            )
 
         return None
 
@@ -146,11 +153,13 @@ class HasFilter(FindFilter):
                     return True
 
         elif value is not None and not is_undefined(value):
-            for item in left:
-                if _getitem(item, key) == value:
-                    return True
+            return any(
+                (itm for itm in left if _getitem(itm, key) == value),
+            )
 
         else:
-            return any(item not in (False, None) for item in left)
+            return any(
+                (itm for itm in left if _getitem(itm, key) not in (False, None)),
+            )
 
         return False

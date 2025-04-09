@@ -2,6 +2,10 @@
 
 ## Version 0.4.0 (unreleased)
 
+**Fixes**
+
+- Fixed some corner cases with `find`, `find_index` and `has` filters.
+
 **Features**
 
 - Added the `shorthand_indexes` class variable to `liquid2.Environment`. When `shorthand_indexes` is set to `True` (the default is `False`), array indexes in variable paths need not be surrounded by square brackets.
