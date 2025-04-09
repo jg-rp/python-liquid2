@@ -110,8 +110,7 @@ class FindIndexFilter(FindFilter):
         left = sequence_arg(left)
 
         if isinstance(key, LambdaExpression):
-            for i, pair in enumerate(zip(left, key.map(context, left), strict=True)):
-                item, rv = pair
+            for i, rv in enumerate(key.map(context, left)):
                 if not is_undefined(rv) and is_truthy(rv):
                     return i
 
