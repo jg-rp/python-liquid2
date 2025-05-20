@@ -84,7 +84,7 @@ def num_arg(val: Any, default: float | int | None = None) -> float | int:
 
 
 def decimal_arg(val: Any, default: int | Decimal | None = None) -> int | Decimal:
-    """Return _val_ as an int or decimal, or _default_ is casting fails."""
+    """Return _val_ as an int or decimal, or _default_ if casting fails."""
     if isinstance(val, int):
         return val
     if isinstance(val, float):

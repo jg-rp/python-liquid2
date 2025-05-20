@@ -30,6 +30,10 @@ class Case:
 FILENAME = "tests/liquid2-compliance-test-suite/cts.json"
 
 
+class MockEnvironment(Environment):
+    arithmetic_operators = True
+
+
 def cases() -> list[Case]:
     with open(FILENAME, encoding="utf8") as fd:
         data = json.load(fd)
@@ -46,13 +50,13 @@ def invalid_cases() -> list[Case]:
 
 @pytest.mark.parametrize("case", valid_cases(), ids=operator.attrgetter("name"))
 def test_compliance(case: Case) -> None:
-    env = Environment(loader=DictLoader(case.templates or {}))
+    env = MockEnvironment(loader=DictLoader(case.templates or {}))
     assert env.from_string(case.template).render(**case.data) == case.result
 
 
 @pytest.mark.parametrize("case", valid_cases(), ids=operator.attrgetter("name"))
 def test_compliance_async(case: Case) -> None:
-    env = Environment(loader=DictLoader(case.templates or {}))
+    env = MockEnvironment(loader=DictLoader(case.templates or {}))
     template = env.from_string(case.template)
 
     async def coro() -> str:
@@ -63,14 +67,14 @@ def test_compliance_async(case: Case) -> None:
 
 @pytest.mark.parametrize("case", invalid_cases(), ids=operator.attrgetter("name"))
 def test_invalid_compliance(case: Case) -> None:
-    env = Environment(loader=DictLoader(case.templates or {}))
+    env = MockEnvironment(loader=DictLoader(case.templates or {}))
     with pytest.raises(LiquidError):
         env.from_string(case.template).render(**case.data)
 
 
 @pytest.mark.parametrize("case", invalid_cases(), ids=operator.attrgetter("name"))
 def test_invalid_compliance_async(case: Case) -> None:
-    env = Environment(loader=DictLoader(case.templates or {}))
+    env = MockEnvironment(loader=DictLoader(case.templates or {}))
 
     async def coro() -> str:
         template = env.from_string(case.template)

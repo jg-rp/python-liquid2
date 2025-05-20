@@ -91,6 +91,13 @@ class Lexer:
         "LBRACKET": r"\[",
         "EXCLAIM": r"!",
         "QUESTION": r"\?",
+        "PLUS": r"\+(?![\}%]|$)",
+        "MINUS": r"\-(?![\}%]|$)",
+        "POW": r"\*\*",
+        "FLOORDIV": r"//",
+        "TIMES": r"\*",
+        "DIVIDE": r"/",
+        "MODULO": r"%(?![\}%]|$)",
     }
 
     NUMBERS: dict[str, str] = {
@@ -142,6 +149,13 @@ class Lexer:
         "EXCLAIM": TokenType.EXCLAIM,
         "QUESTION": TokenType.QUESTION,
         "ARROW": TokenType.ARROW,
+        "PLUS": TokenType.PLUS,
+        "MINUS": TokenType.MINUS,
+        "TIMES": TokenType.TIMES,
+        "DIVIDE": TokenType.DIVIDE,
+        "MODULO": TokenType.MODULO,
+        "FLOORDIV": TokenType.FLOOR_DIV,
+        "POW": TokenType.POW,
     }
 
     MARKUP: dict[str, str] = {

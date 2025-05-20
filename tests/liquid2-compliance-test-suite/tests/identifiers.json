@@ -95,14 +95,6 @@
       "result": "123"
     },
     {
-      "name": "leading hyphen in for loop target",
-      "template": "{% for x in -foo %}{{ x }}{% endfor %}",
-      "data": {
-        "-foo": [1, 2, 3]
-      },
-      "invalid": true
-    },
-    {
       "name": "hyphen in for loop variable",
       "template": "{% for x-y in foo %}{{ x-y }}{% endfor %}",
       "data": {

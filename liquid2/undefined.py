@@ -75,6 +75,12 @@ class Undefined(Mapping[Any, object]):
     def __liquid__(self) -> object:
         return None
 
+    def __pos__(self) -> object:
+        return self
+
+    def __neg__(self) -> object:
+        return self
+
     def poke(self) -> bool:
         """Prod the type, giving it the opportunity to raise an exception."""
         return True

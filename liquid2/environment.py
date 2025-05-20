@@ -78,6 +78,10 @@ class Environment:
     """If True, array indexes can be separated by dots without enclosing square
     brackets. The default is `False`."""
 
+    arithmetic_operators: bool = False
+    """When `True`, infix operators `+`, `-`, `*`, `/`, `**` and `%`, and prefix
+    operators `+` and `-` will be enabled. Defaults to `False`."""
+
     lexer_class = Lexer
     """The lexer class to use when scanning template source text."""
 

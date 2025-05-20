@@ -67,7 +67,7 @@ test_cases = [
     Case(
         description="missing range or identifier in forloop",
         template="{% for x in %}{{ x }}foo{% endfor %}",
-        expect_msg="expected a primitive expression, found EOI",
+        expect_msg="unexpected EOI",
     ),
     Case(
         description="float with trailing dot in range literal",
@@ -76,8 +76,8 @@ test_cases = [
     ),
     Case(
         description="chained identifier for loop variable",
-        template="{% for x.y in (2...4) %}{{ x }}{% endfor %}",
-        expect_msg="unexpected '.'",
+        template="{% for x.y in (2..4) %}{{ x }}{% endfor %}",
+        expect_msg="expected an identifier, found PATH",
     ),
     Case(
         description="missing equal in assignment tag",
@@ -92,12 +92,12 @@ test_cases = [
     Case(
         description="minus string",
         template="{{ -'foo' }}",
-        expect_msg="unexpected '-'",
+        expect_msg="unexpected operator -",
     ),
     Case(
         description="unknown prefix operator",
         template="{{ +5 }}",
-        expect_msg=r"unexpected '\+'",
+        expect_msg="unexpected operator +",
     ),
     Case(
         description="float literal without a leading zero",
@@ -204,8 +204,8 @@ test_cases = [
     ),
     Case(
         description="unexpected identifier character",
-        template=r"{% assign foo+bar = 'hello there'%}{{ foo+bar }}",
-        expect_msg=r"unexpected '\+'",
+        template=r"{% assign foo&bar = 'hello there'%}{{ foo&bar }}",
+        expect_msg=r"unexpected '&'",
     ),
     Case(
         description="unexpected assign path",
@@ -225,7 +225,7 @@ test_cases = [
     Case(
         description="consecutive commas in positional argument list",
         template=r"{% call macro a,, b %}",
-        expect_msg="expected a primitive expression, found COMMA",
+        expect_msg="unexpected COMMA",
     ),
     Case(
         description="template string, unbalanced quotes",

@@ -39,7 +39,7 @@
       "required": ["name", "template"],
       "oneOf": [
         {
-          "required": ["data", "result"],
+          "required": ["result"],
           "properties": {
             "invalid": false
           }

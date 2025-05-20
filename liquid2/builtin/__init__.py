@@ -40,6 +40,7 @@ from .expressions import parse_identifier
 from .expressions import parse_keyword_arguments
 from .expressions import parse_parameters
 from .expressions import parse_positional_and_keyword_arguments
+from .expressions import parse_primary
 from .expressions import parse_primitive
 from .expressions import parse_string_or_identifier
 from .expressions import parse_string_or_path
@@ -211,6 +212,7 @@ __all__ = (
     "parse_identifier",
     "parse_keyword_arguments",
     "parse_positional_and_keyword_arguments",
+    "parse_primary",
     "parse_primitive",
     "parse_string_or_identifier",
     "Path",
