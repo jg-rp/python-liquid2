@@ -39,7 +39,7 @@ class Node(ABC):
         """If True, indicates that the node, when rendered, produces no output text
         or only whitespace.
         
-        The output node (`{{ something }}`) and echo tag are exception. Even if they
+        The output node (`{{ something }}`) and echo tag are exceptions. Even if they
         evaluate to an empty or blank string, they are not considered "blank".
         """
 
