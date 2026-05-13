@@ -20,6 +20,7 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
@@ -176,6 +177,7 @@ ignore = [
   "PLR0912",
   "PLR0913",
   "PLR0915",
+  "PLW1641",
   "SIM108",
   "PT001",
   "S704",

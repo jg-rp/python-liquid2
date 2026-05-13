@@ -4,6 +4,7 @@
 
 **Fixes**
 
+- Fixed the built-in `FileSystemLoader` and `CachingFileSystemLoader`. Previously they would allow a malicious template author to read files outside the template search path when giving an absolute file path to `{% include %}` or `{% render %}`. See https://github.com/jg-rp/liquid/security/advisories/GHSA-8p4x-wr7x-3788.  
 - Fixed some corner cases with `find`, `find_index` and `has` filters.
 
 **Features**
