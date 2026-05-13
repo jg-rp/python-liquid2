@@ -109,6 +109,10 @@ def test_stay_in_search_path() -> None:
         env.get_template("../main.html")
 
 
+@pytest.mark.skipif(
+    sys.platform == "win32",
+    reason="Avoid escaping Windows paths",
+)
 def test_reject_absolute_paths() -> None:
     with (
         tempfile.TemporaryDirectory() as root,
