@@ -19,7 +19,7 @@ from liquid2.builtin import Identifier
 from liquid2.builtin import Literal
 from liquid2.builtin import StringLiteral
 from liquid2.builtin import parse_keyword_arguments
-from liquid2.builtin import parse_primitive
+from liquid2.builtin import parse_primary
 from liquid2.builtin import parse_string_or_identifier
 from liquid2.exceptions import LiquidSyntaxError
 from liquid2.exceptions import TemplateNotFoundError
@@ -298,7 +298,7 @@ class RenderTag(Tag):
         ):
             tokens.next()  # Move past "for"
             loop = True
-            var = parse_primitive(self.env, tokens.next())
+            var = parse_primary(self.env, tokens)
             if tokens.current().type_ == TokenType.AS:
                 tokens.next()  # Move past "as"
                 alias = parse_string_or_identifier(tokens.next())
@@ -307,7 +307,7 @@ class RenderTag(Tag):
             TokenType.COMMA,
         ):
             tokens.next()  # Move past "with"
-            var = parse_primitive(self.env, tokens.next())
+            var = parse_primary(self.env, tokens)
             if tokens.current().type_ == TokenType.AS:
                 tokens.next()  # Move past "as"
                 alias = parse_string_or_identifier(tokens.next())

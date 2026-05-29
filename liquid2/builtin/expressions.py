@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 import sys
 from decimal import Decimal
+from decimal import InvalidOperation
 from itertools import islice
 from typing import TYPE_CHECKING
 from typing import Any
@@ -341,8 +342,7 @@ class ArrayLiteral(Expression):
         while stream.current().type_ == TokenType.COMMA:
             stream.next()  # ignore comma
             try:
-                items.append(parse_primitive(env, stream.current()))
-                stream.next()
+                items.append(parse_primary(env, stream))
             except LiquidSyntaxError:
                 # Trailing commas are OK.
                 break
@@ -468,7 +468,7 @@ class LambdaExpression(Expression):
             # A single param function without parens.
             stream.expect(TokenType.ARROW)
             stream.next()
-            expr = parse_boolean_primitive(env, stream)
+            expr = parse_primary(env, stream)
             stream.backup()
             return LambdaExpression(
                 token,
@@ -488,7 +488,7 @@ class LambdaExpression(Expression):
         stream.next()
         stream.expect(TokenType.ARROW)
         stream.next()
-        expr = parse_boolean_primitive(env, stream)
+        expr = parse_primary(env, stream)
         stream.backup()
 
         return LambdaExpression(
@@ -627,7 +627,7 @@ class FilteredExpression(Expression):
         env: Environment, stream: TokenStream
     ) -> FilteredExpression | TernaryFilteredExpression:
         """Return a new FilteredExpression parsed from _stream_."""
-        left = parse_primitive(env, stream.next())
+        left = parse_primary(env, stream)
         if stream.current().type_ == TokenType.COMMA:
             # Array literal syntax
             left = ArrayLiteral.parse(env, stream, left)
@@ -791,7 +791,7 @@ class TernaryFilteredExpression(Expression):
 
         if is_token_type(stream.current(), TokenType.ELSE):
             stream.next()  # move past `else`
-            alternative = parse_primitive(env, stream.next())
+            alternative = parse_primary(env, stream)
 
             if stream.current().type_ == TokenType.PIPE:
                 filters = Filter.parse(env, stream, delim=(TokenType.PIPE,))
@@ -935,9 +935,10 @@ class Filter:
                                 filter_arguments.append(
                                     KeywordArgument(
                                         token.value,
-                                        parse_primitive(env, stream.current()),
+                                        parse_primary(env, stream),
                                     )
                                 )
+                                continue
                         elif stream.peek().type_ == TokenType.ARROW:
                             # A positional argument that is an arrow function with a
                             # single parameter.
@@ -970,8 +971,9 @@ class Filter:
                         TokenType.RANGE,
                     ):
                         filter_arguments.append(
-                            PositionalArgument(parse_primitive(env, stream.current()))
+                            PositionalArgument(parse_primary(env, stream))
                         )
+                        continue
                     elif token.type_ == TokenType.LPAREN:
                         # A positional argument that is an arrow function with
                         # parameters surrounded by parentheses.
@@ -1052,6 +1054,7 @@ class BooleanExpression(Expression):
 
     def __str__(self) -> str:
         def _str(expression: Expression, parent_precedence: int) -> str:
+            # TODO: update to support arithmetic operators.
             if isinstance(expression, LogicalAndExpression):
                 precedence = PRECEDENCE_LOGICAL_AND
                 op = "and"
@@ -1093,7 +1096,7 @@ class BooleanExpression(Expression):
         If _inline_ is `False`, we expect the stream to be empty after parsing
         a Boolean expression and will raise a syntax error if it's not.
         """
-        expr = parse_boolean_primitive(env, stream)
+        expr = parse_primary(env, stream)
         if not inline:
             stream.expect_eos()
         return BooleanExpression(expr.token, expr)
@@ -1108,7 +1111,10 @@ PRECEDENCE_LOGICAL_OR = 3
 PRECEDENCE_LOGICAL_AND = 4
 PRECEDENCE_RELATIONAL = 5
 PRECEDENCE_MEMBERSHIP = 6
-PRECEDENCE_PREFIX = 7
+PRECEDENCE_ADD_SUB = 8
+PRECEDENCE_MUL_DIV = 9
+PRECEDENCE_PREFIX = 10
+PRECEDENCE_POW = 11
 
 PRECEDENCES = {
     TokenType.EQ: PRECEDENCE_RELATIONAL,
@@ -1123,6 +1129,13 @@ PRECEDENCES = {
     TokenType.OR_WORD: PRECEDENCE_LOGICAL_OR,
     TokenType.NOT_WORD: PRECEDENCE_PREFIX,
     TokenType.RPAREN: PRECEDENCE_LOWEST,
+    TokenType.PLUS: PRECEDENCE_ADD_SUB,
+    TokenType.MINUS: PRECEDENCE_ADD_SUB,
+    TokenType.TIMES: PRECEDENCE_MUL_DIV,
+    TokenType.DIVIDE: PRECEDENCE_MUL_DIV,
+    TokenType.FLOOR_DIV: PRECEDENCE_MUL_DIV,
+    TokenType.MODULO: PRECEDENCE_MUL_DIV,
+    TokenType.POW: PRECEDENCE_POW,
 }
 
 BINARY_OPERATORS = frozenset(
@@ -1137,14 +1150,45 @@ BINARY_OPERATORS = frozenset(
         TokenType.IN,
         TokenType.AND_WORD,
         TokenType.OR_WORD,
+        TokenType.PLUS,
+        TokenType.MINUS,
+        TokenType.TIMES,
+        TokenType.DIVIDE,
+        TokenType.FLOOR_DIV,
+        TokenType.MODULO,
+        TokenType.POW,
+    ]
+)
+
+ARITHMETIC_OPERATORS = frozenset(
+    [
+        TokenType.PLUS,
+        TokenType.MINUS,
+        TokenType.TIMES,
+        TokenType.DIVIDE,
+        TokenType.FLOOR_DIV,
+        TokenType.MODULO,
+        TokenType.POW,
     ]
 )
 
 
-def parse_boolean_primitive(  # noqa: PLR0912
-    env: Environment, stream: TokenStream, precedence: int = PRECEDENCE_LOWEST
+def parse_boolean_primitive(
+    env: Environment,
+    stream: TokenStream,
 ) -> Expression:
-    """Parse a Boolean expression from tokens in _stream_."""
+    """Parse a compound expression from tokens in _stream_."""
+    return parse_primary(env, stream)
+
+
+def parse_primary(  # noqa: PLR0912
+    env: Environment,
+    stream: TokenStream,
+    precedence: int = PRECEDENCE_LOWEST,
+    *,
+    infix: bool = True,
+) -> Expression:
+    """Parse a compound expression from tokens in _stream_."""
     left: Expression
     token = stream.next()
 
@@ -1176,20 +1220,39 @@ def parse_boolean_primitive(  # noqa: PLR0912
     elif is_path_token(token):
         left = Path(token, token.path)
     elif is_range_token(token):
+        # XXX: Due to our dubious early scanning/parsing of range expressions,
+        # we don't get the chance to parse range operands as compound expressions.
         left = RangeLiteral(
             token,
             parse_primitive(env, token.range_start),
             parse_primitive(env, token.range_stop),
         )
     elif is_token_type(token, TokenType.NOT_WORD):
-        left = LogicalNotExpression.parse(env, stream)
+        left = LogicalNotExpression(
+            token, parse_primary(env, stream, precedence=PRECEDENCE_PREFIX)
+        )
+    elif is_token_type(token, TokenType.PLUS):
+        if not env.arithmetic_operators:
+            raise LiquidSyntaxError("unexpected operator +", token=token)
+        left = PositiveExpression(
+            token, parse_primary(env, stream, precedence=PRECEDENCE_PREFIX)
+        )
+    elif is_token_type(token, TokenType.MINUS):
+        if not env.arithmetic_operators:
+            raise LiquidSyntaxError("unexpected operator -", token=token)
+        left = NegativeExpression(
+            token, parse_primary(env, stream, precedence=PRECEDENCE_PREFIX)
+        )
     elif is_token_type(token, TokenType.LPAREN):
         left = parse_grouped_expression(env, stream)
     else:
         raise LiquidSyntaxError(
-            f"expected a primitive expression, found {token.type_.name}",
-            token=stream.current(),
+            f"unexpected {token.type_.name}",
+            token=token,
         )
+
+    if not infix:
+        return left
 
     while True:
         token = stream.current()
@@ -1212,50 +1275,48 @@ def parse_infix_expression(
 ) -> Expression:  # noqa: PLR0911
     """Return a logical, comparison, or membership expression parsed from _stream_."""
     token = stream.next()
-    assert token is not None
+
+    if not env.arithmetic_operators and token.type_ in ARITHMETIC_OPERATORS:
+        raise LiquidSyntaxError(
+            f"unexpected operator {token.__class__.__name__}", token=token
+        )
+
     precedence = PRECEDENCES.get(token.type_, PRECEDENCE_LOWEST)
+    right = parse_primary(env, stream, precedence)
 
     match token.type_:
         case TokenType.EQ:
-            return EqExpression(
-                token, left, parse_boolean_primitive(env, stream, precedence)
-            )
+            return EqExpression(token, left, right)
         case TokenType.LT:
-            return LtExpression(
-                token, left, parse_boolean_primitive(env, stream, precedence)
-            )
+            return LtExpression(token, left, right)
         case TokenType.GT:
-            return GtExpression(
-                token, left, parse_boolean_primitive(env, stream, precedence)
-            )
+            return GtExpression(token, left, right)
         case TokenType.NE:
-            return NeExpression(
-                token, left, parse_boolean_primitive(env, stream, precedence)
-            )
+            return NeExpression(token, left, right)
         case TokenType.LE:
-            return LeExpression(
-                token, left, parse_boolean_primitive(env, stream, precedence)
-            )
+            return LeExpression(token, left, right)
         case TokenType.GE:
-            return GeExpression(
-                token, left, parse_boolean_primitive(env, stream, precedence)
-            )
+            return GeExpression(token, left, right)
         case TokenType.CONTAINS:
-            return ContainsExpression(
-                token, left, parse_boolean_primitive(env, stream, precedence)
-            )
+            return ContainsExpression(token, left, right)
         case TokenType.IN:
-            return InExpression(
-                token, left, parse_boolean_primitive(env, stream, precedence)
-            )
+            return InExpression(token, left, right)
         case TokenType.AND_WORD:
-            return LogicalAndExpression(
-                token, left, parse_boolean_primitive(env, stream, precedence)
-            )
+            return LogicalAndExpression(token, left, right)
         case TokenType.OR_WORD:
-            return LogicalOrExpression(
-                token, left, parse_boolean_primitive(env, stream, precedence)
-            )
+            return LogicalOrExpression(token, left, right)
+        case TokenType.PLUS:
+            return PlusExpression(token, left, right)
+        case TokenType.MINUS:
+            return MinusExpression(token, left, right)
+        case TokenType.TIMES:
+            return TimesExpression(token, left, right)
+        case TokenType.DIVIDE:
+            return DivideExpression(token, left, right)
+        case TokenType.MODULO:
+            return ModuloExpression(token, left, right)
+        case TokenType.POW:
+            return PowExpression(token, left, right)
         case _:
             raise LiquidSyntaxError(
                 f"expected an infix expression, found {token.__class__.__name__}",
@@ -1265,7 +1326,7 @@ def parse_infix_expression(
 
 def parse_grouped_expression(env: Environment, stream: TokenStream) -> Expression:
     """Parse an expression from tokens in _stream_ until the next right parenthesis."""
-    expr = parse_boolean_primitive(env, stream)
+    expr = parse_primary(env, stream)
     token = stream.next()
 
     while token.type_ != TokenType.RPAREN:
@@ -1305,70 +1366,77 @@ class LogicalNotExpression(Expression):
 
     @staticmethod
     def parse(env: Environment, stream: TokenStream) -> Expression:
-        expr = parse_boolean_primitive(env, stream)
+        expr = parse_primary(env, stream, precedence=PRECEDENCE_PREFIX)
         return LogicalNotExpression(expr.token, expr)
 
     def children(self) -> list[Expression]:
         return [self.expression]
 
 
-class LogicalAndExpression(Expression):
+class _BinaryExpression(Expression):
     __slots__ = ("left", "right")
 
     def __init__(self, token: TokenT, left: Expression, right: Expression) -> None:
         super().__init__(token=token)
         self.left = left
         self.right = right
+
+    def children(self) -> list[Expression]:
+        return [self.left, self.right]
+
+
+class _ArithmeticExpression(_BinaryExpression):
+    __slots__ = ()
+
+    def inner_evaluate(
+        self, context: RenderContext
+    ) -> tuple[int | Decimal, int | Decimal]:
+        return (
+            _decimal_operand(self.left.evaluate(context)),
+            _decimal_operand(self.right.evaluate(context)),
+        )
+
+    async def inner_evaluate_async(
+        self, context: RenderContext
+    ) -> tuple[int | Decimal, int | Decimal]:
+        return (
+            _decimal_operand(await self.left.evaluate_async(context)),
+            _decimal_operand(await self.right.evaluate_async(context)),
+        )
+
+
+class LogicalAndExpression(_BinaryExpression):
+    __slots__ = ()
 
     def __str__(self) -> str:
         return f"{self.left} and {self.right}"
 
     def evaluate(self, context: RenderContext) -> object:
-        return is_truthy(self.left.evaluate(context)) and is_truthy(
-            self.right.evaluate(context)
-        )
+        left = self.left.evaluate(context)
+        return self.right.evaluate(context) if is_truthy(left) else left
 
     async def evaluate_async(self, context: RenderContext) -> object:
-        return is_truthy(await self.left.evaluate_async(context)) and is_truthy(
-            await self.right.evaluate_async(context)
-        )
-
-    def children(self) -> list[Expression]:
-        return [self.left, self.right]
+        left = await self.left.evaluate_async(context)
+        return await self.right.evaluate_async(context) if is_truthy(left) else left
 
 
-class LogicalOrExpression(Expression):
-    __slots__ = ("left", "right")
-
-    def __init__(self, token: TokenT, left: Expression, right: Expression) -> None:
-        super().__init__(token=token)
-        self.left = left
-        self.right = right
+class LogicalOrExpression(_BinaryExpression):
+    __slots__ = ()
 
     def __str__(self) -> str:
         return f"{self.left} or {self.right}"
 
     def evaluate(self, context: RenderContext) -> object:
-        return is_truthy(self.left.evaluate(context)) or is_truthy(
-            self.right.evaluate(context)
-        )
+        left = self.left.evaluate(context)
+        return left if is_truthy(left) else self.right.evaluate(context)
 
     async def evaluate_async(self, context: RenderContext) -> object:
-        return is_truthy(await self.left.evaluate_async(context)) or is_truthy(
-            await self.right.evaluate_async(context)
-        )
-
-    def children(self) -> list[Expression]:
-        return [self.left, self.right]
+        left = await self.left.evaluate_async(context)
+        return left if is_truthy(left) else await self.right.evaluate_async(context)
 
 
-class EqExpression(Expression):
-    __slots__ = ("left", "right")
-
-    def __init__(self, token: TokenT, left: Expression, right: Expression) -> None:
-        super().__init__(token=token)
-        self.left = left
-        self.right = right
+class EqExpression(_BinaryExpression):
+    __slots__ = ()
 
     def __str__(self) -> str:
         return f"{self.left} == {self.right}"
@@ -1382,17 +1450,9 @@ class EqExpression(Expression):
             await self.right.evaluate_async(context),
         )
 
-    def children(self) -> list[Expression]:
-        return [self.left, self.right]
 
-
-class NeExpression(Expression):
-    __slots__ = ("left", "right")
-
-    def __init__(self, token: TokenT, left: Expression, right: Expression) -> None:
-        super().__init__(token=token)
-        self.left = left
-        self.right = right
+class NeExpression(_BinaryExpression):
+    __slots__ = ()
 
     def __str__(self) -> str:
         return f"{self.left} != {self.right}"
@@ -1406,17 +1466,9 @@ class NeExpression(Expression):
             await self.right.evaluate_async(context),
         )
 
-    def children(self) -> list[Expression]:
-        return [self.left, self.right]
 
-
-class LeExpression(Expression):
-    __slots__ = ("left", "right")
-
-    def __init__(self, token: TokenT, left: Expression, right: Expression) -> None:
-        super().__init__(token=token)
-        self.left = left
-        self.right = right
+class LeExpression(_BinaryExpression):
+    __slots__ = ()
 
     def __str__(self) -> str:
         return f"{self.left} <= {self.right}"
@@ -1431,17 +1483,9 @@ class LeExpression(Expression):
         right = await self.right.evaluate_async(context)
         return _eq(left, right) or _lt(self.token, left, right)
 
-    def children(self) -> list[Expression]:
-        return [self.left, self.right]
 
-
-class GeExpression(Expression):
-    __slots__ = ("left", "right")
-
-    def __init__(self, token: TokenT, left: Expression, right: Expression) -> None:
-        super().__init__(token=token)
-        self.left = left
-        self.right = right
+class GeExpression(_BinaryExpression):
+    __slots__ = ()
 
     def __str__(self) -> str:
         return f"{self.left} >= {self.right}"
@@ -1456,17 +1500,9 @@ class GeExpression(Expression):
         right = await self.right.evaluate_async(context)
         return _eq(left, right) or _lt(self.token, right, left)
 
-    def children(self) -> list[Expression]:
-        return [self.left, self.right]
 
-
-class LtExpression(Expression):
-    __slots__ = ("left", "right")
-
-    def __init__(self, token: TokenT, left: Expression, right: Expression) -> None:
-        super().__init__(token=token)
-        self.left = left
-        self.right = right
+class LtExpression(_BinaryExpression):
+    __slots__ = ()
 
     def __str__(self) -> str:
         return f"{self.left} < {self.right}"
@@ -1483,17 +1519,9 @@ class LtExpression(Expression):
             await self.right.evaluate_async(context),
         )
 
-    def children(self) -> list[Expression]:
-        return [self.left, self.right]
 
-
-class GtExpression(Expression):
-    __slots__ = ("left", "right")
-
-    def __init__(self, token: TokenT, left: Expression, right: Expression) -> None:
-        super().__init__(token=token)
-        self.left = left
-        self.right = right
+class GtExpression(_BinaryExpression):
+    __slots__ = ()
 
     def __str__(self) -> str:
         return f"{self.left} > {self.right}"
@@ -1510,17 +1538,9 @@ class GtExpression(Expression):
             await self.left.evaluate_async(context),
         )
 
-    def children(self) -> list[Expression]:
-        return [self.left, self.right]
 
-
-class ContainsExpression(Expression):
-    __slots__ = ("left", "right")
-
-    def __init__(self, token: TokenT, left: Expression, right: Expression) -> None:
-        super().__init__(token=token)
-        self.left = left
-        self.right = right
+class ContainsExpression(_BinaryExpression):
+    __slots__ = ()
 
     def __str__(self) -> str:
         return f"{self.left} contains {self.right}"
@@ -1537,17 +1557,9 @@ class ContainsExpression(Expression):
             await self.right.evaluate_async(context),
         )
 
-    def children(self) -> list[Expression]:
-        return [self.left, self.right]
 
-
-class InExpression(Expression):
-    __slots__ = ("left", "right")
-
-    def __init__(self, token: TokenT, left: Expression, right: Expression) -> None:
-        super().__init__(token=token)
-        self.left = left
-        self.right = right
+class InExpression(_BinaryExpression):
+    __slots__ = ()
 
     def __str__(self) -> str:
         return f"{self.left} in {self.right}"
@@ -1564,8 +1576,199 @@ class InExpression(Expression):
             await self.left.evaluate_async(context),
         )
 
+
+class PlusExpression(_ArithmeticExpression):
+    __slots__ = ()
+
+    def __str__(self) -> str:
+        return f"{self.left} + {self.right}"
+
+    def evaluate(self, context: RenderContext) -> object:
+        left, right = self.inner_evaluate(context)
+        if isinstance(left, int) and isinstance(right, int):
+            return left + right
+        return float(left + right)
+
+    async def evaluate_async(self, context: RenderContext) -> object:
+        left, right = await self.inner_evaluate_async(context)
+        if isinstance(left, int) and isinstance(right, int):
+            return left + right
+        return float(left + right)
+
+
+class MinusExpression(_ArithmeticExpression):
+    __slots__ = ()
+
+    def __str__(self) -> str:
+        return f"{self.left} - {self.right}"
+
+    def evaluate(self, context: RenderContext) -> object:
+        left, right = self.inner_evaluate(context)
+        if isinstance(left, int) and isinstance(right, int):
+            return left - right
+        return float(left - right)
+
+    async def evaluate_async(self, context: RenderContext) -> object:
+        left, right = await self.inner_evaluate_async(context)
+        if isinstance(left, int) and isinstance(right, int):
+            return left - right
+        return float(left - right)
+
+
+class TimesExpression(_ArithmeticExpression):
+    __slots__ = ()
+
+    def __str__(self) -> str:
+        return f"{self.left} * {self.right}"
+
+    def evaluate(self, context: RenderContext) -> object:
+        left, right = self.inner_evaluate(context)
+        if isinstance(left, int) and isinstance(right, int):
+            return left * right
+        return float(left * right)
+
+    async def evaluate_async(self, context: RenderContext) -> object:
+        left, right = await self.inner_evaluate_async(context)
+        if isinstance(left, int) and isinstance(right, int):
+            return left * right
+        return float(left * right)
+
+
+class DivideExpression(_ArithmeticExpression):
+    __slots__ = ()
+
+    def __str__(self) -> str:
+        return f"{self.left} / {self.right}"
+
+    def evaluate(self, context: RenderContext) -> object:
+        left, right = self.inner_evaluate(context)
+        try:
+            if isinstance(left, int) and isinstance(right, int):
+                return left // right
+            return float(left / right)
+        except ZeroDivisionError as err:
+            raise LiquidTypeError(str(err), token=self.token) from err
+
+    async def evaluate_async(self, context: RenderContext) -> object:
+        left, right = await self.inner_evaluate_async(context)
+        try:
+            if isinstance(left, int) and isinstance(right, int):
+                return left // right
+            return float(left / right)
+        except ZeroDivisionError as err:
+            raise LiquidTypeError(str(err), token=self.token) from err
+
+
+class ModuloExpression(_ArithmeticExpression):
+    __slots__ = ()
+
+    def __str__(self) -> str:
+        return f"{self.left} % {self.right}"
+
+    def evaluate(self, context: RenderContext) -> object:
+        left, right = self.inner_evaluate(context)
+        try:
+            if isinstance(left, int) and isinstance(right, int):
+                return left % right
+            return float(left % right)
+        except ZeroDivisionError as err:
+            raise LiquidTypeError(str(err), token=self.token) from err
+
+    async def evaluate_async(self, context: RenderContext) -> object:
+        left, right = await self.inner_evaluate_async(context)
+        try:
+            if isinstance(left, int) and isinstance(right, int):
+                return left % right
+            return float(left % right)
+        except ZeroDivisionError as err:
+            raise LiquidTypeError(str(err), token=self.token) from err
+
+
+class PowExpression(_ArithmeticExpression):
+    __slots__ = ()
+
+    def __str__(self) -> str:
+        return f"{self.left} ** {self.right}"
+
+    def evaluate(self, context: RenderContext) -> object:
+        left, right = self.inner_evaluate(context)
+        if isinstance(left, int) and isinstance(right, int):
+            return left**right
+        return float(left**right)
+
+    async def evaluate_async(self, context: RenderContext) -> object:
+        left, right = await self.inner_evaluate_async(context)
+        if isinstance(left, int) and isinstance(right, int):
+            return left**right
+        return float(left**right)
+
+
+class NegativeExpression(Expression):
+    __slots__ = ("right",)
+
+    NaN = Decimal("NaN")
+
+    def __init__(self, token: TokenT, right: Expression):
+        super().__init__(token)
+        self.right = right
+
+    def __str__(self) -> str:
+        return f"-{self.right}"
+
+    def evaluate(self, context: RenderContext) -> object:
+        right = self.right.evaluate(context)
+        value = _decimal_operand(right, default=self.NaN)
+        return (
+            value.__neg__()
+            if value is not self.NaN
+            else context.env.undefined(f"-{_to_liquid_string(right)}", token=self.token)
+        )
+
+    async def evaluate_async(self, context: RenderContext) -> object:
+        right = await self.right.evaluate_async(context)
+        value = _decimal_operand(right, default=self.NaN)
+        return (
+            value.__neg__()
+            if value is not self.NaN
+            else context.env.undefined(f"-{_to_liquid_string(right)}", token=self.token)
+        )
+
     def children(self) -> list[Expression]:
-        return [self.left, self.right]
+        return [self.right]
+
+
+class PositiveExpression(Expression):
+    __slots__ = ("right",)
+
+    NaN = Decimal("NaN")
+
+    def __init__(self, token: TokenT, right: Expression):
+        super().__init__(token)
+        self.right = right
+
+    def __str__(self) -> str:
+        return f"+{self.right}"
+
+    def evaluate(self, context: RenderContext) -> object:
+        right = self.right.evaluate(context)
+        value = _decimal_operand(right, default=self.NaN)
+        return (
+            value.__pos__()
+            if value is not self.NaN
+            else context.env.undefined(f"+{_to_liquid_string(right)}", token=self.token)
+        )
+
+    async def evaluate_async(self, context: RenderContext) -> object:
+        right = await self.right.evaluate_async(context)
+        value = _decimal_operand(right, default=self.NaN)
+        return (
+            value.__pos__()
+            if value is not self.NaN
+            else context.env.undefined(f"+{_to_liquid_string(right)}", token=self.token)
+        )
+
+    def children(self) -> list[Expression]:
+        return [self.right]
 
 
 class LoopExpression(Expression):
@@ -1742,7 +1945,7 @@ class LoopExpression(Expression):
         stream.next()
         stream.expect(TokenType.IN)
         stream.next()  # Move past 'in'
-        iterable = parse_primitive(env, stream.next())
+        iterable = parse_primary(env, stream)
 
         # We're looking for a comma that isn't followed by a known keyword.
         # This means we have an array literal.
@@ -1787,22 +1990,24 @@ class LoopExpression(Expression):
                     case "limit":
                         stream.expect_one_of(TokenType.COLON, TokenType.ASSIGN)
                         stream.next()
-                        limit = parse_primitive(env, stream.next())
+                        limit = parse_primary(env, stream)
                     case "cols":
                         stream.expect_one_of(TokenType.COLON, TokenType.ASSIGN)
                         stream.next()
-                        cols = parse_primitive(env, stream.next())
+                        cols = parse_primary(env, stream)
                     case "offset":
                         stream.expect_one_of(TokenType.COLON, TokenType.ASSIGN)
                         stream.next()
-                        offset_token = stream.next()
+                        offset_token = stream.current()
                         if (
                             is_token_type(offset_token, TokenType.WORD)
                             and offset_token.value == "continue"
                         ):
-                            offset = StringLiteral(token=offset_token, value="continue")
+                            offset = StringLiteral(
+                                token=stream.next(), value="continue"
+                            )
                         else:
-                            offset = parse_primitive(env, offset_token)
+                            offset = parse_primary(env, stream)
                     case _:
                         raise LiquidSyntaxError(
                             "expected 'reversed', 'offset' or 'limit', ",
@@ -1938,7 +2143,7 @@ def parse_keyword_arguments(
         if is_token_type(token, TokenType.WORD):
             tokens.expect_one_of(TokenType.COLON, TokenType.ASSIGN)
             tokens.next()  # Move past ":" or "="
-            value = parse_primitive(env, tokens.next())
+            value = parse_primary(env, tokens)
             args.append(KeywordArgument(token.value, value))
         else:
             raise LiquidSyntaxError(
@@ -1977,11 +2182,12 @@ def parse_positional_and_keyword_arguments(
         ):
             # A keyword argument
             tokens.next()  # Move past ":" or "="
-            value = parse_primitive(env, tokens.next())
+            value = parse_primary(env, tokens)
             kwargs.append(KeywordArgument(token.value, value))
         else:
             # A primitive as a positional argument
-            args.append(PositionalArgument(parse_primitive(env, token)))
+            tokens.backup()
+            args.append(PositionalArgument(parse_primary(env, tokens)))
 
     return args, kwargs
 
@@ -2007,7 +2213,7 @@ def parse_parameters(env: Environment, tokens: TokenStream) -> dict[str, Paramet
             ):
                 # A parameter with a default value
                 tokens.next()  # Move past ":" or "="
-                value = parse_primitive(env, tokens.next())
+                value = parse_primary(env, tokens)
                 params[token.value] = Parameter(token, token.value, value)
             else:
                 params[token.value] = Parameter(token, token.value, None)
@@ -2114,3 +2320,27 @@ def _to_liquid_string(val: Any, *, auto_escape: bool = False) -> str:
 
     assert isinstance(val, str)
     return val
+
+
+def _decimal_operand(val: Any, default: int | Decimal = 0) -> int | Decimal:
+    if isinstance(val, bool):
+        return default
+
+    if isinstance(val, int):
+        return val
+
+    if isinstance(val, float):
+        return Decimal(str(val))
+
+    if isinstance(val, str):
+        try:
+            return to_int(val)
+        except ValueError:
+            pass
+
+        try:
+            return Decimal(val)
+        except (ValueError, InvalidOperation):
+            return default
+
+    return default
